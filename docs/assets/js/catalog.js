@@ -47,12 +47,12 @@ window.IA_CATALOG = {
           { n: '28', slug: 'partitioning', title: 'Partitioning & pruning', depth: 'D', status: 'done' }]},
         { id: 'M7', name: 'Transactions & concurrency', topics: [
           { n: '29', slug: 'isolation-levels', title: 'Isolation levels & anomalies', depth: 'X', status: 'done' },
-          { n: '30', slug: 'mvcc-vacuum', title: 'MVCC, VACUUM, bloat, wraparound', depth: 'X' },
-          { n: '31', slug: 'locking', title: 'Locks, SKIP LOCKED, lock queues', depth: 'X' },
-          { n: '32', slug: 'deadlocks-optimistic', title: 'Deadlocks & optimistic locking', depth: 'X' }]},
+          { n: '30', slug: 'mvcc-vacuum', title: 'MVCC, VACUUM, bloat, wraparound', depth: 'X', status: 'done' },
+          { n: '31', slug: 'locking', title: 'Locks, SKIP LOCKED, lock queues', depth: 'X', status: 'done' },
+          { n: '32', slug: 'deadlocks-optimistic', title: 'Deadlocks & optimistic locking', depth: 'X', status: 'done' }]},
         { id: 'M8', name: 'Production & design', topics: [
-          { n: '33', slug: 'schema-design', title: 'Schema design, tenancy & IDs', depth: 'D' },
-          { n: '34', slug: 'postgres-in-production', title: 'Postgres in production', depth: 'X' }]},
+          { n: '33', slug: 'schema-design', title: 'Schema design, tenancy & IDs', depth: 'D', status: 'done' },
+          { n: '34', slug: 'postgres-in-production', title: 'Postgres in production', depth: 'X', status: 'done' }]},
         { id: 'M9', name: 'Architect’s choice: picking the DB', topics: [
           { n: '35', slug: 'db-decision-navigator', title: 'Decision navigator', depth: 'X', status: 'done' },
           { n: '36', slug: 'relational-compared', title: 'Postgres vs MySQL vs Oracle vs SQL Server', depth: 'D', status: 'done' },
@@ -62,7 +62,7 @@ window.IA_CATALOG = {
           { n: '40', slug: 'scenario-lab', title: 'Real-time scenario lab', depth: 'X', status: 'done' },
           { n: '41', slug: 'polyglot-persistence', title: 'Polyglot persistence & migrations', depth: 'X', status: 'done' }]},
         { id: 'M10', name: 'Drill', topics: [
-          { n: '★', slug: 'tricky-50', title: 'Tricky 50 (timed)', depth: 'X' }]}
+          { n: '★', slug: 'tricky-50', title: 'Tricky 50 (timed)', depth: 'X', status: 'done' }]}
       ]
     },
     { id: 'java', name: 'Java & JVM', icon: '☕', status: 'soon', blurb: 'Coming later.', modules: [] },

@@ -58,11 +58,11 @@
 | 27 | `statistics` | Statistics & bad estimates | X | ✅ done |
 | 28 | `partitioning` | Partitioning & pruning | D | ✅ done |
 | 29 | `isolation-levels` | Isolation levels & anomalies | X | ✅ done |
-| 30 | `mvcc-vacuum` | MVCC, VACUUM, bloat, wraparound | X | ⬜ todo |
-| 31 | `locking` | Locks, SKIP LOCKED, lock queues | X | ⬜ todo |
-| 32 | `deadlocks-optimistic` | Deadlocks & optimistic locking | X | ⬜ todo |
-| 33 | `schema-design` | Schema design, tenancy & IDs | D | ⬜ todo |
-| 34 | `postgres-in-production` | Postgres in production | X | ⬜ todo |
+| 30 | `mvcc-vacuum` | MVCC, VACUUM, bloat, wraparound | X | ✅ done |
+| 31 | `locking` | Locks, SKIP LOCKED, lock queues | X | ✅ done |
+| 32 | `deadlocks-optimistic` | Deadlocks & optimistic locking | X | ✅ done |
+| 33 | `schema-design` | Schema design, tenancy & IDs | D | ✅ done |
+| 34 | `postgres-in-production` | Postgres in production | X | ✅ done |
 | 35 | `db-decision-navigator` | Decision navigator | X | ✅ done |
 | 36 | `relational-compared` | Postgres vs MySQL vs Oracle vs SQL Server | D | ✅ done |
 | 37 | `sql-vs-nosql` | SQL vs NoSQL families | X | ✅ done |
@@ -70,7 +70,7 @@
 | 39 | `oltp-vs-olap` | OLTP vs OLAP & columnar | D | ✅ done |
 | 40 | `scenario-lab` | Real-time scenario lab | X | ✅ done |
 | 41 | `polyglot-persistence` | Polyglot persistence & migrations | X | ✅ done |
-| ★ | `tricky-50` | Tricky 50 (timed) | X | ⬜ todo |
+| ★ | `tricky-50` | Tricky 50 (timed) | X | ✅ done |
 
 ## Backlog / notes
 - On phones the joins SVG scales down. Consider a stacked vertical layout below 520px.
