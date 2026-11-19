@@ -7,15 +7,15 @@ window.IA_CATALOG = {
       blurb: 'From logical query order to MVCC, planner internals and choosing the right database as an architect. Postgres semantics throughout.',
       modules: [
         { id: 'M0', name: 'Intro: data & why SQL', topics: [
-          { n: '0a', slug: 'data-in-applications', title: 'How applications see data', depth: 'F' },
-          { n: '0b', slug: 'types-of-data', title: 'Structured vs semi vs unstructured', depth: 'F' },
-          { n: '0c', slug: 'transactional-data', title: 'Transactional vs analytical vs event data', depth: 'F' },
-          { n: '0d', slug: 'why-sql', title: 'What SQL is & why it lasts', depth: 'F' }]},
+          { n: '0a', slug: 'data-in-applications', title: 'How applications see data', depth: 'F', status: 'done' },
+          { n: '0b', slug: 'types-of-data', title: 'Structured vs semi vs unstructured', depth: 'F', status: 'done' },
+          { n: '0c', slug: 'transactional-data', title: 'Transactional vs analytical vs event data', depth: 'F', status: 'done' },
+          { n: '0d', slug: 'why-sql', title: 'What SQL is & why it lasts', depth: 'F', status: 'done' }]},
         { id: 'M1', name: 'Query foundations', topics: [
-          { n: '1', slug: 'logical-query-order', title: 'Logical query processing order', depth: 'F' },
-          { n: '2', slug: 'null-three-valued-logic', title: 'NULL & three-valued logic', depth: 'D' },
-          { n: '3', slug: 'data-types-that-bite', title: 'Data types that bite', depth: 'D' },
-          { n: '4', slug: 'constraints', title: 'Constraints, deferrable & exclusion', depth: 'D' }]},
+          { n: '1', slug: 'logical-query-order', title: 'Logical query processing order', depth: 'F', status: 'done' },
+          { n: '2', slug: 'null-three-valued-logic', title: 'NULL & three-valued logic', depth: 'D', status: 'done' },
+          { n: '3', slug: 'data-types-that-bite', title: 'Data types that bite', depth: 'D', status: 'done' },
+          { n: '4', slug: 'constraints', title: 'Constraints, deferrable & exclusion', depth: 'D', status: 'done' }]},
         { id: 'M2', name: 'Joins & set logic', topics: [
           { n: '5', slug: 'joins', title: 'Joins, visualized', depth: 'F', status: 'done' },
           { n: '6', slug: 'semi-anti-joins', title: 'Semi & anti joins (EXISTS / NOT IN)', depth: 'D', status: 'done' },

@@ -25,14 +25,14 @@
 ## Topics (46)
 | # | slug | title | depth | status |
 |---|---|---|---|---|
-| 0a | `data-in-applications` | How applications see data | F | ⬜ todo |
-| 0b | `types-of-data` | Structured vs semi vs unstructured | F | ⬜ todo |
-| 0c | `transactional-data` | Transactional vs analytical vs event data | F | ⬜ todo |
-| 0d | `why-sql` | What SQL is & why it lasts | F | ⬜ todo |
-| 1 | `logical-query-order` | Logical query processing order | F | ⬜ todo |
-| 2 | `null-three-valued-logic` | NULL & three-valued logic | D | ⬜ todo |
-| 3 | `data-types-that-bite` | Data types that bite | D | ⬜ todo |
-| 4 | `constraints` | Constraints, deferrable & exclusion | D | ⬜ todo |
+| 0a | `data-in-applications` | How applications see data | F | ✅ done |
+| 0b | `types-of-data` | Structured vs semi vs unstructured | F | ✅ done |
+| 0c | `transactional-data` | Transactional vs analytical vs event data | F | ✅ done |
+| 0d | `why-sql` | What SQL is & why it lasts | F | ✅ done |
+| 1 | `logical-query-order` | Logical query processing order | F | ✅ done |
+| 2 | `null-three-valued-logic` | NULL & three-valued logic | D | ✅ done |
+| 3 | `data-types-that-bite` | Data types that bite | D | ✅ done |
+| 4 | `constraints` | Constraints, deferrable & exclusion | D | ✅ done |
 | 5 | `joins` | Joins, visualized | F | ✅ done |
 | 6 | `semi-anti-joins` | Semi & anti joins (EXISTS / NOT IN) | D | ✅ done |
 | 7 | `lateral-top-n` | LATERAL & top-N per group | D | ✅ done |
