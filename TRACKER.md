@@ -4,7 +4,7 @@
 
 ## Current state
 - **Platform:** ✅ hub (`docs/index.html`), SQL track page, engine, CSS, PGlite playground, puzzles, shell generator
-- **Pilot 1:** ✅ `joins`. Waiting for the user's review of the look and feel before building more pages.
+- **Pilot 1:** ✅ `joins` (merged to main). Site: https://chandanbharadwaj.github.io/cb-int/ once Pages is on (main, /docs).
 - **Next action:** after review, build `window-ranking` (pilot 2), then `isolation-levels`, then `explain`; after that, module order.
 
 ## Decisions (from the user)
