@@ -63,13 +63,13 @@
 | 32 | `deadlocks-optimistic` | Deadlocks & optimistic locking | X | ⬜ todo |
 | 33 | `schema-design` | Schema design, tenancy & IDs | D | ⬜ todo |
 | 34 | `postgres-in-production` | Postgres in production | X | ⬜ todo |
-| 35 | `db-decision-navigator` | Decision navigator | X | ⬜ todo |
-| 36 | `relational-compared` | Postgres vs MySQL vs Oracle vs SQL Server | D | ⬜ todo |
-| 37 | `sql-vs-nosql` | SQL vs NoSQL families | X | ⬜ todo |
-| 38 | `distributed-sql` | Distributed SQL & NewSQL | X | ⬜ todo |
-| 39 | `oltp-vs-olap` | OLTP vs OLAP & columnar | D | ⬜ todo |
-| 40 | `scenario-lab` | Real-time scenario lab | X | ⬜ todo |
-| 41 | `polyglot-persistence` | Polyglot persistence & migrations | X | ⬜ todo |
+| 35 | `db-decision-navigator` | Decision navigator | X | ✅ done |
+| 36 | `relational-compared` | Postgres vs MySQL vs Oracle vs SQL Server | D | ✅ done |
+| 37 | `sql-vs-nosql` | SQL vs NoSQL families | X | ✅ done |
+| 38 | `distributed-sql` | Distributed SQL & NewSQL | X | ✅ done |
+| 39 | `oltp-vs-olap` | OLTP vs OLAP & columnar | D | ✅ done |
+| 40 | `scenario-lab` | Real-time scenario lab | X | ✅ done |
+| 41 | `polyglot-persistence` | Polyglot persistence & migrations | X | ✅ done |
 | ★ | `tricky-50` | Tricky 50 (timed) | X | ⬜ todo |
 
 ## Backlog / notes

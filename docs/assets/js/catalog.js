@@ -54,13 +54,13 @@ window.IA_CATALOG = {
           { n: '33', slug: 'schema-design', title: 'Schema design, tenancy & IDs', depth: 'D' },
           { n: '34', slug: 'postgres-in-production', title: 'Postgres in production', depth: 'X' }]},
         { id: 'M9', name: 'Architect’s choice: picking the DB', topics: [
-          { n: '35', slug: 'db-decision-navigator', title: 'Decision navigator', depth: 'X' },
-          { n: '36', slug: 'relational-compared', title: 'Postgres vs MySQL vs Oracle vs SQL Server', depth: 'D' },
-          { n: '37', slug: 'sql-vs-nosql', title: 'SQL vs NoSQL families', depth: 'X' },
-          { n: '38', slug: 'distributed-sql', title: 'Distributed SQL & NewSQL', depth: 'X' },
-          { n: '39', slug: 'oltp-vs-olap', title: 'OLTP vs OLAP & columnar', depth: 'D' },
-          { n: '40', slug: 'scenario-lab', title: 'Real-time scenario lab', depth: 'X' },
-          { n: '41', slug: 'polyglot-persistence', title: 'Polyglot persistence & migrations', depth: 'X' }]},
+          { n: '35', slug: 'db-decision-navigator', title: 'Decision navigator', depth: 'X', status: 'done' },
+          { n: '36', slug: 'relational-compared', title: 'Postgres vs MySQL vs Oracle vs SQL Server', depth: 'D', status: 'done' },
+          { n: '37', slug: 'sql-vs-nosql', title: 'SQL vs NoSQL families', depth: 'X', status: 'done' },
+          { n: '38', slug: 'distributed-sql', title: 'Distributed SQL & NewSQL', depth: 'X', status: 'done' },
+          { n: '39', slug: 'oltp-vs-olap', title: 'OLTP vs OLAP & columnar', depth: 'D', status: 'done' },
+          { n: '40', slug: 'scenario-lab', title: 'Real-time scenario lab', depth: 'X', status: 'done' },
+          { n: '41', slug: 'polyglot-persistence', title: 'Polyglot persistence & migrations', depth: 'X', status: 'done' }]},
         { id: 'M10', name: 'Drill', topics: [
           { n: '★', slug: 'tricky-50', title: 'Tricky 50 (timed)', depth: 'X' }]}
       ]
