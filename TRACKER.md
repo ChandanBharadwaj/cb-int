@@ -40,12 +40,12 @@
 | 9 | `join-fan-out` | Join fan-out & double counting | D | ⬜ todo |
 | 10 | `grouping` | GROUP BY, FILTER, ROLLUP/CUBE | D | ⬜ todo |
 | 11 | `window-ranking` | Window functions I: ranking | D | ⬜ todo |
-| 12 | `window-frames` | Window functions II: frames | X | ⬜ todo |
-| 13 | `gaps-islands` | Gaps & islands, sessionization | X | ⬜ todo |
-| 14 | `pivot-percentiles` | Pivots & percentiles | D | ⬜ todo |
-| 15 | `ctes` | CTEs: materialized vs inlined | D | ⬜ todo |
-| 16 | `recursive-ctes` | Recursive CTEs & graphs | X | ⬜ todo |
-| 17 | `subqueries` | Correlated subqueries | D | ⬜ todo |
+| 12 | `window-frames` | Window functions II: frames | X | ✅ done |
+| 13 | `gaps-islands` | Gaps & islands, sessionization | X | ✅ done |
+| 14 | `pivot-percentiles` | Pivots & percentiles | D | ✅ done |
+| 15 | `ctes` | CTEs: materialized vs inlined | D | ✅ done |
+| 16 | `recursive-ctes` | Recursive CTEs & graphs | X | ✅ done |
+| 17 | `subqueries` | Correlated subqueries | D | ✅ done |
 | 18 | `upsert-merge` | Upsert, MERGE, RETURNING | D | ⬜ todo |
 | 19 | `pagination` | OFFSET vs keyset pagination | D | ⬜ todo |
 | 20 | `latest-per-key` | Dedup & latest row per key | D | ⬜ todo |
