@@ -41,12 +41,12 @@ window.IA_CATALOG = {
           { n: '23', slug: 'index-types', title: 'GIN, GiST, BRIN, partial, expression', depth: 'D' },
           { n: '24', slug: 'index-not-used', title: 'Why isn’t my index used?', depth: 'X' }]},
         { id: 'M6', name: 'Planning & performance', topics: [
-          { n: '25', slug: 'explain', title: 'Reading EXPLAIN ANALYZE', depth: 'X' },
-          { n: '26', slug: 'join-algorithms', title: 'Nested loop, hash & merge joins', depth: 'X' },
-          { n: '27', slug: 'statistics', title: 'Statistics & bad estimates', depth: 'X' },
-          { n: '28', slug: 'partitioning', title: 'Partitioning & pruning', depth: 'D' }]},
+          { n: '25', slug: 'explain', title: 'Reading EXPLAIN ANALYZE', depth: 'X', status: 'done' },
+          { n: '26', slug: 'join-algorithms', title: 'Nested loop, hash & merge joins', depth: 'X', status: 'done' },
+          { n: '27', slug: 'statistics', title: 'Statistics & bad estimates', depth: 'X', status: 'done' },
+          { n: '28', slug: 'partitioning', title: 'Partitioning & pruning', depth: 'D', status: 'done' }]},
         { id: 'M7', name: 'Transactions & concurrency', topics: [
-          { n: '29', slug: 'isolation-levels', title: 'Isolation levels & anomalies', depth: 'X' },
+          { n: '29', slug: 'isolation-levels', title: 'Isolation levels & anomalies', depth: 'X', status: 'done' },
           { n: '30', slug: 'mvcc-vacuum', title: 'MVCC, VACUUM, bloat, wraparound', depth: 'X' },
           { n: '31', slug: 'locking', title: 'Locks, SKIP LOCKED, lock queues', depth: 'X' },
           { n: '32', slug: 'deadlocks-optimistic', title: 'Deadlocks & optimistic locking', depth: 'X' }]},

@@ -53,11 +53,11 @@
 | 22 | `btree-internals` | B-tree internals & covering indexes | X | ⬜ todo |
 | 23 | `index-types` | GIN, GiST, BRIN, partial, expression | D | ⬜ todo |
 | 24 | `index-not-used` | Why isn’t my index used? | X | ⬜ todo |
-| 25 | `explain` | Reading EXPLAIN ANALYZE | X | ⬜ todo |
-| 26 | `join-algorithms` | Nested loop, hash & merge joins | X | ⬜ todo |
-| 27 | `statistics` | Statistics & bad estimates | X | ⬜ todo |
-| 28 | `partitioning` | Partitioning & pruning | D | ⬜ todo |
-| 29 | `isolation-levels` | Isolation levels & anomalies | X | ⬜ todo |
+| 25 | `explain` | Reading EXPLAIN ANALYZE | X | ✅ done |
+| 26 | `join-algorithms` | Nested loop, hash & merge joins | X | ✅ done |
+| 27 | `statistics` | Statistics & bad estimates | X | ✅ done |
+| 28 | `partitioning` | Partitioning & pruning | D | ✅ done |
+| 29 | `isolation-levels` | Isolation levels & anomalies | X | ✅ done |
 | 30 | `mvcc-vacuum` | MVCC, VACUUM, bloat, wraparound | X | ⬜ todo |
 | 31 | `locking` | Locks, SKIP LOCKED, lock queues | X | ⬜ todo |
 | 32 | `deadlocks-optimistic` | Deadlocks & optimistic locking | X | ⬜ todo |
