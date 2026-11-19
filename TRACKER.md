@@ -75,3 +75,8 @@
 ## Backlog / notes
 - On phones the joins SVG scales down. Consider a stacked vertical layout below 520px.
 - Sections below the fold reveal on scroll, so full-page screenshots show empty space. That is expected.
+
+## Template decisions (from the user's review of Joins)
+- **Left sidebar** lists every module and topic (the current module is expanded) plus "On this page". On screens under 1100px, a ☰ Topics drawer replaces it.
+- **Every topic starts with "Start here"** (`intro` in the data file), written for a first-time reader: plain words, an analogy, 3–4 numbered steps, an optional mini animation (`intro.widget`) and a glossary of terms.
+- **Animations are slow by default.** About 2.4 s per step, with a Slow/Normal/Fast control, and line draws take 1 s.

@@ -329,6 +329,35 @@
   }
   IA.topbar = topbar;
 
+  function trackTree(track, current, onPage) {
+    const box = el('div', { class: 'tnav' });
+    if (onPage) box.append(el('div', { class: 'toc-h', text: 'On this page' }), onPage);
+    box.append(el('div', { class: 'toc-h toc-h2' }, el('a', { href: 'index.html', text: track.name + ' · all topics' })));
+    (track.modules || []).forEach((m) => {
+      const here = m.topics.some((t) => t.slug === current);
+      const d = el('details', { class: 'tn-mod', open: here || null },
+        el('summary', null, el('span', { class: 'tn-id', text: m.id }), el('span', { text: m.name })));
+      m.topics.forEach((t) => d.append(t.slug === current ? el('span', { class: 'tn-t current', 'aria-current': 'page', text: t.n + ' · ' + t.title })
+        : t.status === 'done' ? el('a', { class: 'tn-t', href: t.slug + '.html', text: t.n + ' · ' + t.title })
+        : el('span', { class: 'tn-t soon', title: 'coming soon', text: t.n + ' · ' + t.title })));
+      box.append(d);
+    });
+    return box;
+  }
+  function drawerButton(track, current) {
+    const b = el('button', { class: 'icon-btn tn-btn', 'aria-label': 'All topics', text: '☰ Topics' });
+    const back = el('div', { class: 'tn-backdrop', hidden: true });
+    const panel = el('div', { class: 'tn-panel', role: 'dialog', 'aria-label': 'All topics' }, trackTree(track, current));
+    back.append(panel);
+    const close = () => { back.hidden = true; document.body.style.overflow = ''; };
+    b.addEventListener('click', () => { back.hidden = false; document.body.style.overflow = 'hidden'; });
+    back.addEventListener('click', (e) => { if (e.target === back) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    document.body.append(back);
+    return b;
+  }
+  IA.trackTree = trackTree;
+
   function buildPage(D) {
     const tracks = (window.IA_CATALOG || { tracks: [] }).tracks;
     const track = tracks.find((t) => t.id === D.track) || { modules: [] };
@@ -345,8 +374,11 @@
     const app = document.getElementById('app'); app.innerHTML = '';
     const nav = el('nav', { class: 'secnav', 'aria-label': 'Sections' }); const navInner = el('div', { class: 'secnav-inner' }); nav.append(navInner);
     const main = el('main', { class: 'wrap' });
-    const toc = el('aside', { class: 'toc', 'aria-label': 'On this page' }, el('div', { class: 'toc-h', text: 'On this page' }));
-    app.append(topbar('../', [{ t: 'Home', href: '../index.html' }, { t: track.name, href: 'index.html' }, { t: D.title }]), nav, el('div', { class: 'layout' }, toc, main));
+    const onPage = el('div', { class: 'tn-onpage' });
+    const toc = el('aside', { class: 'toc', 'aria-label': 'Navigation' }, trackTree(track, D.slug, onPage));
+    const tb = topbar('../', [{ t: 'Home', href: '../index.html' }, { t: track.name, href: 'index.html' }, { t: D.title }]);
+    tb.insertBefore(drawerButton(track, D.slug), tb.children[1]);
+    app.append(tb, nav, el('div', { class: 'layout' }, toc, main));
     const secs = []; let num = 0;
     const add = (id, title, label, sub) => { const s = section(id, ++num, title, sub); secs.push([id, label]); main.append(s); return s; };
 
@@ -367,6 +399,22 @@
       hero.append(el('div', { class: 'tldr' }, box, stats));
     }
     main.append(hero);
+
+    /* start here (beginner-friendly) */
+    if (D.intro) {
+      const I = D.intro;
+      const s = add('start', 'Start here', 'Start here', 'New to this? Read this first. Already comfortable? Jump to <a href="#visual">the visual</a>.');
+      const top = el('div', { class: 'intro-top' }, el('div', { class: 'card intro-what reveal' }, el('div', { class: 'kicker', text: 'In plain words' }), el('p', { class: 'lead', html: I.what })));
+      if (I.analogy) top.append(el('div', { class: 'card analogy reveal' }, el('div', { class: 'an-ic', text: I.analogy.icon || '💡' }),
+        el('div', null, el('div', { class: 'kicker', text: 'Think of it like…' }), el('h3', { html: I.analogy.title }), el('p', { html: I.analogy.text }))));
+      s.append(top);
+      if (I.steps) s.append(el('div', { class: 'ib-steps reveal' }, I.steps.map((x, i) => el('div', { class: 'card ib-step' },
+        el('div', { class: 'ib-n', text: String(i + 1) }), el('h4', { html: x.t }), el('p', { html: x.d }), x.code ? codeBox(x.code, 'sql') : null))));
+      if (I.widget && IA.widgets[I.widget]) { const body = el('div', { class: 'card widget-card reveal', style: { marginTop: '14px' } }); const wb = el('div', { class: 'widget-body' }); body.append(wb); s.append(body);
+        try { IA.widgets[I.widget](wb, { el, svg, esc, reduced, sleep, clamp, codeBox }); } catch (e) { console.error(e); } }
+      if (I.terms) s.append(el('div', { class: 'card reveal ib-terms', style: { marginTop: '14px' } }, el('div', { class: 'kicker', text: 'Words you will see' }),
+        el('dl', null, I.terms.map(([k, v]) => [el('dt', { html: k }), el('dd', { html: v })]).flat())));
+    }
 
     /* visual */
     if (D.visual && IA.widgets[D.slug]) {
@@ -434,12 +482,7 @@
     main.append(el('footer', { class: 'foot', html: 'Interview Atlas · Postgres 16+ semantics unless noted.' }));
 
     const links = {}; const tocLinks = {};
-    secs.forEach(([id, label]) => { const a = el('a', { href: '#' + id, text: label }); links[id] = a; navInner.append(a); const t = el('a', { href: '#' + id, text: label }); tocLinks[id] = t; toc.append(t); });
-    if (meta.module) {
-      toc.append(el('div', { class: 'toc-h toc-h2', text: meta.module.name }));
-      meta.module.topics.forEach((x) => toc.append(x.slug === D.slug ? el('span', { class: 'toc-sys current', text: x.title })
-        : x.status === 'done' ? el('a', { class: 'toc-sys', href: x.slug + '.html', text: x.title }) : el('span', { class: 'toc-sys soon', text: x.title })));
-    }
+    secs.forEach(([id, label]) => { const a = el('a', { href: '#' + id, text: label }); links[id] = a; navInner.append(a); const t = el('a', { href: '#' + id, text: label }); tocLinks[id] = t; onPage.append(t); });
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((ents) => ents.forEach((e) => { if (e.isIntersecting) {
         Object.values(links).forEach((a) => a.classList.remove('active'));

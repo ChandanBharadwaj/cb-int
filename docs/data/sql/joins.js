@@ -13,6 +13,24 @@ IA.register({
       { v: '≤ 1×', l: 'per left row, a semi-join (EXISTS) never multiplies rows. An inner join can' }
     ]
   },
+  intro: {
+    what: 'A database stores information in <b>tables</b>, which are like spreadsheets with rows and columns. To avoid repeating data, related information lives in <b>separate tables</b>: customers in one, their orders in another. A <b>JOIN</b> puts them back together for a query, by matching rows that share a value (here, the customer’s id).',
+    analogy: { icon: '🧩', title: 'Matching two lists by an ID', text: 'You have a class list (student id, name) and an exam-results list (student id, score). To print “name + score” you take each student, look up rows in the results list with the same id, and write the pair down. That lookup-and-pair is a join. Students who skipped the exam are what the <i>different join types</i> are about.' },
+    steps: [
+      { t: 'Why split data at all?', d: 'If every order row also stored the customer’s name and city, changing a city would mean updating hundreds of rows. So we store the customer once and orders point to it.' },
+      { t: 'The link column', d: '<code>orders.customer_id</code> holds the <code>id</code> of a row in <code>customers</code>. This is a <b>foreign key</b>: a pointer from one table to another.' },
+      { t: 'Join = pair rows where the link matches', d: 'The <code>ON</code> clause says which pairs to keep.', code: 'SELECT c.name, o.amount\nFROM customers c\nJOIN orders o ON o.customer_id = c.id;' },
+      { t: 'What about rows with no partner?', d: 'A customer with no orders, or an order with no customer. <b>INNER</b> drops them, <b>LEFT</b> keeps the left side’s, <b>FULL</b> keeps both. Missing values are filled with <code>NULL</code>.' }
+    ],
+    widget: 'joins-intro',
+    terms: [
+      ['table / row / column', 'A grid of data; one row = one thing (a customer), one column = one attribute (name).'],
+      ['primary key', 'The column that uniquely identifies a row, e.g. <code>customers.id</code>.'],
+      ['foreign key', 'A column that points at another table’s primary key, e.g. <code>orders.customer_id</code>.'],
+      ['NULL', 'A marker meaning “no value / unknown”. It is not zero or an empty string.'],
+      ['alias (c, o)', 'A short nickname for a table inside one query: <code>customers c</code>.']
+    ]
+  },
   visual: {
     title: 'Watch the join loop',
     caption: 'Pick a join type and where the <code>status = \'paid\'</code> filter goes, then press Play. Lines show matches. Rows padded with NULLs are shown in grey. Rows struck through were removed by WHERE.'

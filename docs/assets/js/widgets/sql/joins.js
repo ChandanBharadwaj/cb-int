@@ -13,7 +13,7 @@ IA.widget('joins', (root, ctx) => {
     SEMI: 'FROM customers c WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id',
     ANTI: 'FROM customers c WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id'
   };
-  let type = 'LEFT'; let filt = 'none'; let running = false; let gen = 0;
+  let type = 'LEFT'; let filt = 'none'; let running = false; let gen = 0; let speed = 2400;
 
   const segT = el('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Join type' });
   TYPES.forEach((t) => { const b = el('button', { text: t, class: t === type ? 'on' : '' }); b.addEventListener('click', () => { type = t; paintSeg(segT, t); reset(); }); segT.append(b); });
@@ -23,6 +23,8 @@ IA.widget('joins', (root, ctx) => {
   const bPlay = el('button', { class: 'btn primary', text: '▶ Play' });
   const bStep = el('button', { class: 'btn', text: 'Step ›' });
   const bReset = el('button', { class: 'btn', text: '↺ Reset' });
+  const segS = el('div', { class: 'seg', 'aria-label': 'Speed' });
+  [['Slow', 3600], ['Normal', 2400], ['Fast', 1100]].forEach(([l, v]) => { const b = el('button', { text: l, class: v === speed ? 'on' : '' }); b.addEventListener('click', () => { speed = v; paintSeg(segS, l); }); segS.append(b); });
   const sqlLine = el('div', { class: 'codebox', style: { marginBottom: '10px' } });
   const W = 760, RH = 34, TOP = 56, LX = 20, RX = 470, TW = 270;
   const stage = svg('svg', { viewBox: `0 0 ${W} ${TOP + RH * 4 + 20}`, role: 'img', 'aria-label': 'Customers table on the left, orders table on the right, lines showing matches' });
@@ -31,7 +33,7 @@ IA.widget('joins', (root, ctx) => {
   const stats = el('div', { class: 'w-stats' });
   root.classList.add('jv');
   root.append(el('div', { class: 'w-controls' }, segT), el('div', { class: 'w-controls' }, segF), sqlLine,
-    el('div', { class: 'w-stage' }, stage), el('div', { class: 'w-controls', style: { marginTop: '8px' } }, bPlay, bStep, bReset), narr,
+    el('div', { class: 'w-stage' }, stage), el('div', { class: 'w-controls', style: { marginTop: '8px' } }, bPlay, bStep, bReset, el('span', { class: 'tiny', text: 'speed' }), segS), narr,
     el('h3', { class: 'sub-h', text: 'Result', style: { fontSize: '14px', margin: '12px 0 6px' } }), resHost, stats);
 
   const lRows = []; const rRows = []; const lines = svg('g');
@@ -90,7 +92,7 @@ IA.widget('joins', (root, ctx) => {
       s.m.forEach((j) => { rRows[j].setAttribute('class', 'row-box hot');
         const y1 = TOP + s.l * RH + 14, y2 = TOP + j * RH + 14;
         const p = svg('path', { class: 'match', d: `M${LX + TW} ${y1} C ${LX + TW + 90} ${y1}, ${RX - 90} ${y2}, ${RX} ${y2}` });
-        if (!reduced) { p.style.strokeDasharray = '400'; p.style.strokeDashoffset = '400'; p.style.transition = 'stroke-dashoffset .5s ease'; requestAnimationFrame(() => { p.style.strokeDashoffset = '0'; }); }
+        if (!reduced) { p.style.strokeDasharray = '400'; p.style.strokeDashoffset = '400'; p.style.transition = 'stroke-dashoffset 1s ease'; requestAnimationFrame(() => { p.style.strokeDashoffset = '0'; }); }
         lines.append(p); });
     }
     if (s.r != null) rRows[s.r].setAttribute('class', 'row-box hot miss');
@@ -115,7 +117,7 @@ IA.widget('joins', (root, ctx) => {
     if (running) { running = false; bPlay.textContent = '▶ Play'; return; }
     if (k >= steps.length) reset();
     running = true; bPlay.textContent = '⏸ Pause'; const g = gen;
-    while (running && g === gen && step()) await sleep(reduced ? 300 : 1400);
+    while (running && g === gen && step()) await sleep(reduced ? 600 : speed);
     if (g === gen) { running = false; bPlay.textContent = '▶ Play'; }
   });
   reset();

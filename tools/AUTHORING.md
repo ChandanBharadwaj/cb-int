@@ -6,6 +6,7 @@ Each topic is **one data file + one widget file**. `docs/assets/js/engine.js` re
 IA.register({
   track: 'sql', slug, title, tagline: 'HTML',
   tldr: { problem, model, hook, facts: [{ v, l } ×3] },
+  intro: { what, analogy?: { icon, title, text }, steps: [{ t, d, code? }], widget?, terms?: [[k, v]] },  // beginner "Start here"
   visual: { title, caption },                       // rendered by IA.widget(slug)
   extras?: [{ id, title, label?, caption? }],       // more widgets: IA.widget(id)
   playground?: { setup: 'SQL', presets: [{ label, sql, note? }] },   // runs in PGlite
