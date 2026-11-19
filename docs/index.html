@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<title>Interview Atlas</title>
+<meta name="description" content="Animated, interactive interview prep: SQL & Postgres first, more tracks coming.">
+<link rel="stylesheet" href="assets/css/site.css">
+<script>try{var t=JSON.parse(localStorage.getItem("ia-theme")||"\"light\"");if(t!=="auto")document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+</head>
+<body>
+<div id="top"></div>
+<main class="wrap">
+  <section class="ix-hero">
+    <div class="eyebrow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"><span class="pill accent">one stop shop</span><span class="pill">animations · playgrounds · puzzles</span></div>
+    <h1>Interview prep you can <span class="grad">watch, run and break.</span></h1>
+    <p>Each track goes from strong fundamentals to internals and production incidents. Pages are visual first: animated mechanisms, a real Postgres in your browser, tricky puzzles and interview questions.</p>
+  </section>
+  <div class="track-grid" id="tracks"></div>
+  <footer class="foot">Interview Atlas · static site on GitHub Pages</footer>
+</main>
+<script src="assets/js/catalog.js"></script>
+<script src="assets/js/engine.js"></script>
+<script>
+(function () {
+  const { el, store } = IA.h;
+  document.getElementById('top').append(IA.topbar('', [{ t: 'Home' }]));
+  const host = document.getElementById('tracks');
+  IA_CATALOG.tracks.forEach((t) => {
+    const all = IA.flatTopics(t); const done = all.filter((x) => x.status === 'done').length;
+    host.append(el('a', { class: 'track-card' + (t.status === 'soon' ? ' soon' : ''), href: t.status === 'soon' ? '#' : t.id + '/index.html' },
+      el('div', { class: 'ti', text: t.icon }), el('h3', { text: t.name }), el('p', { text: t.blurb }),
+      all.length ? el('div', { class: 'tiny', style: { marginTop: '10px' }, text: done + ' / ' + all.length + ' topics live · ' + t.modules.length + ' modules' }) : el('div', { class: 'tiny', style: { marginTop: '10px' }, text: 'coming soon' }),
+      all.length ? el('div', { class: 'prog' }, el('i', { style: { width: (100 * done / all.length) + '%' } })) : null));
+  });
+})();
+</script>
+</body>
+</html>
