@@ -34,12 +34,12 @@
 | 3 | `data-types-that-bite` | Data types that bite | D | ⬜ todo |
 | 4 | `constraints` | Constraints, deferrable & exclusion | D | ⬜ todo |
 | 5 | `joins` | Joins, visualized | F | ✅ done |
-| 6 | `semi-anti-joins` | Semi & anti joins (EXISTS / NOT IN) | D | ⬜ todo |
-| 7 | `lateral-top-n` | LATERAL & top-N per group | D | ⬜ todo |
-| 8 | `set-operations` | UNION / INTERSECT / EXCEPT | F | ⬜ todo |
-| 9 | `join-fan-out` | Join fan-out & double counting | D | ⬜ todo |
-| 10 | `grouping` | GROUP BY, FILTER, ROLLUP/CUBE | D | ⬜ todo |
-| 11 | `window-ranking` | Window functions I: ranking | D | ⬜ todo |
+| 6 | `semi-anti-joins` | Semi & anti joins (EXISTS / NOT IN) | D | ✅ done |
+| 7 | `lateral-top-n` | LATERAL & top-N per group | D | ✅ done |
+| 8 | `set-operations` | UNION / INTERSECT / EXCEPT | F | ✅ done |
+| 9 | `join-fan-out` | Join fan-out & double counting | D | ✅ done |
+| 10 | `grouping` | GROUP BY, FILTER, ROLLUP/CUBE | D | ✅ done |
+| 11 | `window-ranking` | Window functions I: ranking | D | ✅ done |
 | 12 | `window-frames` | Window functions II: frames | X | ✅ done |
 | 13 | `gaps-islands` | Gaps & islands, sessionization | X | ✅ done |
 | 14 | `pivot-percentiles` | Pivots & percentiles | D | ✅ done |
