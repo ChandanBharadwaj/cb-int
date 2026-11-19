@@ -4,8 +4,8 @@
 
 ## Current state
 - **Platform:** ✅ hub (`docs/index.html`), SQL track page, engine, CSS, PGlite playground, puzzles, shell generator
-- **Pilot 1:** ✅ `joins` (merged to main). Site: https://chandanbharadwaj.github.io/cb-int/ once Pages is on (main, /docs).
-- **Next action:** after review, build `window-ranking` (pilot 2), then `isolation-levels`, then `explain`; after that, module order.
+- **All 46 SQL topics:** ✅ built, verified against real Postgres (PGlite = PG18) and smoke-tested at desktop and 390px. Merged to main.
+- **Next action:** take review feedback on individual pages, then start the next track (Java / Spring / AI agents) once the user picks one.
 
 ## Decisions (from the user)
 - Postgres only for internals. Other databases appear only in M9 comparisons.
@@ -46,13 +46,13 @@
 | 15 | `ctes` | CTEs: materialized vs inlined | D | ✅ done |
 | 16 | `recursive-ctes` | Recursive CTEs & graphs | X | ✅ done |
 | 17 | `subqueries` | Correlated subqueries | D | ✅ done |
-| 18 | `upsert-merge` | Upsert, MERGE, RETURNING | D | ⬜ todo |
-| 19 | `pagination` | OFFSET vs keyset pagination | D | ⬜ todo |
-| 20 | `latest-per-key` | Dedup & latest row per key | D | ⬜ todo |
-| 21 | `heap-pages-toast` | Heap pages, tuples & TOAST | X | ⬜ todo |
-| 22 | `btree-internals` | B-tree internals & covering indexes | X | ⬜ todo |
-| 23 | `index-types` | GIN, GiST, BRIN, partial, expression | D | ⬜ todo |
-| 24 | `index-not-used` | Why isn’t my index used? | X | ⬜ todo |
+| 18 | `upsert-merge` | Upsert, MERGE, RETURNING | D | ✅ done |
+| 19 | `pagination` | OFFSET vs keyset pagination | D | ✅ done |
+| 20 | `latest-per-key` | Dedup & latest row per key | D | ✅ done |
+| 21 | `heap-pages-toast` | Heap pages, tuples & TOAST | X | ✅ done |
+| 22 | `btree-internals` | B-tree internals & covering indexes | X | ✅ done |
+| 23 | `index-types` | GIN, GiST, BRIN, partial, expression | D | ✅ done |
+| 24 | `index-not-used` | Why isn’t my index used? | X | ✅ done |
 | 25 | `explain` | Reading EXPLAIN ANALYZE | X | ✅ done |
 | 26 | `join-algorithms` | Nested loop, hash & merge joins | X | ✅ done |
 | 27 | `statistics` | Statistics & bad estimates | X | ✅ done |
@@ -73,6 +73,10 @@
 | ★ | `tricky-50` | Tricky 50 (timed) | X | ✅ done |
 
 ## Backlog / notes
+- Preset labels must not contain the word "run", because the smoke test clicks the first button matching "Run".
+- Playground keeps one DB across presets and shows the last 3 result sets; VACUUM must be its own preset.
+- PGlite lacks btree_gist, pg_trgm, pageinspect, pg_stat_statements and statement_timeout enforcement, and uses the C collation.
+- Concurrency (locks, isolation, deadlocks) is simulated in widgets; PGlite is single-session.
 - On phones the joins SVG scales down. Consider a stacked vertical layout below 520px.
 - Sections below the fold reveal on scroll, so full-page screenshots show empty space. That is expected.
 
