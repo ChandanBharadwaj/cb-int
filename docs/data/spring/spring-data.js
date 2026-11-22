@@ -151,22 +151,24 @@ while (!w.isEmpty()) {
   w = repo.findFirst50ByStatusOrderByCreatedAtDescIdDesc(PAID, w.positionAt(w.size() - 1));
 }` },
     { title: 'Custom fragment', lang: 'java', code: `public interface OrderSearch {
-  List<OrderRow> search(OrderFilter f, int limit);
+  List<OrderHit> search(OrderFilter f, int limit);
 }
+
+public record OrderHit(long id, BigDecimal total, Instant createdAt) {}   // created_at → createdAt
 
 class OrderSearchImpl implements OrderSearch {          // "Impl" suffix → picked up automatically
   private final JdbcClient jdbc;                         // Framework 6.1+
   OrderSearchImpl(JdbcClient jdbc) { this.jdbc = jdbc; }
 
-  public List<OrderRow> search(OrderFilter f, int limit) {
+  public List<OrderHit> search(OrderFilter f, int limit) {
     return jdbc.sql("""
         SELECT id, total, created_at FROM orders
         WHERE tenant_id = :tenant
-          AND (:status::text IS NULL OR status = :status)
+          AND (CAST(:status AS text) IS NULL OR status = :status)
           AND to_tsvector('simple', note) @@ plainto_tsquery('simple', :q)
         ORDER BY created_at DESC LIMIT :limit""")
       .param("tenant", f.tenantId()).param("status", f.status()).param("q", f.text()).param("limit", limit)
-      .query(OrderRowRecord.class).list();
+      .query(OrderHit.class).list();
   }
 }` },
     { title: 'Auditing & isNew', lang: 'java', code: `@Configuration

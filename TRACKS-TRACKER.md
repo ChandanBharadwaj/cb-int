@@ -12,12 +12,12 @@
 | Track | Topics | todo | written | done |
 |---|---|---|---|---|
 | Java & JVM (`java`) | 28 | 28 | 0 | 0 |
-| Spring & Spring Boot (`spring`) | 27 | 27 | 0 | 0 |
+| Spring & Spring Boot (`spring`) | 27 | 18 | 9 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 25 | 0 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **125** | **24** | **0** |
+| **Total** | **149** | **116** | **33** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -25,7 +25,7 @@
 | 1 | java-A | Java & JVM | 10 topics: `references-pass-by-value`, `equals-hashcode`, `immutability-records`, `generics-erasure`, `exceptions`, `strings-interning`, `sealed-pattern-matching`, `lambdas-functional`, `streams-collectors`, `optional` | pending | |
 | 1 | java-B | Java & JVM | 8 topics: `hashmap-internals`, `choosing-collections`, `concurrent-collections`, `class-loading`, `jvm-memory-areas`, `garbage-collection`, `jit-compilation`, `leaks-oom` | pending | |
 | 2 | java-C | Java & JVM | 10 topics: `threads-executors`, `java-memory-model`, `locks-synchronized`, `completablefuture`, `virtual-threads`, `concurrency-bugs`, `java-versions`, `profiling-jfr`, `io-nio`, `tricky-java` | pending | |
-| 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | pending | |
+| 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | done | 9 written, 65 concept puzzles, extras for scopes/conditions/aop-order/trace; uncertain: 6.1 @Transactional on tx listeners, Modulith property name, graceful shutdown default 3.4, 6.2 @Fallback/background bootstrap |
 | 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | pending | |
 | 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | pending | |
 | 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | pending | |
@@ -87,16 +87,16 @@ Verified by: `docs`. Code language: `java`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Spring core** | | | | | |
-| 1 | `ioc-di` | IoC & dependency injection | ApplicationContext; constructor vs field injection; @Qualifier/@Primary; circular deps | F | A | todo | |
-| 2 | `bean-lifecycle-scopes` | Bean lifecycle & scopes | instantiate → populate → init → destroy; BeanPostProcessor; scopes & scoped proxies; prototype-in-singleton trap | D | A | todo | |
-| 3 | `configuration-profiles` | @Configuration & profiles | full vs lite mode (CGLIB); @Bean methods; @Profile & @Conditional; import ordering | D | A | todo | |
-| 4 | `aop-proxies` | AOP & proxies | JDK vs CGLIB proxies; the self-invocation trap; pointcuts & advice order; final methods | X | A | todo | |
-| 5 | `spring-events` | Application events | publish & listen; @TransactionalEventListener phases; async events; ordering | D | A | todo | |
+| 1 | `ioc-di` | IoC & dependency injection | ApplicationContext; constructor vs field injection; @Qualifier/@Primary; circular deps | F | A | written | |
+| 2 | `bean-lifecycle-scopes` | Bean lifecycle & scopes | instantiate → populate → init → destroy; BeanPostProcessor; scopes & scoped proxies; prototype-in-singleton trap | D | A | written | |
+| 3 | `configuration-profiles` | @Configuration & profiles | full vs lite mode (CGLIB); @Bean methods; @Profile & @Conditional; import ordering | D | A | written | |
+| 4 | `aop-proxies` | AOP & proxies | JDK vs CGLIB proxies; the self-invocation trap; pointcuts & advice order; final methods | X | A | written | |
+| 5 | `spring-events` | Application events | publish & listen; @TransactionalEventListener phases; async events; ordering | D | A | written | |
 | **M1** | | **Spring Boot** | | | | | |
-| 6 | `auto-configuration` | Auto-configuration | AutoConfiguration.imports; @ConditionalOn*; condition evaluation report; writing your own | X | A | todo | |
-| 7 | `starters-dependencies` | Starters & dependency management | BOMs & parent POM; version overrides; dependency conflicts; Gradle vs Maven | F | A | todo | |
-| 8 | `externalized-config` | Externalized configuration | property-source order; @ConfigurationProperties & validation; profiles; secrets | D | A | todo | |
-| 9 | `actuator-observability` | Actuator & observability | health groups & probes; Micrometer metrics; tracing (OTel); securing endpoints | D | A | todo | |
+| 6 | `auto-configuration` | Auto-configuration | AutoConfiguration.imports; @ConditionalOn*; condition evaluation report; writing your own | X | A | written | |
+| 7 | `starters-dependencies` | Starters & dependency management | BOMs & parent POM; version overrides; dependency conflicts; Gradle vs Maven | F | A | written | |
+| 8 | `externalized-config` | Externalized configuration | property-source order; @ConfigurationProperties & validation; profiles; secrets | D | A | written | |
+| 9 | `actuator-observability` | Actuator & observability | health groups & probes; Micrometer metrics; tracing (OTel); securing endpoints | D | A | written | |
 | 10 | `boot-testing` | Testing in Boot | test slices; @MockitoBean; Testcontainers & @ServiceConnection; context caching | D | B | todo | |
 | **M2** | | **Web** | | | | | |
 | 11 | `mvc-request-flow` | Spring MVC request flow | DispatcherServlet; handler mapping & adapters; argument resolvers; message converters; interceptors vs filters | X | B | todo | |

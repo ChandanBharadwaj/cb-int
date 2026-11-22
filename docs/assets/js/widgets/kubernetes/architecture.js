@@ -10,11 +10,11 @@ IA.widget('architecture', (root, ctx) => {
 .k8ar .c.hot rect { stroke: var(--accent); stroke-width: 2.2; fill: var(--accent-soft); }
 .k8ar .c.err rect { stroke: var(--err); stroke-width: 2.2; fill: color-mix(in srgb, var(--err) 12%, transparent); }
 .k8ar .c.ok rect { stroke: var(--ok); stroke-width: 2; }
-.k8ar .chip rect { fill: var(--surface); stroke: var(--border); transition: fill .3s, stroke .3s; }
-.k8ar .chip text { font-size: 10.5px; fill: var(--text-2); font-family: var(--mono); }
-.k8ar .chip.hot rect { stroke: var(--accent); fill: var(--accent-soft); stroke-width: 2; }
-.k8ar .chip.ok rect { stroke: var(--ok); }
-.k8ar .chip.err rect { stroke: var(--err); fill: color-mix(in srgb, var(--err) 14%, transparent); stroke-width: 2; }
+.k8ar .achip rect { fill: var(--surface); stroke: var(--border); transition: fill .3s, stroke .3s; }
+.k8ar .achip text { font-size: 10.5px; fill: var(--text-2); font-family: var(--mono); }
+.k8ar .achip.hot rect { stroke: var(--accent); fill: var(--accent-soft); stroke-width: 2; }
+.k8ar .achip.ok rect { stroke: var(--ok); }
+.k8ar .achip.err rect { stroke: var(--err); fill: color-mix(in srgb, var(--err) 14%, transparent); stroke-width: 2; }
 .k8ar .frame { fill: none; stroke: var(--k-external); stroke-dasharray: 3 4; }
 .k8ar .lab { fill: var(--text-3); font-size: 11px; }
 .k8ar .key { font-family: var(--mono); font-size: 10.5px; fill: var(--text-2); }
@@ -49,7 +49,7 @@ IA.widget('architecture', (root, ctx) => {
   stage.append(comp('kubectl', 12, 40, 100, 56, 'kubectl', 'apply -f web.yaml'));
   stage.append(comp('api', 140, 20, 440, 100, 'kube-apiserver', ''));
   const CH = ['authn', 'authz', 'mutating', 'schema', 'validating'];
-  const chips = {}; CH.forEach((c, i) => { const x = 150 + i * 84; const g = svg('g', { class: 'chip' }); g.append(svg('rect', { x, y: 64, width: 76, height: 26, rx: 6 }), svg('text', { x: x + 8, y: 81, text: c })); chips[c] = g; stage.append(g);
+  const chips = {}; CH.forEach((c, i) => { const x = 150 + i * 84; const g = svg('g', { class: 'achip' }); g.append(svg('rect', { x, y: 64, width: 76, height: 26, rx: 6 }), svg('text', { x: x + 8, y: 81, text: c })); chips[c] = g; stage.append(g);
     if (i) stage.append(svg('text', { x: x - 7, y: 81, 'font-size': 10, fill: 'var(--text-3)', text: '›' })); });
   stage.append(svg('text', { x: 150, y: 108, 'font-size': 10.5, fill: 'var(--text-3)', text: 'admission chain (in order), then persist → etcd' }));
   stage.append(comp('etcd', 600, 20, 146, 244, 'etcd (Raft ×3)', ''));
@@ -70,7 +70,7 @@ IA.widget('architecture', (root, ctx) => {
   function fresh() { return { hi: [], err: [], chip: {}, keys: [], pods: [], rules: '', ok: [] }; }
   function draw() {
     Object.keys(C).forEach((id) => C[id].g.setAttribute('class', 'c' + (S.err.includes(id) ? ' err' : S.hi.includes(id) ? ' hot' : S.ok.includes(id) ? ' ok' : '')));
-    CH.forEach((c) => chips[c].setAttribute('class', 'chip' + (S.chip[c] ? ' ' + S.chip[c] : '')));
+    CH.forEach((c) => chips[c].setAttribute('class', 'achip' + (S.chip[c] ? ' ' + S.chip[c] : '')));
     keysG.innerHTML = '';
     S.keys.forEach((kk, i) => keysG.append(svg('text', { class: 'key ' + (kk.c || ''), x: 608, y: 64 + i * 16, text: kk.t })));
     if (!S.keys.length) keysG.append(svg('text', { class: 'key', x: 608, y: 64, text: '/registry/… (empty)' }));
