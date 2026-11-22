@@ -16,8 +16,8 @@
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 0 | 22 | 0 |
 | Node.js (`nodejs`) | 21 | 0 | 21 | 0 |
-| Azure (`azure`) | 26 | 8 | 18 | 0 |
-| **Total** | **149** | **27** | **122** | **0** |
+| Azure (`azure`) | 26 | 0 | 26 | 0 |
+| **Total** | **149** | **19** | **130** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -39,7 +39,7 @@
 | 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | done | 8 written incl. tricky-node (48 Qs, 30 runnable, questions live in the widget); 28 runnable topic puzzles; uncertain: strip-types flags, agent property names, mock.timers Date, timing-threshold puzzles |
 | 1 | azure-A | Azure | 9 topics: `azure-hierarchy`, `regions-zones`, `entra-managed-identity`, `rbac-policy`, `compute-choice`, `app-service`, `container-apps`, `aks`, `functions` | done | 9 written, 59 scenario puzzles, extras aks-net/aks-wi/functions-durable; uncertain: role GUIDs, App Service/Container Apps defaults, Flex CLI flags, DefaultAzureCredential order |
 | 2 | azure-B | Azure | 9 topics: `storage-accounts`, `azure-sql-postgres`, `cosmos-db`, `redis-cache`, `messaging-choice`, `api-management`, `vnet-private-endpoints`, `key-vault`, `front-door-gateway` | done | 9 written, 64 scenario puzzles, 4 extras (access, consistency, net, choose); uncertain: az CLI flags (migration, redis access policy, dns-resolver, WAF exclusions), KQL column names, Spring Cloud Azure property names; APIM XML shown as yaml |
-| 2 | azure-C | Azure | 8 topics: `monitor-app-insights`, `bicep-terraform`, `devops-pipelines`, `cost-management`, `azure-openai`, `well-architected`, `spring-on-azure`, `tricky-azure` | pending | |
+| 2 | azure-C | Azure | 8 topics: `monitor-app-insights`, `bicep-terraform`, `devops-pipelines`, `cost-management`, `azure-openai`, `well-architected`, `spring-on-azure`, `tricky-azure` | done | 8 written incl. tricky-azure (50 Qs, shuffled); 50 scenario puzzles; uncertain: App Insights agent sampling defaults, federated-credential limit, AOAI metric names, Spring AI keyless wiring, drill facts (APIM quota 403, Redis default policy, Functions 230 s) |
 
 ## Java & JVM (`java`, 28 topics)
 Verified by: `java`. Code language: `java`.
@@ -255,12 +255,12 @@ Verified by: `docs`. Code language: `bash`.
 | 17 | `key-vault` | Key Vault | secrets, keys & certs; RBAC vs access policies; Spring Cloud Azure integration; rotation | D | B | written | |
 | 18 | `front-door-gateway` | Front Door & Application Gateway | global vs regional; WAF; routing rules; choosing a load balancer | D | B | written | |
 | **M5** | | **Operations & architecture** | | | | | |
-| 19 | `monitor-app-insights` | Monitor & Application Insights | Log Analytics & KQL; App Insights Java agent; alerts; distributed tracing | D | C | todo | |
-| 20 | `bicep-terraform` | Bicep & Terraform | ARM vs Bicep; modules; Terraform azurerm; what-if & drift | D | C | todo | |
-| 21 | `devops-pipelines` | CI/CD pipelines | Azure DevOps vs GitHub Actions; OIDC federation; environments & approvals | D | C | todo | |
-| 22 | `cost-management` | Cost management | pricing models (reserved, savings plans, spot); budgets; common cost leaks | D | C | todo | |
-| 23 | `azure-openai` | Azure OpenAI & AI Foundry | deployments & quotas (TPM); content filters; RAG with AI Search; Spring AI | D | C | todo | |
-| 24 | `well-architected` | Well-Architected & reliability | the five pillars; reliability patterns; disaster recovery (RTO/RPO) | D | C | todo | |
-| 25 | `spring-on-azure` | Spring apps on Azure end to end | reference architecture; identity-first config; observability; migration options | X | C | todo | |
+| 19 | `monitor-app-insights` | Monitor & Application Insights | Log Analytics & KQL; App Insights Java agent; alerts; distributed tracing | D | C | written | |
+| 20 | `bicep-terraform` | Bicep & Terraform | ARM vs Bicep; modules; Terraform azurerm; what-if & drift | D | C | written | |
+| 21 | `devops-pipelines` | CI/CD pipelines | Azure DevOps vs GitHub Actions; OIDC federation; environments & approvals | D | C | written | |
+| 22 | `cost-management` | Cost management | pricing models (reserved, savings plans, spot); budgets; common cost leaks | D | C | written | |
+| 23 | `azure-openai` | Azure OpenAI & AI Foundry | deployments & quotas (TPM); content filters; RAG with AI Search; Spring AI | D | C | written | |
+| 24 | `well-architected` | Well-Architected & reliability | the five pillars; reliability patterns; disaster recovery (RTO/RPO) | D | C | written | |
+| 25 | `spring-on-azure` | Spring apps on Azure end to end | reference architecture; identity-first config; observability; migration options | X | C | written | |
 | **M6** | | **Drill** | | | | | |
-| ★ | `tricky-azure` | Tricky Azure (timed) | 50 mixed scenario puzzles | X | C | todo | |
+| ★ | `tricky-azure` | Tricky Azure (timed) | 50 mixed scenario puzzles | X | C | written | |
