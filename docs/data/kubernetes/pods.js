@@ -47,7 +47,7 @@ containers:
     { trap: '<code>restartPolicy</code> is per pod, and Deployments force Always', why: 'You can’t set OnFailure on one container and Never on another (native sidecars are the exception: they are always restarted). Deployments, ReplicaSets, StatefulSets and DaemonSets only accept <code>Always</code>. Jobs accept only <code>OnFailure</code> or <code>Never</code>.', fix: 'Pick the workload type by lifecycle: long-running service → Deployment; run to completion → Job.' },
     { trap: 'SIGTERM arrives while traffic is still routed to the pod', code: `lifecycle:
   preStop:
-    sleep: { seconds: 5 }   # 1.30+ (beta, on by default); older: exec ["sleep","5"]
+    sleep: { seconds: 5 }   # 1.30+ (GA in 1.34); older: exec ["sleep","5"]
 terminationGracePeriodSeconds: 45`, why: 'On deletion the kubelet starts the shutdown and the endpoints controller removes the pod from EndpointSlices <b>in parallel</b>. kube-proxy on other nodes and external load balancers lag by a second or more, so requests still arrive after Spring stops accepting.', fix: 'Add a short <code>preStop</code> sleep, enable Spring graceful shutdown, and keep <code>terminationGracePeriodSeconds</code> greater than preStop + shutdown time. The grace period covers both.' }
   ],
   scenarios: [
@@ -169,7 +169,7 @@ spec:
         - { name: SPRING_DATASOURCE_URL, value: "jdbc:postgresql://localhost:5432/shop" }
         lifecycle:
           preStop:
-            sleep: { seconds: 5 }         # 1.30+ beta; else exec: ["sleep","5"]` },
+            sleep: { seconds: 5 }         # 1.30+ (GA in 1.34); else exec: ["sleep","5"]` },
     { title: 'Inspect the lifecycle', lang: 'bash', code: `# phase, conditions and every container's state
 kubectl get pod web-7c9-x2k -o jsonpath='{.status.phase}{"\\n"}'
 kubectl get pod web-7c9-x2k -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\\n"}{end}'

@@ -20,7 +20,7 @@ IA.register({
       { t: 'Size the heap as a percentage', d: 'Let the heap follow the limit instead of hard-coding <code>-Xmx</code>.', code: 'env:\n- name: JAVA_TOOL_OPTIONS\n  value: "-XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError"' },
       { t: 'Request what you use, limit memory equally', d: 'Memory request = limit gives predictable scheduling and no surprise evictions. CPU: request generously; a CPU limit throttles.', code: 'resources:\n  requests: { cpu: "2", memory: 2Gi }\n  limits:   { memory: 2Gi }' },
       { t: 'Wire Actuator to the probes', d: 'Spring Boot exposes liveness and readiness groups automatically on Kubernetes.', code: 'readinessProbe:\n  httpGet: { path: /actuator/health/readiness, port: 8080 }\nlivenessProbe:\n  httpGet: { path: /actuator/health/liveness, port: 8080 }' },
-      { t: 'Shut down gracefully', d: 'Keep serving while routing updates, then drain in-flight requests.', code: 'lifecycle:\n  preStop:\n    sleep: { seconds: 10 }      # sleep action: beta, on by default since 1.30\nterminationGracePeriodSeconds: 45' }
+      { t: 'Shut down gracefully', d: 'Keep serving while routing updates, then drain in-flight requests.', code: 'lifecycle:\n  preStop:\n    sleep: { seconds: 10 }      # sleep action: on by default since 1.30, GA in 1.34\nterminationGracePeriodSeconds: 45' }
     ],
     terms: [
       ['MaxRAMPercentage', 'Max heap as a percentage of the memory the JVM sees (the container limit). Default 25.'],
@@ -94,7 +94,7 @@ kubectl get deploy checkout -o jsonpath='{.spec.template.spec.terminationGracePe
   - name: app
     lifecycle:
       preStop:
-        sleep: { seconds: 10 }             # K8s 1.30+ (beta, on by default); else exec: ["sleep","10"]
+        sleep: { seconds: 10 }             # K8s 1.30+ (GA in 1.34); else exec: ["sleep","10"]
 ---
 # application.yaml
 server:

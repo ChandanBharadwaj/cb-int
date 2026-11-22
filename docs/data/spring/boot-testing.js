@@ -56,7 +56,7 @@ IA.register({
       fix: 'Test service methods without a surrounding test transaction, or call <code>TestTransaction.end()</code> before asserting. See <a href="jpa-n-plus-1.html">JPA fetching &amp; N+1</a>.' },
     { trap: 'H2 “compatibility mode” as a Postgres stand-in',
       why: 'H2 doesn’t implement <code>jsonb</code>, <code>ON CONFLICT</code> the same way, partial indexes, <code>SKIP LOCKED</code> semantics or Postgres error codes. Flyway migrations written for Postgres often won’t even run.',
-      fix: 'Use <code>postgres:16</code> (your production major) in Testcontainers. Put <code>@AutoConfigureTestDatabase(replace = NONE)</code> on <code>@DataJpaTest</code> so Boot doesn’t try to swap in an embedded database.' },
+      fix: 'Use <code>postgres:16</code> (your production major) in Testcontainers. Since Boot 3.4, <code>@DataJpaTest</code> detects a container-sourced database (e.g. via <code>@ServiceConnection</code>) and keeps it; on older versions add <code>@AutoConfigureTestDatabase(replace = NONE)</code> so Boot doesn’t swap in an embedded database.' },
     { trap: '@MockitoBean isn’t a drop-in for every @MockBean',
       why: '<code>@MockBean</code> could be declared on fields of <code>@Configuration</code> classes. The Framework’s bean-override annotations are resolved on <b>test classes</b> (fields, and their enclosing or super classes), not on configuration classes.',
       fix: 'Move such mocks into the test class or a shared base class. If you need a real stand-in object, use <code>@TestBean</code> with a static factory method.' }
@@ -141,7 +141,7 @@ class OrderControllerTest {
   }
 }`, note: 'Security filter chains are included in <code>@WebMvcTest</code>; add <code>@WithMockUser</code> or import your security config.' },
     { title: '@DataJpaTest against Postgres', lang: 'java', code: `@DataJpaTest
-@AutoConfigureTestDatabase(replace = Replace.NONE)   // keep the container
+@AutoConfigureTestDatabase(replace = Replace.NONE)   // needed before Boot 3.4; 3.4+ keeps a @ServiceConnection DB
 @Import(Containers.class)
 class OrderRepositoryTest {
   @Autowired OrderRepository repo;

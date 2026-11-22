@@ -124,7 +124,7 @@ resource pg 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
     storage: { storageSizeGB: 128 }
     authConfig: { activeDirectoryAuth: 'Enabled', passwordAuth: 'Disabled' }
   }
-}`, note: 'Zone redundancy for an App Service plan is set at creation and needs a Premium v3-class (or Isolated v2) SKU with more than one instance. Check current SKU and region support on Microsoft Learn.' },
+}`, note: 'Zone redundancy for an App Service plan needs a Premium (v2 or later) or Isolated v2 SKU and at least two instances. Newer plans on a zone-capable scale unit can toggle it after creation; older ones may need a new plan. Check current SKU and region support on Microsoft Learn.' },
     { title: 'Survive the failover in Spring Boot', lang: 'yaml', code: `spring:
   datasource:
     url: jdbc:postgresql://pg-orders-prod.postgres.database.azure.com:5432/orders?sslmode=require

@@ -12,7 +12,7 @@ const http = require('http');
 
 const REPO = path.resolve(__dirname, '..', '..');
 const OUT = path.resolve(REPO, process.argv[2] || '_site');
-const TEXT_CAP = 30000;   // characters of body text indexed per page
+const TEXT_CAP = 16000;   // characters of body text indexed per page
 
 // [source in repo, destination under OUT, track key]
 const TRACKS = [

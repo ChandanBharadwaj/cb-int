@@ -30,7 +30,7 @@ IA.widget('transactions-propagation', (root, ctx) => {
       { pop: 2, tx: { tx1: { st: 'active' } }, sql: [1, 'ROLLBACK TO SAVEPOINT SAVEPOINT_1', 'warn'], tone: 'warn', cap: '<code>inner.run()</code> throws. The proxy rolls back <b>to the savepoint</b> and releases it. Only row 2 is undone, and tx1 is <i>not</i> marked rollback-only.' },
       { sql: [1, 'RELEASE SAVEPOINT SAVEPOINT_1'], cap: 'Spring releases the savepoint. The outer method catches the exception and continues.' },
       { sql: [1, 'INSERT INTO a VALUES (3)'], cap: 'Row 3.' },
-      { pop: 2, tx: { tx1: { st: 'committed' } }, sql: [1, 'COMMIT', 'ok'], tone: 'ok', cap: 'Commit: rows 1 and 3. With JPA, <code>JpaTransactionManager</code> only allows NESTED when <code>nestedTransactionAllowed</code> is set, and the savepoint doesn’t roll back the persistence context’s in-memory state.' }] },
+      { pop: 2, tx: { tx1: { st: 'committed' } }, sql: [1, 'COMMIT', 'ok'], tone: 'ok', cap: 'Commit: rows 1 and 3. With JPA, <code>JpaTransactionManager</code> allows NESTED by default in 6.x (<code>nestedTransactionAllowed</code>; the default flips to <code>false</code> in 7.0), but the savepoint doesn’t roll back the persistence context’s in-memory state.' }] },
     self: { label: 'Self-invocation (this.audit())', steps: [
       { push: [M('Controller.place()'), P('OrderService proxy · REQUIRED'), M('OrderService.place(o)')], tx: { tx1: { st: 'active', conn: 1 } }, sql: [1, 'BEGIN'], cap: 'tx1 on connection #1.' },
       { sql: [1, 'INSERT INTO orders …'], cap: 'Order row written.' },

@@ -56,7 +56,7 @@ az storage account keys list -n stordersprod   # → full access to all data`, w
 # Standard_LRS  StorageV2   ← all three copies in ONE datacenter, in the affected zone`,
       cause: 'The account was created with the default <b>LRS</b>. All three copies were in one datacenter, which was in the failing zone. The data was safe but unavailable.',
       fix: 'Convert to ZRS (or GZRS if you also need regional DR), and add a policy that denies LRS accounts in production subscriptions.',
-      fixCode: `az storage account migration start -g rg-billing -n stinvoices --sku Standard_ZRS --no-wait
+      fixCode: `az storage account migration start -g rg-billing --account-name stinvoices --name default --sku Standard_ZRS --no-wait
 # guardrail (Azure Policy, simplified): deny when sku.name in [Standard_LRS, Premium_LRS] in prod` },
     { title: 'A leaked SAS URL in a support ticket',
       symptom: 'A customer pasted a download link into a public forum. It has <code>sv=…&amp;se=2027-…&amp;sp=rl&amp;sig=…</code> on the <code>invoices</code> container, valid for another year.',

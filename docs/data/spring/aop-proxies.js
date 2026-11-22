@@ -85,12 +85,12 @@ class OrderService {
 }` },
     { title: 'NPEs in production after a “make methods final” refactor',
       symptom: 'After a static-analysis rule was enabled and auto-fixed, <code>NullPointerException: this.repo is null</code> appears in services that have worked for years, only on methods with <code>@Transactional</code>.',
-      diagnose: `# startup log (CglibAopProxy):
+      diagnose: `# startup log, DEBUG level (logging.level.org.springframework.aop=debug):
 Final method [public final void com.shop.PaymentService.pay(...)] cannot get proxied via CGLIB:
 Calls to this method will NOT be routed to the target instance and might lead to NPEs
 against uninitialized fields in the proxy instance.`,
       cause: 'The auto-fix added <code>final</code> to public methods. On a CGLIB proxy, a final method runs on the proxy object itself, whose fields were never set.',
-      fix: 'Revert <code>final</code> on bean methods and exclude Spring components from that rule. Treat the CGLIB warning above as a build-breaking log line in tests.',
+      fix: 'Revert <code>final</code> on bean methods and exclude Spring components from that rule. Enable DEBUG for <code>org.springframework.aop</code> in a test and treat that CGLIB log line as build-breaking (or enforce it with the ArchUnit rule below).',
       fixCode: `// ArchUnit guard
 @ArchTest
 static final ArchRule noFinalPublicMethodsInServices =
@@ -137,7 +137,7 @@ public class PaymentService {
   private final PaymentRepository repo;
   public PaymentService(PaymentRepository repo) { this.repo = repo; }
   @Transactional public final void pay(Payment p) { repo.save(p); }
-}`, options: ['Works in a transaction', 'Works, but without a transaction', 'NullPointerException: repo is null', 'Startup fails: final method'], answer: 2, explain: 'The CGLIB proxy can’t override <code>pay()</code>, so the inherited body runs on the <b>proxy instance</b>, whose constructor never ran: <code>repo</code> is null. Spring logs a warning at startup but doesn’t fail.' },
+}`, options: ['Works in a transaction', 'Works, but without a transaction', 'NullPointerException: repo is null', 'Startup fails: final method'], answer: 2, explain: 'The CGLIB proxy can’t override <code>pay()</code>, so the inherited body runs on the <b>proxy instance</b>, whose constructor never ran: <code>repo</code> is null. Startup doesn’t fail: Spring only logs the final method at DEBUG level (a WARN appears only when the final method implements an interface method).' },
     { kind: 'predict', q: '<code>spring.aop.proxy-target-class=false</code>. <code>OrderServiceImpl implements OrderService</code> and has a <code>@Transactional</code> method. What happens?', code: `@RestController
 class OrderController {
   OrderController(OrderServiceImpl service) { … }
