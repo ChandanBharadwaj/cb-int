@@ -63,12 +63,13 @@ products.parallelStream()
 CompletableFuture.supplyAsync(() -> tax.compute(cart));`,
       cause: 'The parallel stream filled the common pool (cores − 1 threads) with blocking HTTP calls. <code>supplyAsync</code> without an executor queues on that same pool, so checkout’s tax computation waited behind them.',
       fix: 'Never block in the common pool. Give I/O fan-out its own executor (virtual threads on Java 21), and pass explicit executors to <code>CompletableFuture</code> in services.',
-      fixCode: `try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {   // Java 21
-  List<Future<Price>> fs = products.stream()
+      fixCode: `List<Future<Price>> fs;
+try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {   // Java 21
+  fs = products.stream()
       .map(p -> exec.submit(() -> pricingClient.price(p.id())))
       .toList();
-  prices = fs.stream().map(Main::join).toList();
-}
+}                                                 // close() waits for every task
+prices = fs.stream().map(Future::resultNow).toList();   // Java 19+
 CompletableFuture.supplyAsync(() -> tax.compute(cart), cpuExecutor);   // explicit pool` },
     { title: 'Login sync crashed after a customer created a second account',
       symptom: 'The nightly identity sync failed with <code>IllegalStateException: Duplicate key ana@example.com (attempted merging values User[id=17…] and User[id=902…])</code>.',

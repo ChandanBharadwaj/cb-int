@@ -11,19 +11,19 @@
 ## Status board
 | Track | Topics | todo | written | done |
 |---|---|---|---|---|
-| Java & JVM (`java`) | 28 | 28 | 0 | 0 |
+| Java & JVM (`java`) | 28 | 20 | 8 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 18 | 9 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 25 | 0 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **116** | **33** | **0** |
+| **Total** | **149** | **108** | **41** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
 |---|---|---|---|---|---|
 | 1 | java-A | Java & JVM | 10 topics: `references-pass-by-value`, `equals-hashcode`, `immutability-records`, `generics-erasure`, `exceptions`, `strings-interning`, `sealed-pattern-matching`, `lambdas-functional`, `streams-collectors`, `optional` | pending | |
-| 1 | java-B | Java & JVM | 8 topics: `hashmap-internals`, `choosing-collections`, `concurrent-collections`, `class-loading`, `jvm-memory-areas`, `garbage-collection`, `jit-compilation`, `leaks-oom` | pending | |
+| 1 | java-B | Java & JVM | 8 topics: `hashmap-internals`, `choosing-collections`, `concurrent-collections`, `class-loading`, `jvm-memory-areas`, `garbage-collection`, `jit-compilation`, `leaks-oom` | done | 8 written, 26 runnable puzzles, extra choosing-collections-bigo; uncertain: OOM array message, object sizes, JIT thresholds, G1/ZGC log formats |
 | 2 | java-C | Java & JVM | 10 topics: `threads-executors`, `java-memory-model`, `locks-synchronized`, `completablefuture`, `virtual-threads`, `concurrency-bugs`, `java-versions`, `profiling-jfr`, `io-nio`, `tricky-java` | pending | |
 | 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | done | 9 written, 65 concept puzzles, extras for scopes/conditions/aop-order/trace; uncertain: 6.1 @Transactional on tx listeners, Modulith property name, graceful shutdown default 3.4, 6.2 @Fallback/background bootstrap |
 | 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | pending | |
@@ -58,15 +58,15 @@ Verified by: `java`. Code language: `java`.
 | 9 | `streams-collectors` | Streams & collectors | laziness & short-circuit; stateful ops; groupingBy/toMap traps; parallel streams & the common pool | D | A | todo | |
 | 10 | `optional` | Optional | intended use; orElse vs orElseGet; anti-patterns (fields, params); map/flatMap chains | F | A | todo | |
 | **M1** | | **Collections** | | | | | |
-| 11 | `hashmap-internals` | HashMap internals | buckets & hashing; resize & load factor; treeification; iteration order; ConcurrentModificationException | X | B | todo | |
-| 12 | `choosing-collections` | Choosing collections | ArrayList vs LinkedList; ArrayDeque; TreeMap/NavigableMap; EnumMap/Set; big-O table | F | B | todo | |
-| 13 | `concurrent-collections` | Concurrent collections | ConcurrentHashMap (compute, size); CopyOnWrite; BlockingQueues; ConcurrentSkipList | X | B | todo | |
+| 11 | `hashmap-internals` | HashMap internals | buckets & hashing; resize & load factor; treeification; iteration order; ConcurrentModificationException | X | B | written | |
+| 12 | `choosing-collections` | Choosing collections | ArrayList vs LinkedList; ArrayDeque; TreeMap/NavigableMap; EnumMap/Set; big-O table | F | B | written | |
+| 13 | `concurrent-collections` | Concurrent collections | ConcurrentHashMap (compute, size); CopyOnWrite; BlockingQueues; ConcurrentSkipList | X | B | written | |
 | **M2** | | **JVM internals** | | | | | |
-| 14 | `class-loading` | Class loading | delegation model; linking & init order; static init deadlock; ClassCastException across loaders; metaspace leaks | X | B | todo | |
-| 15 | `jvm-memory-areas` | JVM memory areas | heap generations; stack & frames; metaspace; direct memory; object header & compressed oops | X | B | todo | |
-| 16 | `garbage-collection` | Garbage collection | reachability & GC roots; G1 regions & pauses; ZGC/Shenandoah; choosing & tuning; reading GC logs | X | B | todo | |
-| 17 | `jit-compilation` | JIT compilation | interpreter → C1 → C2 tiers; inlining & escape analysis; deoptimization; warm-up & microbenchmark traps (JMH) | X | B | todo | |
-| 18 | `leaks-oom` | Memory leaks & OOM | OOM kinds; leak patterns (static maps, ThreadLocal, listeners); heap dumps & MAT; container memory limits | X | B | todo | |
+| 14 | `class-loading` | Class loading | delegation model; linking & init order; static init deadlock; ClassCastException across loaders; metaspace leaks | X | B | written | |
+| 15 | `jvm-memory-areas` | JVM memory areas | heap generations; stack & frames; metaspace; direct memory; object header & compressed oops | X | B | written | |
+| 16 | `garbage-collection` | Garbage collection | reachability & GC roots; G1 regions & pauses; ZGC/Shenandoah; choosing & tuning; reading GC logs | X | B | written | |
+| 17 | `jit-compilation` | JIT compilation | interpreter → C1 → C2 tiers; inlining & escape analysis; deoptimization; warm-up & microbenchmark traps (JMH) | X | B | written | |
+| 18 | `leaks-oom` | Memory leaks & OOM | OOM kinds; leak patterns (static maps, ThreadLocal, listeners); heap dumps & MAT; container memory limits | X | B | written | |
 | **M3** | | **Concurrency** | | | | | |
 | 19 | `threads-executors` | Threads & executors | thread lifecycle; ThreadPoolExecutor params & rejection; sizing pools; shutdown | D | C | todo | |
 | 20 | `java-memory-model` | Java Memory Model | happens-before; volatile; safe publication; double-checked locking; final-field semantics | X | C | todo | |
