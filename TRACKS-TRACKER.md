@@ -12,12 +12,12 @@
 | Track | Topics | todo | written | done |
 |---|---|---|---|---|
 | Java & JVM (`java`) | 28 | 20 | 8 | 0 |
-| Spring & Spring Boot (`spring`) | 27 | 18 | 9 | 0 |
+| Spring & Spring Boot (`spring`) | 27 | 9 | 18 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **92** | **57** | **0** |
+| **Total** | **149** | **83** | **66** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -26,7 +26,7 @@
 | 1 | java-B | Java & JVM | 8 topics: `hashmap-internals`, `choosing-collections`, `concurrent-collections`, `class-loading`, `jvm-memory-areas`, `garbage-collection`, `jit-compilation`, `leaks-oom` | done | 8 written, 26 runnable puzzles, extra choosing-collections-bigo; uncertain: OOM array message, object sizes, JIT thresholds, G1/ZGC log formats |
 | 2 | java-C | Java & JVM | 10 topics: `threads-executors`, `java-memory-model`, `locks-synchronized`, `completablefuture`, `virtual-threads`, `concurrency-bugs`, `java-versions`, `profiling-jfr`, `io-nio`, `tricky-java` | pending | |
 | 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | done | 9 written, 65 concept puzzles, extras for scopes/conditions/aop-order/trace; uncertain: 6.1 @Transactional on tx listeners, Modulith property name, graceful shutdown default 3.4, 6.2 @Fallback/background bootstrap |
-| 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | pending | |
+| 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | done | 9 written, 61 concept puzzles, 5 extras (testing intro, groups, backpressure, OSIV, derived queries); uncertain: RestTemplate deprecation wording, Reactor Netty pool defaults, 6.2 rollbackOn, pgjdbc readOnly mode, Hibernate batch SQL |
 | 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | pending | |
 | 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | done | 8 written, 59 scenario puzzles, extras rollout-strategies/qos-eviction; uncertain: native sidecar GA 1.33, CronJob 100-missed rule, eviction order, JDK cgroup backports |
 | 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | done | 8 written, 59 scenario puzzles, 4 extras (netpol, spread, nodes, shutdown); uncertain: GA versions (nftables 1.33, PVC retention 1.32, unhealthyPodEvictionPolicy 1.31), ingress-nginx retirement dates |
@@ -97,17 +97,17 @@ Verified by: `docs`. Code language: `java`.
 | 7 | `starters-dependencies` | Starters & dependency management | BOMs & parent POM; version overrides; dependency conflicts; Gradle vs Maven | F | A | written | |
 | 8 | `externalized-config` | Externalized configuration | property-source order; @ConfigurationProperties & validation; profiles; secrets | D | A | written | |
 | 9 | `actuator-observability` | Actuator & observability | health groups & probes; Micrometer metrics; tracing (OTel); securing endpoints | D | A | written | |
-| 10 | `boot-testing` | Testing in Boot | test slices; @MockitoBean; Testcontainers & @ServiceConnection; context caching | D | B | todo | |
+| 10 | `boot-testing` | Testing in Boot | test slices; @MockitoBean; Testcontainers & @ServiceConnection; context caching | D | B | written | |
 | **M2** | | **Web** | | | | | |
-| 11 | `mvc-request-flow` | Spring MVC request flow | DispatcherServlet; handler mapping & adapters; argument resolvers; message converters; interceptors vs filters | X | B | todo | |
-| 12 | `errors-validation` | Errors & validation | @ControllerAdvice; ProblemDetail (RFC 9457); Bean Validation groups; validation in services | D | B | todo | |
-| 13 | `webflux-reactive` | WebFlux & reactive | Mono/Flux; Netty event loop; backpressure; blocking-call traps; when to choose MVC | X | B | todo | |
-| 14 | `http-clients` | HTTP clients | RestClient vs WebClient vs RestTemplate; timeouts; connection pools; HTTP interfaces | D | B | todo | |
+| 11 | `mvc-request-flow` | Spring MVC request flow | DispatcherServlet; handler mapping & adapters; argument resolvers; message converters; interceptors vs filters | X | B | written | |
+| 12 | `errors-validation` | Errors & validation | @ControllerAdvice; ProblemDetail (RFC 9457); Bean Validation groups; validation in services | D | B | written | |
+| 13 | `webflux-reactive` | WebFlux & reactive | Mono/Flux; Netty event loop; backpressure; blocking-call traps; when to choose MVC | X | B | written | |
+| 14 | `http-clients` | HTTP clients | RestClient vs WebClient vs RestTemplate; timeouts; connection pools; HTTP interfaces | D | B | written | |
 | **M3** | | **Data** | | | | | |
-| 15 | `transactions-propagation` | @Transactional deep dive | propagation & isolation; rollback rules; proxy pitfalls; readOnly; transaction boundaries | X | B | todo | |
-| 16 | `jpa-n-plus-1` | JPA fetching & N+1 | lazy vs eager; N+1 detection; fetch joins & entity graphs; LazyInitializationException & OSIV | X | B | todo | |
-| 17 | `spring-data` | Spring Data repositories | derived queries; projections; paging & slicing; auditing; custom repos | D | B | todo | |
-| 18 | `hikari-pooling` | HikariCP & connection pools | pool sizing; timeouts; leak detection; pool exhaustion incidents | D | B | todo | |
+| 15 | `transactions-propagation` | @Transactional deep dive | propagation & isolation; rollback rules; proxy pitfalls; readOnly; transaction boundaries | X | B | written | |
+| 16 | `jpa-n-plus-1` | JPA fetching & N+1 | lazy vs eager; N+1 detection; fetch joins & entity graphs; LazyInitializationException & OSIV | X | B | written | |
+| 17 | `spring-data` | Spring Data repositories | derived queries; projections; paging & slicing; auditing; custom repos | D | B | written | |
+| 18 | `hikari-pooling` | HikariCP & connection pools | pool sizing; timeouts; leak detection; pool exhaustion incidents | D | B | written | |
 | **M4** | | **Security** | | | | | |
 | 19 | `security-filter-chain` | Security filter chain | SecurityFilterChain beans; authentication flow; method security; CSRF & CORS | X | C | todo | |
 | 20 | `oauth2-jwt` | OAuth2, OIDC & JWT | resource server; JWT validation & JWKS; client credentials; token relay | D | C | todo | |
