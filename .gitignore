@@ -1,3 +1,4 @@
 .shots/
 *.whl
 _site/
+tools/site/node_modules/

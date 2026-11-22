@@ -15,19 +15,31 @@ One repo and one GitHub Pages site for every track. Each track keeps its origina
 
 Each track folder has its own README with its details.
 
+## Global navigation and search
+Every page of the deployed site has a small floating pill in the bottom-right corner:
+- **⌂ All tracks** goes back to the landing page.
+- **⌕ Search** (or Ctrl/⌘ K) searches every page of every track.
+
+On System Design pages, Ctrl/⌘ K and `/` still open that site's own systems search, so use the button there.
+
+The widget renders inside a Shadow DOM, so it can't change any track's CSS. It is added at **deploy time**: the files in this repo are never edited.
+
 ## GitHub Pages
-`.github/workflows/pages.yml` copies each folder into place and deploys on every push to `main`.
+`.github/workflows/pages.yml` runs `tools/site/build.cjs` on every push to `main`. The script:
+1. copies each track folder into `_site/` unchanged;
+2. opens every page in headless Chromium and writes `_site/site/search-index.json` (SQL Atlas and System Design build their text with JavaScript, so raw HTML isn't enough);
+3. adds one `<script src=".../site/nav.js">` tag to each page in `_site/`.
+
 One-time setup: **Settings → Pages → Source → GitHub Actions**.
 
 Workflows inside the track folders (for example `cb-ml-transformers/.github/`) came from the old repos. GitHub ignores them.
 
 ## Run locally
-Build the same layout that the workflow deploys:
 ```bash
-rm -rf _site && mkdir _site && cp -a home/. _site/ && cp -a docs _site/sql-atlas \
-  && cp -a cb-ml cb-ml-transformers dsa-interview _site/ && cp -a cb-sys-design/docs _site/cb-sys-design
+node tools/site/build.cjs _site        # needs Playwright: npm i --prefix tools/site playwright
 cd _site && python3 -m http.server 8000
 ```
+The widget and search live in `home/site/nav.js`, and the landing page is `home/index.html`.
 You can also serve a single track straight from its own folder. For the SQL Atlas, `cd docs && python3 -m http.server 8000` works as before.
 
 SQL Atlas: see `TRACKER.md` for progress and `tools/AUTHORING.md` for the page schema.

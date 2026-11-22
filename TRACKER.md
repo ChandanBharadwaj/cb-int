@@ -10,6 +10,7 @@
 ## Repo layout (consolidated)
 - This repo now also holds `cb-ml/`, `cb-ml-transformers/`, `cb-sys-design/` and `dsa-interview/`, copied verbatim from their old repos. The landing page lives in `home/`.
 - Pages is deployed by `.github/workflows/pages.yml`, and the SQL Atlas is served at `/sql-atlas/`. Do not restructure the track folders.
+- Global nav + search: `home/site/nav.js` (floating "All tracks / Search" pill, Shadow DOM). `tools/site/build.cjs` builds the search index with headless Chromium and injects the script tag into the deployed copy only.
 
 ## Decisions (from the user)
 - Postgres only for internals. Other databases appear only in M9 comparisons.

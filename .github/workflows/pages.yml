@@ -1,6 +1,7 @@
 name: Deploy Pages
 
-# Assembles one site from every track folder. Each track is copied as-is.
+# Assembles one site from every track folder (copied as-is), builds the
+# global search index and adds the "All tracks + Search" widget to each page.
 on:
   push:
     branches: [main]
@@ -24,18 +25,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Assemble site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Headless Chromium renders each page so the search index includes JS-built content
+      - name: Install Playwright
         run: |
-          set -euo pipefail
-          mkdir -p _site
-          cp -a home/.            _site/
-          cp -a docs              _site/sql-atlas
-          cp -a cb-ml             _site/cb-ml
-          cp -a cb-ml-transformers _site/cb-ml-transformers
-          cp -a cb-sys-design/docs _site/cb-sys-design
-          cp -a dsa-interview     _site/dsa-interview
-          rm -rf _site/*/.github
-          touch _site/.nojekyll
+          npm install --no-save --prefix tools/site playwright@1.63.0
+          npx --prefix tools/site playwright install --with-deps chromium
+
+      - name: Build site (copy tracks, build search index, add global nav)
+        run: node tools/site/build.cjs _site
 
       - uses: actions/configure-pages@v5
         with:
