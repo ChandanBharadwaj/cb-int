@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CB Interview Prep</title>
+<meta name="description" content="One home for SQL & Postgres, AI/ML, Transformers, System Design and DSA interview prep.">
+<style>
+:root{--bg:#f7f8fb;--card:#fff;--ink:#14171f;--mute:#5b6372;--line:#e3e6ee;--accent:#4f46e5;--accent2:#0ea5e9}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1017;--card:#151a24;--ink:#e8ebf2;--mute:#9aa3b5;--line:#252c3a;--accent:#8b85ff;--accent2:#38bdf8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:48px 16px 32px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:0 0 12px;letter-spacing:-.02em}
+.grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{color:var(--mute);max-width:680px;margin:0 0 32px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+a.card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;color:inherit;text-decoration:none;transition:transform .15s,border-color .15s,box-shadow .15s}
+a.card:hover,a.card:focus-visible{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.08);outline:none}
+.ic{font-size:28px;line-height:1;margin-bottom:12px}
+.card h2{font-size:19px;margin:0 0 6px}
+.card p{color:var(--mute);margin:0 0 14px;font-size:15px;flex:1}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--mute)}
+.go{margin-top:14px;font-weight:600;color:var(--accent);font-size:14px}
+footer{color:var(--mute);font-size:13px;margin-top:40px;text-align:center}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Interview prep, <span class="grad">all in one place.</span></h1>
+  <p class="lede">Five visual, interactive tracks: databases, AI/ML, transformers, system design and data structures &amp; algorithms. Pick a track to open its own site.</p>
+  <div class="grid">
+    <a class="card" href="sql-atlas/">
+      <div class="ic">⛁</div><h2>SQL &amp; Postgres Atlas</h2>
+      <p>From logical query order to MVCC, planner internals and choosing the right database as an architect. A real Postgres runs in your browser.</p>
+      <div class="tags"><span class="tag">46 topics</span><span class="tag">PGlite playground</span><span class="tag">puzzles</span></div>
+      <div class="go">Open track →</div>
+    </a>
+    <a class="card" href="cb-ml/">
+      <div class="ic">🧠</div><h2>Modern AI/ML &amp; GenAI</h2>
+      <p>Classical ML, deep learning, LLMs, RAG, agents, fine-tuning and MLOps, organized around the escalation ladder: rules → ML → DL → LLM.</p>
+      <div class="tags"><span class="tag">PyTorch / HF code</span><span class="tag">interview Q&amp;A</span></div>
+      <div class="go">Open track →</div>
+    </a>
+    <a class="card" href="cb-ml-transformers/">
+      <div class="ic">🔀</div><h2>The Missing Middle: Transformers</h2>
+      <p>The bridge from classical NLP to the LLM app layer: neural nets, attention, transformers, training, fine-tuning, compute and evaluation.</p>
+      <div class="tags"><span class="tag">animated course</span><span class="tag">glossary</span><span class="tag">interview index</span></div>
+      <div class="go">Open track →</div>
+    </a>
+    <a class="card" href="cb-sys-design/">
+      <div class="ic">🏗️</div><h2>System Design Atlas</h2>
+      <p>44 animated, interactive system designs, from classic interview systems to India-scale case studies, each with the same 11 sections.</p>
+      <div class="tags"><span class="tag">44 systems</span><span class="tag">animated</span></div>
+      <div class="go">Open track →</div>
+    </a>
+    <a class="card" href="dsa-interview/">
+      <div class="ic">🧩</div><h2>DSA Interview Runbook</h2>
+      <p>A complete data structures &amp; algorithms runbook for an experienced Java engineer, from zero to advanced patterns.</p>
+      <div class="tags"><span class="tag">Java</span><span class="tag">28 topics</span><span class="tag">SVG animations</span></div>
+      <div class="go">Open track →</div>
+    </a>
+  </div>
+  <footer>Static site on GitHub Pages · each track keeps its own design</footer>
+</main>
+</body>
+</html>

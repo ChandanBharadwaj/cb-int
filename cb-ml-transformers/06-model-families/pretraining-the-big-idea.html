@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pretraining: The Big Idea — The Missing Middle</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body data-page="06-model-families/pretraining-the-big-idea">
+<main id="content">
+
+  <h1>Pretraining: The Big Idea</h1>
+
+  <p>
+    You now own the machine. Modules 6–8 are about how it gets <em>filled</em> — and the
+    filling happens in a very particular economic shape: someone spends millions
+    teaching a model language <strong>once</strong>, and everyone else adapts that model
+    <strong>cheaply, forever</strong>. That split — pretrain once, adapt many times — is
+    the single most important structural fact about the modern AI industry, and it
+    decides what you, personally, will ever train versus download.
+  </p>
+
+  <h2>Self-supervision at continental scale</h2>
+
+  <p>
+    The trick is one you've now seen twice — word2vec's neighbor game (M2.2), the
+    decoder's next-token game (M5.7): <strong>raw text labels itself</strong>. No
+    annotation budget exists that could label trillions of examples, but none is
+    needed — hide part of the data, predict it from the rest, and every sentence
+    on the internet becomes supervised training signal. Pretraining is exactly this,
+    run on everything crawlable, until the loss stops falling.
+  </p>
+
+  <figure class="anim" id="fig-econ">
+    <div class="fig-title">Animation · The economics of pretrain-once</div>
+    <svg viewBox="0 0 640 400" aria-labelledby="fig-ec-t">
+      <title id="fig-ec-t">One expensive pretraining feeding many cheap adaptations</title>
+      <!-- corpus mountain -->
+      <g id="corpus">
+        <path d="M 60 180 L 180 60 L 300 180 Z" fill="#dbeafe" stroke="#93c5fd" stroke-width="2"/>
+        <text x="180" y="140" text-anchor="middle" font-size="18" fill="#1d4ed8" font-weight="700">the internet</text>
+        <text x="180" y="164" text-anchor="middle" font-size="17" fill="#1d4ed8">~15T tokens, free labels</text>
+      </g>
+      <!-- pretrain furnace -->
+      <g id="furnace" class="sp-hide">
+        <line x1="304" y1="140" x2="360" y2="140" stroke="#94a3b8" stroke-width="3" marker-end="url(#pt-a)"/>
+        <rect x="366" y="90" width="200" height="100" rx="14" fill="#1e293b"/>
+        <text x="466" y="128" text-anchor="middle" font-size="18" fill="#fbbf24" font-weight="700">PRETRAINING</text>
+        <text x="466" y="154" text-anchor="middle" font-size="17" fill="#e2e8f0">months · GPU fleets</text>
+        <text x="466" y="176" text-anchor="middle" font-size="17" fill="#e2e8f0">$10M–$100M+</text>
+      </g>
+      <!-- base model -->
+      <g id="base" class="sp-hide">
+        <line x1="466" y1="194" x2="466" y2="228" stroke="#94a3b8" stroke-width="3" marker-end="url(#pt-a)"/>
+        <rect x="386" y="234" width="160" height="52" rx="12" fill="#2563eb"/>
+        <text x="466" y="266" text-anchor="middle" font-size="18" fill="#fff" font-weight="700">base model</text>
+      </g>
+      <!-- adaptations fan -->
+      <g id="fan" class="sp-hide">
+        <path d="M 400 290 C 300 330, 220 330, 120 344" fill="none" stroke="#059669" stroke-width="3" marker-end="url(#pt-g)"/>
+        <path d="M 440 290 C 400 340, 340 350, 290 356" fill="none" stroke="#059669" stroke-width="3" marker-end="url(#pt-g)"/>
+        <path d="M 500 290 C 520 330, 550 340, 580 348" fill="none" stroke="#059669" stroke-width="3" marker-end="url(#pt-g)"/>
+        <text x="90" y="376" text-anchor="middle" font-size="17" fill="#047857">chat assistant</text>
+        <text x="300" y="382" text-anchor="middle" font-size="17" fill="#047857">your fine-tune</text>
+        <text x="565" y="376" text-anchor="middle" font-size="17" fill="#047857">embedder</text>
+      </g>
+      <g id="price-tags" class="sp-hide">
+        <rect x="30" y="300" width="150" height="34" rx="9" fill="#d1fae5" stroke="#6ee7b7"/>
+        <text x="105" y="323" text-anchor="middle" font-size="17" fill="#047857" font-weight="700">each: $10–$10k</text>
+      </g>
+      <defs>
+        <marker id="pt-a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L9,5 L0,10 z" fill="#94a3b8"/></marker>
+        <marker id="pt-g" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L9,5 L0,10 z" fill="#059669"/></marker>
+      </defs>
+    </svg>
+    <p class="sp-caption" id="fig-ec-cap"></p>
+  </figure>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      new StepPlayer({
+        svg: "#fig-econ svg",
+        caption: "#fig-ec-cap",
+        steps: [
+          { caption: "The raw material: trillions of tokens of text, self-labeling via hide-and-predict. Free supervision at a scale no annotation team could touch." },
+          { caption: "One organization burns months of GPU-fleet time compressing that text into weights. This step costs tens of millions — it happens once per model generation.", show: ["#furnace"] },
+          { caption: "Out comes a <b>base model</b>: a next-token predictor that has absorbed grammar, facts, idioms, code — general language competence with no particular manners.", show: ["#base"] },
+          { caption: "Then the fan-out: thousands of teams adapt that one artifact — chat-tune it, fine-tune it on their domain, distill it into embedders like MiniLM.", show: ["#fan"] },
+          { caption: "Adaptation costs pennies relative to pretraining — four to seven orders of magnitude less. This asymmetry is why you download models instead of training them, and why M8 (fine-tuning) is your side of the economy.", show: ["#price-tags"], holdMs: 6000 }
+        ]
+      });
+    });
+  </script>
+
+  <h2>The data pipeline is the product</h2>
+
+  <p>
+    "Trained on the internet" hides the real engineering, and the field's uncomfortable
+    open secret is that this hidden part moves benchmarks more than most architecture
+    ideas do. The pipeline: <strong>crawl</strong> (CommonCrawl and friends — raw HTML
+    by the petabyte) → <strong>extract</strong> (boilerplate, navigation, ads stripped;
+    already a quality decision) → <strong>language-filter</strong> →
+    <strong>deduplicate</strong> aggressively — the single biggest cut, because the web
+    is astonishingly self-plagiarizing, and repeated text causes memorization (3.3's
+    overfitting at corpus scale) → <strong>quality-filter</strong> (classifiers score
+    "is this coherent, informative text?") → <strong>mix deliberately</strong> (X% web,
+    Y% code, Z% books, multilingual balance; the code fraction measurably improves even
+    non-code reasoning) → <strong>decontaminate</strong> (strip known benchmark test
+    sets — M11.4's integrity problem, addressed at the source) → tokenize (5.1) → train,
+    typically for <em>less than one full epoch</em>: the corpus is so large that most
+    tokens are seen exactly once. Every property of the corpus becomes a property of
+    the model: knowledge cutoff = crawl date, languages = the mix, biases = M2.4's
+    lesson at scale, benchmark inflation = whatever decontamination missed.
+  </p>
+
+  <figure class="anim" id="fig-datafunnel">
+    <div class="fig-title">Animation · From CommonCrawl to training tokens</div>
+    <svg viewBox="0 0 640 400" aria-labelledby="fig-df-t">
+      <title id="fig-df-t">A funnel of shrinking bars from raw crawl to final training tokens</title>
+      <g id="df-raw">
+        <rect x="30" y="46" width="580" height="38" rx="8" fill="#93c5fd"/>
+        <text x="320" y="72" text-anchor="middle" font-size="17" fill="#1e3a8a" font-weight="700">raw crawl — petabytes of HTML, most of it junk</text>
+      </g>
+      <g id="df-extract" class="sp-hide">
+        <rect x="80" y="104" width="480" height="38" rx="8" fill="#7cabf1"/>
+        <text x="320" y="130" text-anchor="middle" font-size="17" fill="#1e3a8a" font-weight="700">text extraction — boilerplate, menus, ads gone</text>
+      </g>
+      <g id="df-lang" class="sp-hide">
+        <rect x="130" y="162" width="380" height="38" rx="8" fill="#5b93ea"/>
+        <text x="320" y="188" text-anchor="middle" font-size="17" fill="#fff" font-weight="700">language ID filter</text>
+      </g>
+      <g id="df-dedup" class="sp-hide">
+        <rect x="200" y="220" width="240" height="38" rx="8" fill="#3b78e0"/>
+        <text x="320" y="246" text-anchor="middle" font-size="17" fill="#fff" font-weight="700">deduplication — the big cut</text>
+        <text x="530" y="246" text-anchor="middle" font-size="17" fill="#b91c1c">the web repeats itself</text>
+      </g>
+      <g id="df-quality" class="sp-hide">
+        <rect x="240" y="278" width="160" height="38" rx="8" fill="#2563eb"/>
+        <text x="320" y="304" text-anchor="middle" font-size="17" fill="#fff" font-weight="700">quality classifier</text>
+        <text x="500" y="304" text-anchor="middle" font-size="17" class="mono" fill="#1d4ed8">→ ~15T tokens</text>
+      </g>
+      <g id="df-punch" class="sp-hide">
+        <rect x="30" y="340" width="580" height="52" rx="12" fill="#fef3c7" stroke="#fcd34d"/>
+        <text x="320" y="362" text-anchor="middle" font-size="17" fill="#92400e" font-weight="700">every keep/discard decision here becomes a behavior of the model —</text>
+        <text x="320" y="384" text-anchor="middle" font-size="17" fill="#92400e">data work is invisible and decisive</text>
+      </g>
+    </svg>
+    <p class="sp-caption" id="fig-df-cap"></p>
+  </figure>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      new StepPlayer({
+        svg: "#fig-datafunnel svg",
+        caption: "#fig-df-cap",
+        steps: [
+          { caption: "Start with a raw web crawl: petabytes of HTML, most of it navigation menus, ads, spam, and duplicates of everything else." },
+          { caption: "Text extraction strips the markup and boilerplate — the first big shrink, and already a quality judgment (what counts as 'content'?).", show: ["#df-extract"] },
+          { caption: "Language identification keeps the target mix — this bar's composition later decides who pays the tokenizer tax (M5.1).", show: ["#df-lang"] },
+          { caption: "Deduplication: the biggest single cut. The web copies itself relentlessly, and duplicated text turns training into memorization.", show: ["#df-dedup"] },
+          { caption: "A learned quality classifier keeps the top slice — coherent, informative prose. What remains: roughly 15 trillion tokens of training fuel.", show: ["#df-quality"] },
+          { caption: "The punchline the leaderboards keep proving: better filtering beats architecture tweaks. FineWeb-class curation moved open-model quality more than years of clever layers.", show: ["#df-punch"], holdMs: 6000 }
+        ]
+      });
+    });
+  </script>
+
+  <h2>The only compass: loss vs tokens</h2>
+
+  <p>
+    While those months of GPU time burn, what does anyone actually <em>watch</em>? One
+    chart: <strong>training loss against tokens seen</strong>. No accuracy, no
+    benchmarks mid-run — just average next-token cross-entropy, drifting down. You
+    already own its translation key (M4.1): loss 2.0 means perplexity e² ≈ 7.4 — "torn
+    between ~7 tokens"; a drop to 1.8 means ≈ 6 — every hundredth matters when it
+    compounds over trillions of predictions. Teams stare at this curve the way pilots
+    stare at instruments: a bump can mean bad data in the stream; a plateau triggers
+    learning-rate surgery; divergence means someone's week is ruined. And its
+    <em>predictability</em> — the eerie fact that this curve's shape can be forecast
+    from model size and token count before spending a dollar — is M7.4's scaling laws,
+    the discovery that turned pretraining from gambling into budgeting.
+  </p>
+
+  <h2>Why nobody trains from scratch (including your employer)</h2>
+
+  <p>
+    The arithmetic is brutal and worth having ready: competence at language requires
+    seeing more text than any single company's data could provide, and compute measured
+    in GPU-<em>years</em>. Meanwhile a pretrained base already contains that competence,
+    and adapting it to your task needs 100–10,000 examples (M8.1 explains why so few
+    suffice: the body already knows language; you're only steering it). Training from
+    scratch to save licensing costs is like refining your own gasoline to save on fuel.
+    The rational stack — the one you already run — is: someone else's pretrained model +
+    your data + cheap adaptation.
+  </p>
+
+  <div class="realnum callout">
+    <div class="co-head">Real numbers</div>
+    <p>
+      The scale-up in one line each: BERT (2018) pretrained on <strong>3.3B words</strong>;
+      GPT-3 (2020) ~<strong>300B tokens</strong>; Llama-3 (2024)
+      <strong>15T tokens</strong> — a ~4,500× data jump in six years. Compute: BERT ≈
+      days on 64 TPU cores; Llama-3-70B ≈ weeks on ~16,000 H100s (M7.3 prices this
+      properly). Meanwhile the adaptation you'll do in M9.5 — fine-tuning MiniLM on
+      your RAG pairs — runs on one modest GPU in <strong>under an hour</strong>. Same
+      industry, twelve orders of magnitude apart, connected by a download link.
+      And the data side's flagship: <strong>FineWeb</strong> — ~15T tokens distilled
+      from 96 CommonCrawl snapshots by exactly this page's funnel, released openly so
+      you can read the pipeline's every filter decision (and, per the build below,
+      its output).
+    </p>
+  </div>
+
+  <div class="connect callout">
+    <div class="co-head">Connect the dots</div>
+    <p>
+      Every artifact in your stack sits somewhere on this page's diagram:
+      the LLM behind your chatbot = base model + chat adaptation (M8.3–8.4);
+      all-MiniLM = a BERT-family base, distilled and contrastively adapted (M9);
+      GLiNER = a pretrained encoder + a clever matching head (M10). You have never
+      used a from-scratch model — everything is the fan-out of someone's pretraining
+      run. "Knowledge cutoff", a phrase you've typed into system prompts, is literally
+      the crawl date of the corpus in this page's mountain.
+    </p>
+  </div>
+
+  <div class="build callout">
+    <div class="co-head">Build: taste raw pretraining data</div>
+<pre><code># pip install datasets
+from datasets import load_dataset
+
+# stream a slice of a real pretraining corpus (no full download)
+ds = load_dataset("HuggingFaceFW/fineweb", split="train", streaming=True)
+
+for i, row in enumerate(ds):
+    if i >= 5: break
+    print("=" * 60)
+    print(row["text"][:400])
+    print(f"... [lang score: {row.get('language_score', '?')}]")
+</code></pre>
+    <p>
+      Scroll a few dozen samples. You'll see the unglamorous truth: forum posts, product
+      pages, news fragments — <em>this</em> is what LLM knowledge is compressed from.
+      Notice quality varies wildly (hence the filtering classifiers), and imagine your
+      own docs in the pile: that's how base models come to "know" public things about
+      your domain before you've fine-tuned anything.
+    </p>
+  </div>
+
+  <h2>If you remember one thing</h2>
+  <p>
+    Pretraining = self-supervised prediction over a curated slice of the internet,
+    paid for once at eye-watering cost, producing a base model everyone else adapts for
+    pocket change. The corpus's properties become the model's properties — knowledge,
+    cutoff, biases, contamination — and your entire professional relationship to these
+    models lives on the cheap side of the pretrain/adapt divide.
+  </p>
+
+  <div class="interview">
+    <h2>Interview questions</h2>
+    <details>
+      <summary>What is pretraining, and why is self-supervision essential to it?</summary>
+      <div><p>Pretraining optimizes a general objective (next-token or masked-token prediction) over a massive unlabeled corpus, producing broad language competence before any task-specific training. Self-supervision is what makes the scale possible: the text provides its own labels (the hidden token), so supervision scales with data collection rather than annotation budgets — trillions of examples for free.</p></div>
+    </details>
+    <details>
+      <summary>Why does corpus deduplication matter so much for LLMs?</summary>
+      <div><p>Repeated documents make the model memorize rather than generalize (overfitting at corpus scale), waste compute on redundant gradient signal, amplify whatever the duplicated text says, and worsen verbatim regurgitation risks (privacy/copyright). Empirically, deduplicated data gives better loss per token trained — one of the cheapest quality wins in the pipeline, which is why every modern recipe includes aggressive fuzzy dedup.</p></div>
+    </details>
+    <details>
+      <summary>Why do LLMs typically see each training token only about once?</summary>
+      <div><p>Because the corpus outgrew the compute budget: with ~15T curated tokens available, a compute-optimal run (M7.4) spends its FLOPs covering more unique text rather than repeating text — fresh tokens deliver more new signal per FLOP than repeats, and multiple epochs over web-scale data measurably increase memorization (the corpus-scale version of M3.3's overfitting). Contrast with fine-tuning, where data is scarce and 2–4 epochs are normal. Nuance for bonus points: high-quality slices (books, code) are sometimes deliberately up-sampled to ~2–4 effective epochs — "one epoch" is a budget-driven default, not a law.</p></div>
+    </details>
+    <details>
+      <summary>What determines a model's "knowledge cutoff", and what are the workarounds?</summary>
+      <div><p>The crawl/collection date of its pretraining corpus — the model has simply never seen later text. Workarounds move knowledge to inference time: RAG (retrieve current documents into context — your system), tool use (search APIs, M12.4), or continual fine-tuning (expensive, risks forgetting). Knowing that "the model doesn't know X" is a data property, not an intelligence property, is the practical takeaway.</p></div>
+    </details>
+    <details>
+      <summary>Your CTO asks whether to pretrain a company LLM from scratch. Give the engineer's answer.</summary>
+      <div><p>Almost certainly no: competitive base models cost $10M+ in compute alone, need trillions of tokens (more than any single company's data), and months of specialized infrastructure work — while fine-tuning or RAG over an open base (Llama/Qwen-class) captures nearly all domain value for 3–5 orders of magnitude less. The exceptions are real but narrow: extreme data sensitivity with regulatory bars on external weights, truly non-natural-language domains (protein sequences), or being an AI lab. Recommend: budget toward data quality, adaptation (M8), and evaluation instead.</p></div>
+    </details>
+    <details>
+      <summary>How does the pretraining data mix affect downstream behavior?</summary>
+      <div><p>Directly: language proportions set multilingual competence (and tokenizer efficiency, M5.1); code fraction improves not just coding but measurably reasoning/structure; books vs web shifts style and long-form coherence; the crawl's demographics import its biases (M2.4 at scale); and any benchmark text that leaks in inflates evals (contamination, M11.4). Data mixing is now a first-class research area — "what did it eat?" explains more model behavior than most architecture details.</p></div>
+    </details>
+  </div>
+
+</main>
+<script src="../assets/js/manifest.js"></script>
+<script src="../assets/js/site.js"></script>
+<script src="../assets/js/stepplayer.js"></script>
+</body>
+</html>

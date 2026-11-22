@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01 · Arrays &amp; Hashing — DSA Interview Runbook</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/app.js"></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="../index.html">⟵ DSA Runbook</a>
+    <nav>
+      <a href="../index.html#curriculum">All topics</a>
+      <a href="../index.html#cheatsheet">Cheat-sheet</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>Arrays &amp; Hashing</h1>
+<p class="subtitle">Frequency counting, complement lookups, canonical keys, seen-sets — the five moves behind the most-asked interview questions, and what your trusty <code>HashMap</code> actually does underneath.</p>
+<p>
+  <span class="badge phase">Phase 1 · Weeks 2–3</span>
+  <span class="badge freq">#1 most-asked interview category</span>
+</p>
+
+<!-- ============================================================ -->
+<h2 id="before">Before you start</h2>
+
+<div class="why">
+  <strong>Why this topic exists.</strong>
+  Almost every array question secretly asks the same thing: <em>"you're about to write a nested loop —
+  can you avoid it?"</em> The answer, most of the time, is a hash table: spend O(n) memory to remember
+  what you've seen so any "does X exist / how many X" question becomes O(1) instead of a rescan. Master
+  five small patterns here and you can solve the single largest slice of the interview question pool.
+</div>
+
+<h3>Prerequisites</h3>
+<p><a href="00-foundations.html">00 · Foundations</a> — Big-O reflexes, the space-for-time trade, and the Java-collections-to-structure map.</p>
+
+<p class="muted small"><strong>Interview relevance:</strong> the single most-asked category — the core skill tested is spotting the O(n²) → O(n) upgrade and choosing the right map key.</p>
+
+<h3>How this builds on the previous topic</h3>
+<p>
+  Foundations gave you the cost table and the space-for-time idea in the abstract. This page turns it into
+  muscle memory: every pattern here is that one trade applied with a different choice of <em>key</em> and
+  <em>value</em>. The next two pages (Two Pointers, Sliding Window) then show when you can get the same
+  speedup <em>without</em> paying the O(n) memory.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="concepts">Core concepts</h2>
+
+<h3>1. The array cost model, in one breath</h3>
+<p>
+  An array is a contiguous block of memory. Index math (<code>base + i × size</code>) makes
+  <code>arr[i]</code> O(1); contiguity makes iteration cache-friendly and fast. But <em>searching</em> an
+  unsorted array is O(n), and inserting/removing in the middle is O(n) because everything after the slot
+  must shift. Interview array problems are rarely about arrays — they're about avoiding those O(n) scans.
+</p>
+
+<h3>2. What a hash table actually does</h3>
+<p class="lead">
+  A hash table is just an array with a trick for picking the index: run the key through a
+  <strong>hash function</strong>, take it modulo the array length, and that's the <strong>bucket</strong>
+  where the entry lives. One arithmetic step replaces an O(n) search.
+</p>
+<p>
+  Two different keys can land in the same bucket — a <strong>collision</strong>. Java's
+  <code>HashMap</code> handles this by <strong>chaining</strong>: each bucket holds a little linked list
+  of entries, and a lookup walks the chain comparing keys with <code>equals()</code>. As long as the hash
+  function spreads keys evenly and the table resizes when it fills up (Java doubles at 75% load), chains
+  stay short and operations stay O(1) <em>on average</em>.
+</p>
+
+<div class="anim" id="hashAnim">
+  <svg viewBox="0 0 640 310" role="img" aria-label="Keys hashing into buckets with one collision chaining">
+    <!-- incoming key tokens -->
+    <g id="kcat"><rect class="box" x="60" y="18" width="58" height="28" rx="6"></rect><text class="lbl" x="72" y="38">"cat"</text></g>
+    <g id="kdog"><rect class="box" x="210" y="18" width="58" height="28" rx="6"></rect><text class="lbl" x="222" y="38">"dog"</text></g>
+    <g id="kart"><rect class="box" x="360" y="18" width="58" height="28" rx="6"></rect><text class="lbl" x="372" y="38">"art"</text></g>
+    <g id="ktac"><rect class="box" x="510" y="18" width="58" height="28" rx="6"></rect><text class="lbl" x="522" y="38">"tac"</text></g>
+    <!-- hash function -->
+    <rect id="hfn" class="box" x="250" y="82" width="140" height="34" rx="8"></rect>
+    <text class="lbl" x="262" y="105">hash(k) % 5</text>
+    <text id="hout" class="small" x="402" y="104"></text>
+    <!-- arrows hash -> buckets -->
+    <line id="a0" class="edge" x1="290" y1="116" x2="85" y2="176" style="opacity:0"></line>
+    <line id="a2" class="edge" x1="320" y1="116" x2="325" y2="176" style="opacity:0"></line>
+    <line id="a4" class="edge" x1="350" y1="116" x2="565" y2="176" style="opacity:0"></line>
+    <!-- buckets -->
+    <rect id="b0" class="box" x="40" y="180" width="90" height="40" rx="6"></rect>
+    <rect id="b1" class="box" x="160" y="180" width="90" height="40" rx="6"></rect>
+    <rect id="b2" class="box" x="280" y="180" width="90" height="40" rx="6"></rect>
+    <rect id="b3" class="box" x="400" y="180" width="90" height="40" rx="6"></rect>
+    <rect id="b4" class="box" x="520" y="180" width="90" height="40" rx="6"></rect>
+    <text class="small" x="78" y="238">[0]</text>
+    <text class="small" x="198" y="238">[1]</text>
+    <text class="small" x="318" y="238">[2]</text>
+    <text class="small" x="438" y="238">[3]</text>
+    <text class="small" x="558" y="238">[4]</text>
+    <!-- stored entries (revealed per step) -->
+    <g id="edog" opacity="0"><text class="lbl onfill" x="55" y="206">"dog"</text></g>
+    <g id="ecat" opacity="0"><text class="lbl onfill" x="295" y="206">"cat"</text></g>
+    <g id="eart" opacity="0"><text class="lbl onfill" x="535" y="206">"art"</text></g>
+    <!-- collision chain node under bucket 2 -->
+    <line id="chainEdge" class="edge" x1="325" y1="220" x2="325" y2="252" style="opacity:0"></line>
+    <g id="etac" opacity="0"><rect class="box done" x="280" y="252" width="90" height="36" rx="6"></rect><text class="lbl onfill" x="295" y="276">"tac"</text></g>
+  </svg>
+  <div class="anim-caption"></div>
+  <div class="anim-controls"></div>
+</div>
+
+<div class="note">
+  <strong>Java internals worth quoting.</strong> Since Java 8, when a single bucket's chain exceeds
+  8 entries (and the table has ≥ 64 buckets), <code>HashMap</code> <em>treeifies</em> it into a red-black
+  tree, capping the worst-case lookup at O(log n) even under hostile keys. This also explains the golden
+  rule you've lived by for years: <code>equals()</code> and <code>hashCode()</code> must agree, or your
+  key hashes into one bucket and gets compared in another.
+</div>
+
+<h3>3. The five patterns of this page</h3>
+<ul>
+  <li><strong>Frequency counting</strong> — map value → count. One pass builds it; questions like Valid Anagram and Top K Frequent fall out.</li>
+  <li><strong>Complement lookup</strong> — for each element, ask "have I seen the partner I need?" (Two Sum family).</li>
+  <li><strong>Group by canonical key</strong> — design a key that is identical for all "equivalent" items (sorted chars, or a 26-count signature) and let the map group them.</li>
+  <li><strong>Seen-set</strong> — a <code>HashSet</code> answers "have I encountered this before?" (Contains Duplicate) or "does neighbor x+1 exist?" (Longest Consecutive).</li>
+  <li><strong>Cyclic sort</strong> — special case: values known to be in <code>1..n</code> can be swapped to index value−1 <em>in place</em>, finding missing/duplicate numbers with O(1) extra space (First Missing Positive).</li>
+</ul>
+
+<div class="tip">
+  <strong>The reflex to train.</strong> The moment you write <code>for (i) for (j)</code> over the same
+  array, pause and ask: "what would I need to <em>remember</em> from the first loop to delete the second
+  one?" That memory — value→index, value→count, or just a set — is your hash table.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="templates">Pattern templates (Java)</h2>
+
+<p class="code-title">Template 1 — frequency counting (map or int[26])</p>
+<pre class="code"><code>// General values: HashMap counter
+Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();
+for (int x : nums)
+    freq.merge(x, 1, Integer::sum);   // count[x]++ in one call
+
+// Lowercase letters only: an array IS a hash table with a perfect hash
+int[] count = new int[26];
+for (char c : s.toCharArray())
+    count[c - 'a']++;                 // 'a'-&gt;0 ... 'z'-&gt;25, no collisions ever</code></pre>
+
+<p class="code-title">Template 2 — complement lookup (one pass, check-then-insert)</p>
+<pre class="code"><code>Map&lt;Integer, Integer&gt; seen = new HashMap&lt;&gt;();   // value -&gt; index
+for (int i = 0; i &lt; nums.length; i++) {
+    int need = target - nums[i];       // what would complete a pair?
+    if (seen.containsKey(need)) { /* found: (seen.get(need), i) */ }
+    seen.put(nums[i], i);              // insert AFTER checking: no self-pairing
+}</code></pre>
+
+<p class="code-title">Template 3 — group by canonical key</p>
+<pre class="code"><code>Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
+for (String s : words) {
+    String key = canonical(s);         // sorted chars, count signature, etc.
+    groups.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()).add(s);
+}</code></pre>
+
+<p class="code-title">Template 4 — seen-set</p>
+<pre class="code"><code>Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+for (int x : nums)
+    if (!seen.add(x)) { /* add() returns false =&gt; x is a duplicate */ }</code></pre>
+
+<p class="code-title">Template 5 — cyclic sort (values 1..n, O(1) extra space)</p>
+<pre class="code"><code>// Put every value v at index v-1 by swapping until settled
+for (int i = 0; i &lt; nums.length; i++) {
+    while (nums[i] &gt;= 1 &amp;&amp; nums[i] &lt;= nums.length
+           &amp;&amp; nums[nums[i] - 1] != nums[i]) {   // target slot not settled yet
+        int t = nums[nums[i] - 1];               // swap nums[i] into its home
+        nums[nums[i] - 1] = nums[i];
+        nums[i] = t;
+    }
+}
+// Second pass: first index i with nums[i] != i+1 exposes a missing/duplicate</code></pre>
+
+<!-- ============================================================ -->
+<h2 id="compare">When to use what</h2>
+
+<div class="tablewrap">
+<table>
+  <tr><th>Tool</th><th>Cost</th><th>Extra space</th><th>Reach for it when…</th></tr>
+  <tr><td><code>HashMap&lt;K,V&gt;</code></td><td>O(1) avg per op</td><td>O(n)</td><td>you need a <em>value</em> per key: counts, indexes, groups</td></tr>
+  <tr><td><code>HashSet&lt;K&gt;</code></td><td>O(1) avg per op</td><td>O(n)</td><td>membership only: "seen before?", "does x+1 exist?"</td></tr>
+  <tr><td><code>int[26]</code> counter</td><td>O(1), tiny constants</td><td>O(1)</td><td>keys are a small fixed alphabet (letters, digits) — fastest option</td></tr>
+  <tr><td>Sort first</td><td>O(n log n)</td><td>O(1)–O(n)</td><td>you need order anyway (pairs adjacent, groups adjacent) or must save memory</td></tr>
+  <tr><td>Cyclic sort</td><td>O(n)</td><td>O(1)</td><td>values are 1..n and the interviewer bans extra space</td></tr>
+</table>
+</div>
+
+<p>Decision cues:</p>
+<ul>
+  <li>"Have I seen…?", "count of…", "find a pair summing to…" → <strong>HashMap/HashSet</strong>.</li>
+  <li>"Group these strings/items by equivalence" → <strong>canonical key + map</strong>.</li>
+  <li>"Only lowercase letters" in the constraints → <strong><code>int[26]</code></strong> — say it out loud, it's free credit.</li>
+  <li>"O(1) extra space" + values in 1..n → <strong>cyclic sort</strong> (or bit tricks, page 22).</li>
+  <li>Sorted input, or follow-up "can you do it without extra memory?" → the <a href="02-two-pointers.html">two-pointer page</a> is the intended answer.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="realworld">Where this shows up in real systems</h2>
+<div class="grid2">
+  <div class="card">
+    <h4>Database hash indexes &amp; hash joins</h4>
+    <p class="small">Postgres hash indexes and every serious engine's <em>hash join</em> are Template 2 at
+    terabyte scale: build a hash table on the smaller table's join key, then probe it once per row of the
+    larger table — O(n+m) instead of the O(n·m) nested-loop join.</p>
+  </div>
+  <div class="card">
+    <h4>Dedup pipelines</h4>
+    <p class="small">Log ingestion (Splunk, Datadog) and ETL jobs drop duplicate events with exactly the
+    seen-set pattern, keyed on an event hash. At scale the exact set becomes a Bloom filter — a lossy,
+    bit-packed cousin you'll meet on page 24.</p>
+  </div>
+  <div class="card">
+    <h4>Redis</h4>
+    <p class="small">Redis is, at heart, a giant networked hash table — O(1) GET/SET — plus hash-field
+    objects (HSET) implemented as… another hash table, with incremental rehashing so a resize never blocks
+    the event loop. Your cache layer is this page in production.</p>
+  </div>
+  <div class="card">
+    <h4>Count-Min Sketch in analytics</h4>
+    <p class="small">Trending topics and heavy-hitter detection (e.g. in stream processors like Flink) use
+    Count-Min Sketch: several small counter arrays indexed by different hash functions — frequency counting
+    when the key space is too huge to store exactly.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="problems">Problems, fully worked (easy → hard)</h2>
+<p class="muted small">Each problem below has the full statement, an example, and every useful solution
+variation from brute force to optimal — read the problem, try it yourself first, then open the walkthrough.</p>
+
+<details class="sol" id="lc217">
+  <summary><span class="badge easy">easy</span> Contains Duplicate — LeetCode 217</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> You're given an integer array <code>nums</code>. Return <code>true</code>
+    if any value appears at least twice, and <code>false</code> if every element is distinct.</p>
+    <p><strong>Example.</strong> <code>[1,2,3,1]</code> → <code>true</code> (the 1 repeats).
+    <code>[1,2,3,4]</code> → <code>false</code>. <code>[1,1,1,3,3,4,3,2,4,2]</code> → <code>true</code>.</p>
+
+    <p class="code-title">Variation 1 — brute force: compare every pair · O(n²) time, O(1) space</p>
+<pre class="code"><code>public boolean containsDuplicateBrute(int[] nums) {
+    for (int i = 0; i &lt; nums.length; i++)
+        for (int j = i + 1; j &lt; nums.length; j++)   // every pair (i, j)
+            if (nums[i] == nums[j]) return true;
+    return false;
+}</code></pre>
+    <p>Correct, but 10⁵ elements ⇒ ~10¹⁰ comparisons. The nested loop exists only to answer
+    "have I seen this value before?" — which is exactly what faster structures answer directly.</p>
+
+    <p class="code-title">Variation 2 — sort first: duplicates become neighbors · O(n log n) time, O(1) extra</p>
+<pre class="code"><code>public boolean containsDuplicateSort(int[] nums) {
+    Arrays.sort(nums);                            // duplicates now sit side by side
+    for (int i = 1; i &lt; nums.length; i++)
+        if (nums[i] == nums[i - 1]) return true;  // just compare neighbors
+    return false;
+}</code></pre>
+    <p>Better, and uses no extra memory — but it mutates the input and still pays for a full sort.</p>
+
+    <p class="code-title">Variation 3 — seen-set (optimal) · O(n) time, O(n) space</p>
+<pre class="code"><code>public boolean containsDuplicate(int[] nums) {
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+    for (int x : nums)
+        if (!seen.add(x))      // add() returns false if x was already present
+            return true;       // -&gt; x is the duplicate, stop immediately
+    return false;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The three variations are the standard ladder for almost every problem on
+    this page: pairs (n²) → sort (n log n) → hash (n). Time improved at the cost of O(n) memory.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc242">
+  <summary><span class="badge easy">easy</span> Valid Anagram — LeetCode 242</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given two strings <code>s</code> and <code>t</code>, return
+    <code>true</code> if <code>t</code> is an anagram of <code>s</code> — i.e. it uses exactly the same
+    letters with exactly the same counts, just possibly in a different order.</p>
+    <p><strong>Example.</strong> <code>s="anagram", t="nagaram"</code> → <code>true</code>.
+    <code>s="rat", t="car"</code> → <code>false</code> (c and t differ). Different lengths → always false.</p>
+
+    <p class="code-title">Variation 1 — sort both strings · O(n log n) time</p>
+<pre class="code"><code>public boolean isAnagramSort(String s, String t) {
+    if (s.length() != t.length()) return false;   // cheap early exit
+    char[] a = s.toCharArray(), b = t.toCharArray();
+    Arrays.sort(a);                               // anagrams sort to the
+    Arrays.sort(b);                               // exact same char sequence
+    return Arrays.equals(a, b);
+}</code></pre>
+
+    <p class="code-title">Variation 2 — one count array (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public boolean isAnagram(String s, String t) {
+    if (s.length() != t.length()) return false;
+    int[] count = new int[26];                    // 26 lowercase letters
+    for (int i = 0; i &lt; s.length(); i++) {
+        count[s.charAt(i) - 'a']++;               // +1 for every letter of s
+        count[t.charAt(i) - 'a']--;               // -1 for every letter of t
+    }
+    for (int c : count)
+        if (c != 0) return false;                 // any imbalance -&gt; not an anagram
+    return true;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The +1/−1 trick folds two frequency maps into one array and one pass.
+    The <code>int[26]</code> works because the constraint says lowercase letters; for full Unicode you'd
+    fall back to a <code>HashMap&lt;Character,Integer&gt;</code> — same idea, bigger key space.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc1">
+  <summary><span class="badge easy">easy</span> Two Sum — LeetCode 1</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given an array <code>nums</code> and an integer <code>target</code>,
+    return the <em>indices</em> of the two different elements that add up to <code>target</code>. Exactly one
+    answer exists, and you may not use the same element twice.</p>
+    <p><strong>Example.</strong> <code>nums=[2,7,11,15], target=9</code> → <code>[0,1]</code> because
+    2 + 7 = 9. <code>nums=[3,2,4], target=6</code> → <code>[1,2]</code> (2+4 — note NOT [0,0]: the single
+    3 can't be used twice).</p>
+
+    <p class="code-title">Variation 1 — brute force: try every pair · O(n²) time, O(1) space</p>
+<pre class="code"><code>public int[] twoSumBrute(int[] nums, int target) {
+    for (int i = 0; i &lt; nums.length; i++)
+        for (int j = i + 1; j &lt; nums.length; j++)
+            if (nums[i] + nums[j] == target) return new int[]{i, j};
+    return new int[]{};
+}</code></pre>
+
+    <p class="code-title">Variation 2 — one-pass HashMap (optimal) · O(n) time, O(n) space</p>
+<pre class="code"><code>public int[] twoSum(int[] nums, int target) {
+    // value -&gt; index of every number we've already walked past
+    Map&lt;Integer, Integer&gt; seen = new HashMap&lt;&gt;();
+    for (int i = 0; i &lt; nums.length; i++) {
+        int need = target - nums[i];        // the partner that would complete a pair
+        if (seen.containsKey(need))         // O(1) lookup replaces an O(n) rescan
+            return new int[]{seen.get(need), i};
+        seen.put(nums[i], i);               // insert AFTER checking -&gt; no self-pairing
+    }
+    return new int[]{};                     // unreachable: an answer is guaranteed
+}</code></pre>
+    <p><strong>Takeaway.</strong> Rather than searching forward for a partner, each element checks
+    <em>backward</em> in O(1): "did my partner already pass by?" The check-before-insert order is what
+    prevents an element pairing with itself. If the array were <em>sorted</em>, two pointers would solve it
+    with O(1) memory — that's Two Sum II on the <a href="02-two-pointers.html">next page</a>.
+    Mirror: <code>code/01-arrays-hashing/TwoSum.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc383">
+  <summary><span class="badge easy">easy</span> Ransom Note — LeetCode 383</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Can <code>ransomNote</code> be built from the letters of
+    <code>magazine</code>, each magazine letter usable at most once? Both are lowercase.</p>
+    <p><strong>Example.</strong> note "a", magazine "b" → false. note "aa", magazine "ab" → false
+    (only one 'a' in stock). note "aa", magazine "aab" → true.</p>
+    <p class="code-title">Count, then spend · O(n+m) time, O(1) space (26 counters)</p>
+<pre class="code"><code>public static boolean canConstruct(String ransomNote, String magazine) {
+    int[] counts = new int[26];                 // lowercase letters only
+    for (char c : magazine.toCharArray())
+        counts[c - 'a']++;                      // stock the shelf
+    for (char c : ransomNote.toCharArray())
+        if (--counts[c - 'a'] &lt; 0)              // spend; negative = shortage
+            return false;
+    return true;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The purest form of frequency counting: one array as inventory,
+    decrement to consume. Valid Anagram (above) is this same problem with the extra demand that the
+    inventory come out exactly empty. A fixed alphabet means an <code>int[26]</code> beats a HashMap —
+    say that out loud in an interview, it's a free point.
+    Mirror: <code>code/01-arrays-hashing/RansomNote.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc169">
+  <summary><span class="badge easy">easy</span> Majority Element — LeetCode 169</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> An element appears <em>more than ⌊n/2⌋ times</em> (guaranteed to
+    exist). Find it. Follow-up: O(1) space.</p>
+    <p><strong>Example.</strong> <code>[3,2,3]</code> → 3. <code>[2,2,1,1,1,2,2]</code> → 2.</p>
+
+    <p class="code-title">Variation 1 — frequency map · O(n) time, O(n) space</p>
+<pre class="code"><code>public static int majorityByCounting(int[] nums) {
+    Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();
+    for (int x : nums) {
+        int c = freq.merge(x, 1, Integer::sum); // increment and read back
+        if (c &gt; nums.length / 2) return x;      // strictly more than half
+    }
+    throw new IllegalArgumentException("no majority element");
+}</code></pre>
+
+    <p class="code-title">Variation 2 — Boyer-Moore voting (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public static int majorityElement(int[] nums) {
+    int candidate = 0, count = 0;
+    for (int x : nums) {
+        if (count == 0) candidate = x;          // previous run cancelled out
+        count += (x == candidate) ? 1 : -1;     // vote for or against
+    }
+    return candidate;                           // the true majority survives
+}</code></pre>
+    <p><strong>Takeaway.</strong> Boyer-Moore is a pairing argument: every time the count hits zero,
+    the discarded block contained the candidate and non-candidates in equal number — so it threw away
+    at most as many majority copies as others. With more than n/2 copies, the majority can't be fully
+    cancelled. Note it only works because a majority is <em>guaranteed</em>; without that guarantee
+    you'd verify the candidate with one more pass.
+    Mirror: <code>code/01-arrays-hashing/MajorityElement.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc205">
+  <summary><span class="badge easy">easy</span> Isomorphic Strings — LeetCode 205</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Can s be transformed into t by a consistent letter substitution?
+    Every occurrence of a letter must map to the same letter, and no two letters may map to the same
+    letter.</p>
+    <p><strong>Example.</strong> "egg"/"add" → true (e→a, g→d). "foo"/"bar" → false (o would need to be
+    both a and r). "badc"/"baba" → false (d and c would both map to a).</p>
+    <p class="code-title">Two maps — the substitution must be a bijection · O(n)</p>
+<pre class="code"><code>public static boolean isIsomorphic(String s, String t) {
+    Map&lt;Character, Character&gt; fwd = new HashMap&lt;&gt;();
+    Map&lt;Character, Character&gt; back = new HashMap&lt;&gt;();
+    for (int i = 0; i &lt; s.length(); i++) {
+        char a = s.charAt(i), b = t.charAt(i);
+        Character seenB = fwd.putIfAbsent(a, b);   // a's existing image, if any
+        Character seenA = back.putIfAbsent(b, a);  // b's existing preimage
+        if (seenB != null &amp;&amp; seenB != b) return false;  // a mapped elsewhere before
+        if (seenA != null &amp;&amp; seenA != a) return false;  // b already claimed
+    }
+    return true;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The classic trap is checking only one direction — "badc"/"baba"
+    passes a forward-only check. A consistent substitution is a <em>bijection</em>, and a bijection
+    needs both maps (or one map plus a "used images" set). This is exactly how compilers check
+    α-equivalence of variable renamings.
+    Mirror: <code>code/01-arrays-hashing/IsomorphicStrings.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc290">
+  <summary><span class="badge easy">easy</span> Word Pattern — LeetCode 290</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Does the space-separated sentence s follow <code>pattern</code>,
+    with a bijection between pattern letters and whole words?</p>
+    <p><strong>Example.</strong> "abba" / "dog cat cat dog" → true. "abba" / "dog cat cat fish" → false.
+    "abba" / "dog dog dog dog" → false (a and b can't both be "dog").</p>
+    <p class="code-title">Isomorphic Strings, letters ↔ words · O(n)</p>
+<pre class="code"><code>public static boolean wordPattern(String pattern, String s) {
+    String[] words = s.split(" ");
+    if (words.length != pattern.length()) return false;  // lengths must agree first
+
+    Map&lt;Character, String&gt; letterToWord = new HashMap&lt;&gt;();
+    Map&lt;String, Character&gt; wordToLetter = new HashMap&lt;&gt;();
+    for (int i = 0; i &lt; pattern.length(); i++) {
+        char p = pattern.charAt(i);
+        String w = words[i];
+        String seenW = letterToWord.putIfAbsent(p, w);
+        Character seenP = wordToLetter.putIfAbsent(w, p);
+        if (seenW != null &amp;&amp; !seenW.equals(w)) return false;  // letter reused differently
+        if (seenP != null &amp;&amp; seenP != p) return false;        // word already claimed
+    }
+    return true;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Same bijection discipline as Isomorphic Strings, one level up
+    (letters ↔ words instead of letters ↔ letters). The two easy-to-miss cases: a length mismatch
+    between pattern and sentence, and the reverse-map check. Comparing with <code>.equals</code>, not
+    <code>==</code>, matters now that values are Strings.
+    Mirror: <code>code/01-arrays-hashing/WordPattern.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc202">
+  <summary><span class="badge easy">easy</span> Happy Number — LeetCode 202</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Repeatedly replace n by the sum of the squares of its digits.
+    If the process reaches 1, n is "happy"; otherwise it loops forever. Decide which.</p>
+    <p><strong>Example.</strong> 19 → 1²+9²=82 → 68 → 100 → 1 → happy. 2 → 4 → 16 → 37 → … enters the
+    cycle 4→16→37→58→89→145→42→20→4 → not happy.</p>
+
+    <p class="code-title">Variation 1 — HashSet cycle detection · O(1)-ish per step</p>
+<pre class="code"><code>public static boolean isHappySet(int n) {
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+    while (n != 1 &amp;&amp; seen.add(n))   // add() returns false on a repeat
+        n = next(n);
+    return n == 1;                  // stopped at 1, or on a proven cycle
+}
+
+private static int next(int n) {
+    int sum = 0;
+    while (n &gt; 0) {
+        int d = n % 10;             // peel the last digit
+        sum += d * d;
+        n /= 10;
+    }
+    return sum;
+}</code></pre>
+
+    <p class="code-title">Variation 2 — Floyd's tortoise and hare · O(1) space</p>
+<pre class="code"><code>public static boolean isHappy(int n) {
+    int slow = n, fast = next(n);
+    while (fast != 1 &amp;&amp; slow != fast) {
+        slow = next(slow);          // one step
+        fast = next(next(fast));    // two steps
+    }
+    return fast == 1;               // met at 1 = happy; met elsewhere = cycle
+}</code></pre>
+    <p><strong>Takeaway.</strong> "Does this iteration ever repeat?" is cycle detection, whether the
+    steps follow pointers or arithmetic. The set version is the honest first answer; Floyd removes the
+    memory by running the same sequence at two speeds — the identical trick as Linked List Cycle on
+    <a href="08-linked-lists.html#lc141">page 08</a>, just with <code>next()</code> instead of
+    <code>.next</code>. Mirror: <code>code/01-arrays-hashing/HappyNumber.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc219">
+  <summary><span class="badge easy">easy</span> Contains Duplicate II — LeetCode 219</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Are there two equal elements at most k indices apart?</p>
+    <p><strong>Example.</strong> <code>[1,2,3,1], k=3</code> → true. <code>[1,0,1,1], k=1</code> → true.
+    <code>[1,2,3,1,2,3], k=2</code> → false (the equal pairs are 3 apart).</p>
+    <p class="code-title">A sliding set of the last k elements · O(n)</p>
+<pre class="code"><code>public static boolean containsNearbyDuplicate(int[] nums, int k) {
+    Set&lt;Integer&gt; window = new HashSet&lt;&gt;();
+    for (int i = 0; i &lt; nums.length; i++) {
+        if (i &gt; k)
+            window.remove(nums[i - k - 1]);   // evict what fell out of range
+        if (!window.add(nums[i]))             // add() is false if already present
+            return true;
+    }
+    return false;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Contains Duplicate (above) with a distance constraint — and the
+    constraint turns the global set into a <em>windowed</em> set: membership over only the last k
+    items. It's your first taste of the sliding-window idea formalized on
+    <a href="03-sliding-window.html">page 03</a>. (An alternative: a value→lastIndex map, comparing
+    index gaps.) Mirror: <code>code/01-arrays-hashing/ContainsDuplicateII.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc448">
+  <summary><span class="badge easy">easy</span> Find All Numbers Disappeared in an Array — LeetCode 448</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> nums has n entries, each in [1, n]. Return every value in [1, n]
+    that never appears — ideally O(1) extra space, treating the returned list as free.</p>
+    <p><strong>Example.</strong> <code>[4,3,2,7,8,2,3,1]</code> → <code>[5,6]</code>.
+    <code>[1,1]</code> → <code>[2]</code>.</p>
+    <p class="code-title">The array is its own hash table: mark by negation · O(n) time, O(1) space</p>
+<pre class="code"><code>public static List&lt;Integer&gt; findDisappearedNumbers(int[] nums) {
+    for (int x : nums) {
+        int idx = Math.abs(x) - 1;      // abs: x may already carry a mark
+        if (nums[idx] &gt; 0)
+            nums[idx] = -nums[idx];     // mark "value idx+1 exists"
+    }
+    List&lt;Integer&gt; missing = new ArrayList&lt;&gt;();
+    for (int i = 0; i &lt; nums.length; i++)
+        if (nums[i] &gt; 0)                // never marked
+            missing.add(i + 1);
+    return missing;
+}</code></pre>
+    <p><strong>Takeaway.</strong> When values are confined to [1, n], the indices themselves can act as
+    hash buckets and the sign bit as the "present" flag — hashing with zero extra memory. This is the
+    gentle version of the cyclic-sort idea that First Missing Positive (below) pushes to its hard
+    extreme. Mirror: <code>code/01-arrays-hashing/DisappearedNumbers.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc49">
+  <summary><span class="badge medium">medium</span> Group Anagrams — LeetCode 49</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given an array of strings, group the anagrams together and return the
+    groups (any order). E.g. "eat", "tea", "ate" all use letters {a,e,t} once each, so they form one group.</p>
+    <p><strong>Example.</strong> <code>["eat","tea","tan","ate","nat","bat"]</code> →
+    <code>[["eat","tea","ate"], ["tan","nat"], ["bat"]]</code>.</p>
+    <p><strong>The insight.</strong> A map groups values that share a key — so invent a key that all anagrams
+    share and nothing else does (a <em>canonical key</em>). Two standard choices:</p>
+
+    <p class="code-title">Variation 1 — sorted-characters key · O(n · L log L)</p>
+<pre class="code"><code>public List&lt;List&lt;String&gt;&gt; groupAnagramsSortKey(String[] strs) {
+    Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
+    for (String s : strs) {
+        char[] chars = s.toCharArray();
+        Arrays.sort(chars);                       // "tea" -&gt; "aet", "ate" -&gt; "aet"
+        String key = new String(chars);           // all anagrams produce the same key
+        groups.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()).add(s);
+    }
+    return new ArrayList&lt;&gt;(groups.values());
+}</code></pre>
+
+    <p class="code-title">Variation 2 — letter-count signature key (faster) · O(n · L)</p>
+<pre class="code"><code>public List&lt;List&lt;String&gt;&gt; groupAnagrams(String[] strs) {
+    // canonical key -&gt; all words that share it (i.e. one anagram group)
+    Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
+    for (String s : strs) {
+        // Counting is O(L) vs O(L log L) for sorting the characters
+        int[] count = new int[26];
+        for (char c : s.toCharArray()) count[c - 'a']++;
+        // Serialize counts into a key like "1#0#0#...". The '#' separator
+        // matters: without it, counts (1,12) and (11,2) could both read "112".
+        StringBuilder sb = new StringBuilder();
+        for (int n : count) sb.append(n).append('#');
+        groups.computeIfAbsent(sb.toString(), k -&gt; new ArrayList&lt;&gt;()).add(s);
+    }
+    return new ArrayList&lt;&gt;(groups.values());      // the map's values ARE the groups
+}</code></pre>
+    <p><strong>Takeaway.</strong> Both are accepted everywhere; the count key wins asymptotically for long
+    words. Never use the raw <code>int[]</code> as the map key — array <code>hashCode()</code> is
+    identity-based, so equal counts would <em>not</em> collide. Mirror:
+    <code>code/01-arrays-hashing/GroupAnagrams.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc347">
+  <summary><span class="badge medium">medium</span> Top K Frequent Elements — LeetCode 347</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given an integer array and a number <code>k</code>, return the
+    <code>k</code> values that occur most often (any order). <code>k</code> is guaranteed valid and the
+    answer is unique.</p>
+    <p><strong>Example.</strong> <code>nums=[1,1,1,2,2,3], k=2</code> → <code>[1,2]</code>
+    (1 occurs 3×, 2 occurs 2×, 3 occurs 1×). <code>nums=[1], k=1</code> → <code>[1]</code>.</p>
+
+    <p class="code-title">Variation 1 — count, then sort by frequency · O(n log n)</p>
+<pre class="code"><code>public int[] topKFrequentSort(int[] nums, int k) {
+    Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();
+    for (int x : nums) freq.merge(x, 1, Integer::sum);       // value -&gt; count
+
+    // Sort the distinct values by their count, biggest first
+    List&lt;Integer&gt; vals = new ArrayList&lt;&gt;(freq.keySet());
+    vals.sort((a, b) -&gt; freq.get(b) - freq.get(a));
+    int[] res = new int[k];
+    for (int i = 0; i &lt; k; i++) res[i] = vals.get(i);
+    return res;
+}</code></pre>
+
+    <p class="code-title">Variation 2 — bucket by frequency (optimal) · O(n)</p>
+<pre class="code"><code>public int[] topKFrequent(int[] nums, int k) {
+    Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();
+    for (int x : nums) freq.merge(x, 1, Integer::sum);
+
+    // Key idea: a count can never exceed n, so use the COUNT as an array
+    // index. bucket[c] = all values that occur exactly c times.
+    List&lt;Integer&gt;[] bucket = new List[nums.length + 1];
+    for (Map.Entry&lt;Integer, Integer&gt; e : freq.entrySet()) {
+        int c = e.getValue();
+        if (bucket[c] == null) bucket[c] = new ArrayList&lt;&gt;();
+        bucket[c].add(e.getKey());
+    }
+
+    // Walk buckets from the highest count down, collecting k values
+    int[] res = new int[k];
+    int idx = 0;
+    for (int c = nums.length; c &gt;= 1 &amp;&amp; idx &lt; k; c--)
+        if (bucket[c] != null)
+            for (int v : bucket[c]) {
+                res[idx++] = v;
+                if (idx == k) break;
+            }
+    return res;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Sorting compares counts against each other (n log n); bucketing exploits
+    that counts live in the small fixed range 1..n, so they can be used as indexes — the same idea as
+    counting sort (<a href="06-sorting.html">page 06</a>). A third variation — a size-k min-heap, O(n log k),
+    best for streaming data — is worked on <a href="12-heaps.html">page 12</a>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc238">
+  <summary><span class="badge medium">medium</span> Product of Array Except Self — LeetCode 238</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Return an array <code>answer</code> where <code>answer[i]</code> is the
+    product of every element of <code>nums</code> <em>except</em> <code>nums[i]</code>. You must run in O(n)
+    and <strong>division is not allowed</strong> (it would break on zeros anyway).</p>
+    <p><strong>Example.</strong> <code>[1,2,3,4]</code> → <code>[24,12,8,6]</code>
+    (e.g. answer[0] = 2·3·4 = 24). <code>[-1,1,0,-3,3]</code> → <code>[0,0,9,0,0]</code>.</p>
+    <p><strong>The insight.</strong> The product of "everything except me" = (product of everything to my
+    left) × (product of everything to my right). Both sides can be precomputed in one pass each.</p>
+
+    <p class="code-title">Variation 1 — two extra arrays · O(n) time, O(n) space</p>
+<pre class="code"><code>public int[] productExceptSelfTwoArrays(int[] nums) {
+    int n = nums.length;
+    int[] left = new int[n], right = new int[n], ans = new int[n];
+    left[0] = 1;                                    // nothing to the left of index 0
+    for (int i = 1; i &lt; n; i++)
+        left[i] = left[i - 1] * nums[i - 1];        // product of nums[0..i-1]
+    right[n - 1] = 1;                               // nothing to the right of the end
+    for (int i = n - 2; i &gt;= 0; i--)
+        right[i] = right[i + 1] * nums[i + 1];      // product of nums[i+1..n-1]
+    for (int i = 0; i &lt; n; i++)
+        ans[i] = left[i] * right[i];
+    return ans;
+}</code></pre>
+
+    <p class="code-title">Variation 2 — reuse the output array (optimal) · O(n) time, O(1) extra space</p>
+<pre class="code"><code>public int[] productExceptSelf(int[] nums) {
+    int n = nums.length;
+    int[] ans = new int[n];
+    ans[0] = 1;
+    for (int i = 1; i &lt; n; i++)                 // pass 1: ans[i] = product of the left side
+        ans[i] = ans[i - 1] * nums[i - 1];
+    int right = 1;                              // running product of the right side
+    for (int i = n - 1; i &gt;= 0; i--) {
+        ans[i] *= right;                        // left-product * right-product
+        right *= nums[i];                       // extend the right side to include nums[i]
+    }
+    return ans;                                 // output array doesn't count as extra space
+}</code></pre>
+    <p><strong>Takeaway.</strong> This is prefix products — the multiplicative twin of the prefix sums on
+    <a href="04-prefix-sum.html">page 04</a>. Variation 2 folds the right-side array into a single running
+    variable, a space squeeze you'll reuse in DP (<a href="18-dp-1d.html">page 18</a>).</p>
+  </div>
+</details>
+
+<details class="sol" id="lc128">
+  <summary><span class="badge medium">medium</span> Longest Consecutive Sequence — LeetCode 128</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given an unsorted array, return the length of the longest run of
+    consecutive integers present in it (the run's members can appear anywhere in the array). Required time:
+    O(n).</p>
+    <p><strong>Example.</strong> <code>[100,4,200,1,3,2]</code> → <code>4</code>, because 1,2,3,4 are all
+    present. <code>[0,3,7,2,5,8,4,6,0,1]</code> → <code>9</code> (0 through 8).</p>
+
+    <p class="code-title">Variation 1 — sort and scan · O(n log n)</p>
+<pre class="code"><code>public int longestConsecutiveSort(int[] nums) {
+    if (nums.length == 0) return 0;
+    Arrays.sort(nums);
+    int best = 1, len = 1;
+    for (int i = 1; i &lt; nums.length; i++) {
+        if (nums[i] == nums[i - 1]) continue;       // skip duplicates
+        len = (nums[i] == nums[i - 1] + 1) ? len + 1 : 1;  // extend or restart the run
+        best = Math.max(best, len);
+    }
+    return best;
+}</code></pre>
+    <p>Simple, but the problem explicitly demands O(n) — sorting is the thing being ruled out.</p>
+
+    <p class="code-title">Variation 2 — seen-set with run-start guard (optimal) · O(n)</p>
+<pre class="code"><code>public int longestConsecutive(int[] nums) {
+    // Dump everything in a set: O(1) membership tests, duplicates collapse
+    Set&lt;Integer&gt; set = new HashSet&lt;&gt;();
+    for (int n : nums) set.add(n);
+
+    int best = 0;
+    for (int n : set) {
+        // KEY INSIGHT: only count from the START of a run.
+        // If n-1 exists, n is mid-run — skip it; the run's true start
+        // will count it later. This guard keeps total work O(n).
+        if (set.contains(n - 1)) continue;
+        int len = 1;
+        while (set.contains(n + len)) len++;   // walk the run upward
+        best = Math.max(best, len);
+    }
+    return best;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The while loop looks nested but isn't quadratic: every element is walked by
+    exactly one run (the one whose start owns it), so the total walking across all runs is n steps. Mirror:
+    <code>code/01-arrays-hashing/LongestConsecutiveSequence.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc271">
+  <summary><span class="badge medium">medium</span> Encode and Decode Strings — LeetCode 271</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Design <code>encode(List&lt;String&gt;) → String</code> and
+    <code>decode(String) → List&lt;String&gt;</code> so any list of strings round-trips through a single
+    string — including strings containing any character your format uses.</p>
+    <p><strong>Example.</strong> <code>["hello","wor#ld","","12#34"]</code> must decode back exactly.
+    A naive comma-join dies on strings containing commas; there is no safe delimiter.</p>
+    <p class="code-title">Length-prefix framing · O(total length)</p>
+<pre class="code"><code>public static String encode(List&lt;String&gt; strs) {
+    StringBuilder sb = new StringBuilder();
+    for (String s : strs)
+        sb.append(s.length()).append('#').append(s);   // "5#hello4#worl…"
+    return sb.toString();
+}
+
+public static List&lt;String&gt; decode(String data) {
+    List&lt;String&gt; out = new ArrayList&lt;&gt;();
+    int i = 0;
+    while (i &lt; data.length()) {
+        int hash = data.indexOf('#', i);            // end of the length field
+        int len = Integer.parseInt(data.substring(i, hash));
+        out.add(data.substring(hash + 1, hash + 1 + len));  // exactly len chars —
+        i = hash + 1 + len;                         // a '#' inside them is just data
+    }
+    return out;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The insight is that no delimiter can be safe when content is
+    arbitrary — but a <em>length</em> is unambiguous: after reading "5#", the next 5 characters are data
+    no matter what they contain. This is exactly how network protocols (HTTP's Content-Length, TCP
+    framing, Redis's RESP) delimit messages. Empty strings ("0#") work for free.
+    Mirror: <code>code/01-arrays-hashing/EncodeDecodeStrings.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc2013">
+  <summary><span class="badge medium">medium</span> Detect Squares — LeetCode 2013</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Design a class with <code>add(point)</code> (duplicates allowed)
+    and <code>count(q)</code>: how many axis-aligned squares of positive area can be formed using q and
+    three previously added points?</p>
+    <p><strong>Example.</strong> add (3,10), (11,2), (3,2); count((11,10)) → 1 — the square with corners
+    (3,10),(11,2),(3,2),(11,10). Add (11,2) again → count((11,10)) → 2, because the duplicated corner
+    participates in a second (identical) square.</p>
+    <p class="code-title">Count map + iterate diagonal partners · add O(1), count O(points)</p>
+<pre class="code"><code>public class DetectSquares {
+    // Multiset of points: duplicates multiply the number of squares.
+    private final Map&lt;String, Integer&gt; counts = new HashMap&lt;&gt;();
+    private final List&lt;int[]&gt; points = new ArrayList&lt;&gt;();
+
+    public void add(int[] point) {
+        counts.merge(point[0] + "," + point[1], 1, Integer::sum);
+        points.add(point);
+    }
+
+    public int count(int[] q) {
+        int total = 0;
+        // Try every stored point p as the corner DIAGONAL to q. A diagonal
+        // pins the square: the other two corners are forced.
+        for (int[] p : points) {
+            int dx = p[0] - q[0], dy = p[1] - q[1];
+            if (dx == 0 || Math.abs(dx) != Math.abs(dy)) continue;  // not diagonal
+            // remaining corners: (q.x, p.y) and (p.x, q.y) — multiply their counts
+            total += counts.getOrDefault(q[0] + "," + p[1], 0)
+                   * counts.getOrDefault(p[0] + "," + q[1], 0);
+        }
+        return total;
+    }
+}</code></pre>
+    <p><strong>Takeaway.</strong> The geometric trick: enumerate the <em>diagonal</em> partner, because
+    a diagonal determines the square — then the two forced corners are O(1) hash lookups, and
+    multiplying counts handles duplicates automatically. "Fix the piece that determines everything,
+    look up the rest" is the same shape as Two Sum's complement lookup, upgraded to 2D.
+    Mirror: <code>code/01-arrays-hashing/DetectSquares.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc41">
+  <summary><span class="badge hard">hard</span> First Missing Positive — LeetCode 41</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given an unsorted integer array (may contain zeros, negatives,
+    duplicates), return the smallest positive integer that is <em>not</em> present. Required: O(n) time and
+    O(1) extra space.</p>
+    <p><strong>Example.</strong> <code>[1,2,0]</code> → <code>3</code>. <code>[3,4,-1,1]</code> →
+    <code>2</code>. <code>[7,8,9,11,12]</code> → <code>1</code>.</p>
+    <p><strong>The insight.</strong> The answer must lie in <code>1..n+1</code> (n values can cover at most
+    1..n). So only values in 1..n matter — and each such value <code>v</code> has a natural home:
+    index <code>v−1</code>.</p>
+
+    <p class="code-title">Variation 1 — seen-set · O(n) time but O(n) space (violates the constraint)</p>
+<pre class="code"><code>public int firstMissingPositiveSet(int[] nums) {
+    Set&lt;Integer&gt; set = new HashSet&lt;&gt;();
+    for (int x : nums) set.add(x);
+    for (int v = 1; v &lt;= nums.length + 1; v++)  // answer is in 1..n+1
+        if (!set.contains(v)) return v;
+    return -1;                                   // unreachable
+}</code></pre>
+    <p>The natural first idea — write it, then note it breaks the O(1)-space requirement, which is the cue
+    for cyclic sort.</p>
+
+    <p class="code-title">Variation 2 — cyclic sort (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public int firstMissingPositive(int[] nums) {
+    int n = nums.length;
+    // Phase 1: swap every value v in 1..n to its home index v-1.
+    for (int i = 0; i &lt; n; i++) {
+        // Keep swapping until nums[i] is out of range, or already home,
+        // or its home already holds a correct copy (guards duplicates).
+        while (nums[i] &gt;= 1 &amp;&amp; nums[i] &lt;= n
+               &amp;&amp; nums[nums[i] - 1] != nums[i]) {
+            int home = nums[i] - 1;             // where nums[i] belongs
+            int t = nums[home];                 // classic swap
+            nums[home] = nums[i];
+            nums[i] = t;
+        }
+    }
+    // Phase 2: the first index whose value disagrees exposes the answer.
+    for (int i = 0; i &lt; n; i++)
+        if (nums[i] != i + 1) return i + 1;
+    return n + 1;                               // 1..n all present -&gt; answer is n+1
+}</code></pre>
+    <p><strong>Takeaway.</strong> The while loop is amortized O(n) overall: every swap puts one value into its
+    final home forever, and there are only n homes. Cyclic sort is the standard escape hatch whenever hashing
+    is banned but values are confined to <code>1..n</code>.</p>
+  </div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="pitfalls">Pitfalls</h2>
+<ul>
+  <li><strong>Insert after checking</strong> in complement-lookup problems, or an element can "find" itself (Two Sum with target 6 and a single 3).</li>
+  <li><strong>Integer boxing is not <code>==</code>-safe:</strong> <code>map.get(a) == map.get(b)</code> compares references outside the −128..127 cache. Use <code>.equals()</code> or unbox to <code>int</code>. Classic Java-specific trap.</li>
+  <li><strong>Never use a mutable object as a key</strong> (or an <code>int[]</code>, whose <code>hashCode</code> is identity-based) — serialize count arrays to a <code>String</code>, as in Group Anagrams.</li>
+  <li><strong>Say "average"</strong> when you say HashMap is O(1), and mention Java 8+ treeification to O(log n).</li>
+  <li><strong>Read the constraints for a small alphabet:</strong> "lowercase English letters" is a cue to swap the HashMap for an <code>int[26]</code>.</li>
+  <li><strong>When asked for O(1) space</strong> on a 1..n array, the intended answer is cyclic sort (or index-sign tricks) — hashing is explicitly the thing being banned.</li>
+</ul>
+
+<nav class="pager">
+  <a class="prev" href="00-foundations.html"><span class="dir">⟵ Prev</span><span class="name">00 · Foundations</span></a>
+  <a class="next" href="02-two-pointers.html"><span class="dir">Next ⟶</span><span class="name">02 · Two Pointers</span></a>
+</nav>
+
+</div>
+
+<script>
+new Stepper('hashAnim', {
+  totalSteps: 8,
+  captions: [
+    'An empty hash table: a plain array of 5 buckets. The whole trick is computing which bucket a key belongs to — no searching, just arithmetic.',
+    'Insert "cat": the hash function turns the key into a number, and % 5 maps it to a bucket index — here, 2. One O(1) computation.',
+    '"cat" is stored in bucket [2]. A later get("cat") repeats the same arithmetic and lands directly on it — no scan of the other buckets.',
+    'Insert "dog": hash("dog") % 5 = 0. Different key, different bucket. So far every operation touched exactly one slot.',
+    'Insert "art": hash("art") % 5 = 4. With a good hash function, keys spread out evenly across the buckets.',
+    'Insert "tac": hash("tac") % 5 = 2 — but bucket [2] is occupied. Two keys, same bucket: a COLLISION. This is normal, not a failure.',
+    'Chaining: "tac" is linked behind "cat" in bucket [2]. Java\'s HashMap does exactly this; a lookup walks the short chain comparing keys with equals().',
+    'Lookups stay O(1) on average because resizing keeps chains short. Java 8+ adds a safety net: a chain longer than 8 becomes a red-black tree — O(log n) worst case.'
+  ],
+  apply: function (svg, step) {
+    // key tokens: dim once their key has been stored
+    var stored = { kcat: step >= 2, kdog: step >= 3, kart: step >= 4, ktac: step >= 6 };
+    var activeKey = { kcat: step === 1, kdog: step === 3, kart: step === 4, ktac: step === 5 };
+    ['kcat', 'kdog', 'kart', 'ktac'].forEach(function (id) {
+      var g = svg.querySelector('#' + id);
+      g.setAttribute('opacity', stored[id] ? 0.3 : 1);
+      Stepper.setClass(svg, '#' + id + ' rect', 'active', activeKey[id]);
+    });
+    // hash function box lights while hashing
+    var hashing = (step === 1 || step === 3 || step === 4 || step === 5);
+    Stepper.setClass(svg, '#hfn', 'active', hashing);
+    var outs = { 1: '→ 2', 3: '→ 0', 4: '→ 4', 5: '→ 2 !' };
+    Stepper.setText(svg, '#hout', outs[step] || '');
+    // arrows from hash to target bucket
+    svg.querySelector('#a2').style.opacity = (step === 1 || step === 5) ? 1 : 0;
+    svg.querySelector('#a0').style.opacity = (step === 3) ? 1 : 0;
+    svg.querySelector('#a4').style.opacity = (step === 4) ? 1 : 0;
+    Stepper.setClass(svg, '#a0', 'active', step === 3);
+    Stepper.setClass(svg, '#a2', 'active', step === 1 || step === 5);
+    Stepper.setClass(svg, '#a4', 'active', step === 4);
+    // buckets: done once filled; bucket 2 flashes frontier on the collision
+    Stepper.setClass(svg, '#b2', 'done', step >= 2 && step !== 5);
+    Stepper.setClass(svg, '#b2', 'frontier', step === 5);
+    Stepper.setClass(svg, '#b0', 'done', step >= 3);
+    Stepper.setClass(svg, '#b4', 'done', step >= 4);
+    // stored entry labels
+    svg.querySelector('#ecat').setAttribute('opacity', step >= 2 ? 1 : 0);
+    svg.querySelector('#edog').setAttribute('opacity', step >= 3 ? 1 : 0);
+    svg.querySelector('#eart').setAttribute('opacity', step >= 4 ? 1 : 0);
+    // collision chain
+    svg.querySelector('#chainEdge').style.opacity = step >= 6 ? 1 : 0;
+    Stepper.setClass(svg, '#chainEdge', 'done', step >= 6);
+    svg.querySelector('#etac').setAttribute('opacity', step >= 6 ? 1 : 0);
+  }
+});
+</script>
+
+</body>
+</html>

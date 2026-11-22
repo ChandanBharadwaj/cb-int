@@ -7,6 +7,10 @@
 - **All 46 SQL topics:** ✅ built, verified against real Postgres (PGlite = PG18) and smoke-tested at desktop and 390px. Merged to main.
 - **Next action:** take review feedback on individual pages, then start the next track (Java / Spring / AI agents) once the user picks one.
 
+## Repo layout (consolidated)
+- This repo now also holds `cb-ml/`, `cb-ml-transformers/`, `cb-sys-design/` and `dsa-interview/`, copied verbatim from their old repos. The landing page lives in `home/`.
+- Pages is deployed by `.github/workflows/pages.yml`, and the SQL Atlas is served at `/sql-atlas/`. Do not restructure the track folders.
+
 ## Decisions (from the user)
 - Postgres only for internals. Other databases appear only in M9 comparisons.
 - Visual first: every page has an animated visual, a playground, gotchas, real-world incidents, puzzles, interview Q&A and a Java/Spring tie-in.

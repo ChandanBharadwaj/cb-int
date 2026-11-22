@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 · Prefix Sum — DSA Interview Runbook</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/app.js"></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="../index.html">⟵ DSA Runbook</a>
+    <nav>
+      <a href="../index.html#curriculum">All topics</a>
+      <a href="../index.html#cheatsheet">Cheat-sheet</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>Prefix Sums: Precompute Once, Answer Instantly</h1>
+<p class="subtitle">Turn repeated O(n) range scans into O(1) lookups, count subarrays that sliding windows can't touch, and apply thousands of range updates in one pass.</p>
+<p>
+  <span class="badge phase">Phase 1 · Weeks 2–3</span>
+  <span class="badge freq">Quiet workhorse — rarely the headline, unlocks many mediums</span>
+</p>
+
+<!-- ============================================================ -->
+<h2 id="before">Before you start</h2>
+
+<div class="why">
+  <strong>Why this topic exists.</strong>
+  You've been doing prefix sums for years without the name: a bank balance is the prefix sum of transactions;
+  a "requests served so far" counter is the prefix sum of per-second request counts. The interview version is
+  the same idea made deliberate: <em>spend one O(n) pass building cumulative totals, and every range question
+  afterwards becomes a subtraction</em>. It's the simplest example of the precompute-then-query mindset that
+  databases, image processing, and monitoring systems are built on — and it quietly powers a surprising number
+  of medium-level interview problems that look like they need something fancier.
+</div>
+
+<h3>Prerequisites</h3>
+<ul>
+  <li><a href="01-arrays-hashing.html">01 · Arrays &amp; Hashing</a> — the HashMap complement-lookup trick returns here in disguise.</li>
+  <li><a href="03-sliding-window.html">03 · Sliding Window</a> — you need to know the window invariant to appreciate exactly when it breaks.</li>
+</ul>
+
+<p class="muted small"><strong>Interview relevance:</strong> the quiet workhorse behind many medium problems — especially the prefix-sum + HashMap combination.</p>
+
+<h3>How this builds on the previous topic</h3>
+<p>
+  Sliding window (page 03) answers questions about <em>one</em> contiguous range that you grow and shrink as you scan.
+  Prefix sums generalize that: they let you answer questions about <em>any</em> range, in any order, as many times as
+  you like — and they keep working when negative numbers destroy the grow/shrink logic a window depends on.
+  Where a window maintains one running total, a prefix array remembers <em>all</em> of them.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="concepts">Core concepts</h2>
+
+<h3>1. The core move: cumulative totals turn ranges into subtractions</h3>
+<p class="lead">
+  Define <code>prefix[i]</code> = sum of the first <code>i</code> elements (so <code>prefix[0] = 0</code>, "the sum of
+  nothing"). Then the sum of any slice <code>nums[i..j]</code> is <code>prefix[j+1] - prefix[i]</code>: take everything
+  up to <code>j</code>, subtract everything strictly before <code>i</code>, and the shared head cancels out.
+</p>
+<p>
+  The array is one slot longer than the input on purpose. That extra leading zero is not decoration — it means a range
+  starting at index 0 needs no special case, which removes the single most common bug in this pattern.
+</p>
+
+<div class="anim" id="prefixAnim">
+  <svg viewBox="0 0 640 300" role="img" aria-label="Building a prefix array and answering a range query">
+    <text class="small" x="24" y="76">nums</text>
+    <rect id="a0" class="box" x="120" y="48" width="64" height="44" rx="8"></rect>
+    <text id="av0" class="lbl" x="152" y="76" text-anchor="middle">3</text>
+    <rect id="a1" class="box" x="200" y="48" width="64" height="44" rx="8"></rect>
+    <text id="av1" class="lbl" x="232" y="76" text-anchor="middle">-1</text>
+    <rect id="a2" class="box" x="280" y="48" width="64" height="44" rx="8"></rect>
+    <text id="av2" class="lbl" x="312" y="76" text-anchor="middle">4</text>
+    <rect id="a3" class="box" x="360" y="48" width="64" height="44" rx="8"></rect>
+    <text id="av3" class="lbl" x="392" y="76" text-anchor="middle">2</text>
+    <rect id="a4" class="box" x="440" y="48" width="64" height="44" rx="8"></rect>
+    <text id="av4" class="lbl" x="472" y="76" text-anchor="middle">-2</text>
+    <text class="small" x="152" y="110" text-anchor="middle">0</text>
+    <text class="small" x="232" y="110" text-anchor="middle">1</text>
+    <text class="small" x="312" y="110" text-anchor="middle">2</text>
+    <text class="small" x="392" y="110" text-anchor="middle">3</text>
+    <text class="small" x="472" y="110" text-anchor="middle">4</text>
+
+    <text class="small" x="24" y="196">prefix</text>
+    <rect id="p0" class="box" x="40" y="168" width="64" height="44" rx="8"></rect>
+    <text id="pv0" class="lbl" x="72" y="196" text-anchor="middle">0</text>
+    <rect id="p1" class="box" x="120" y="168" width="64" height="44" rx="8"></rect>
+    <text id="pv1" class="lbl" x="152" y="196" text-anchor="middle">3</text>
+    <rect id="p2" class="box" x="200" y="168" width="64" height="44" rx="8"></rect>
+    <text id="pv2" class="lbl" x="232" y="196" text-anchor="middle">2</text>
+    <rect id="p3" class="box" x="280" y="168" width="64" height="44" rx="8"></rect>
+    <text id="pv3" class="lbl" x="312" y="196" text-anchor="middle">6</text>
+    <rect id="p4" class="box" x="360" y="168" width="64" height="44" rx="8"></rect>
+    <text id="pv4" class="lbl" x="392" y="196" text-anchor="middle">8</text>
+    <rect id="p5" class="box" x="440" y="168" width="64" height="44" rx="8"></rect>
+    <text id="pv5" class="lbl" x="472" y="196" text-anchor="middle">6</text>
+    <text class="small" x="72" y="230" text-anchor="middle">0</text>
+    <text class="small" x="152" y="230" text-anchor="middle">1</text>
+    <text class="small" x="232" y="230" text-anchor="middle">2</text>
+    <text class="small" x="312" y="230" text-anchor="middle">3</text>
+    <text class="small" x="392" y="230" text-anchor="middle">4</text>
+    <text class="small" x="472" y="230" text-anchor="middle">5</text>
+
+    <text id="qtext" class="lbl" x="320" y="268" text-anchor="middle" style="opacity:0">sum(1..3) = prefix[4] − prefix[1]</text>
+    <text id="qresult" class="lbl" x="320" y="292" text-anchor="middle" style="opacity:0">= 8 − 3 = 5 ✓</text>
+  </svg>
+  <div class="anim-caption"></div>
+  <div class="anim-controls"></div>
+</div>
+
+<div class="tip">
+  <strong>The mental model.</strong> A prefix array is a savings-account statement: each entry is "balance after
+  transaction i". To know how much you gained between March and July you don't replay four months of transactions —
+  you subtract two balances. That subtraction is the whole trick.
+</div>
+
+<h3>2. Prefix + HashMap: counting subarrays that sum to k</h3>
+<p>
+  The follow-up interviewers love: <em>how many</em> subarrays sum to exactly <code>k</code>? Rearranging the range
+  formula: a subarray ending at index <code>j</code> sums to <code>k</code> exactly when some earlier prefix equals
+  <code>running − k</code>. So walk left to right, keep the running sum, and ask a HashMap "how many times have I
+  already seen <code>running − k</code>?" — the same complement-lookup shape as Two Sum from page 01, applied to
+  prefix sums instead of elements.
+</p>
+
+<div class="warn">
+  <strong>Why not a sliding window?</strong> A window relies on a monotone invariant: growing the window can only
+  increase the sum, shrinking can only decrease it — that's what tells you which pointer to move. Negative numbers
+  break both directions: extending the window might <em>shrink</em> the sum, so "sum too big → shrink" no longer
+  reasons correctly, and the window will silently skip valid answers. The moment a subarray-sum problem allows
+  negatives (or asks to <em>count</em> all answers, not find one), drop the window and reach for prefix + HashMap.
+</div>
+
+<h3>3. Difference arrays: prefix sums in reverse</h3>
+<p>
+  Now invert the idea. Suppose you must apply many <em>range updates</em> — "add 3 to every element from index 2 to 7"
+  — and only read the final result at the end. Updating every cell per request is O(n) each. Instead keep a
+  <strong>difference array</strong>: record <code>+3</code> at the start and <code>−3</code> just past the end, in O(1)
+  per update. One final prefix-sum pass "integrates" the markers back into actual values. Bookings, seat counts, and
+  interval-overlap problems fall to this in a few lines.
+</p>
+
+<h3>4. Two dimensions, same trick (brief)</h3>
+<p>
+  A 2D prefix table <code>P[r][c]</code> = sum of the rectangle from <code>(0,0)</code> to <code>(r−1,c−1)</code> makes
+  any rectangle sum O(1) by inclusion–exclusion:
+  <code>sum = P[r2+1][c2+1] − P[r1][c2+1] − P[r2+1][c1] + P[r1][c1]</code>
+  (subtract the strip above and the strip to the left; add back the corner you subtracted twice). Computer vision calls
+  this an <em>integral image</em>. Worth knowing exists; full 2D drills live with the matrix patterns on
+  <a href="05-matrix.html">page 05</a> and beyond.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="templates">Pattern templates (Java)</h2>
+
+<p class="code-title">Template 1 — build once, query ranges in O(1)</p>
+<pre class="code"><code>// Build: prefix has ONE EXTRA slot; prefix[0] = 0 means "sum of nothing".
+long[] prefix = new long[nums.length + 1];        // long: n large values can overflow int
+for (int i = 0; i &lt; nums.length; i++) {
+    prefix[i + 1] = prefix[i] + nums[i];          // each entry extends the running total
+}
+
+// Query: sum of nums[i..j] inclusive — two lookups, no rescan.
+long rangeSum = prefix[j + 1] - prefix[i];        // total up to j, minus everything before i</code></pre>
+
+<p class="code-title">Template 2 — prefix + HashMap: count subarrays with sum k (negatives welcome)</p>
+<pre class="code"><code>Map&lt;Long, Integer&gt; seen = new HashMap&lt;&gt;();  // prefix value -&gt; times seen so far
+seen.put(0L, 1);                    // the empty prefix: lets subarrays starting at 0 count
+long running = 0;
+int count = 0;
+for (int x : nums) {
+    running += x;                                   // prefix sum ending HERE
+    count += seen.getOrDefault(running - k, 0);     // each earlier match = one valid start
+    seen.merge(running, 1, Integer::sum);           // record AFTER counting (length &gt;= 1)
+}</code></pre>
+
+<p class="code-title">Template 3 — difference array: many range updates, one final read</p>
+<pre class="code"><code>int[] diff = new int[n + 1];        // +1 slot so "end marker" never falls off the array
+// apply "add v to every index in [l, r]" in O(1):
+diff[l]     += v;                   // the effect starts at l ...
+diff[r + 1] -= v;                   // ... and is cancelled just PAST r
+
+// integrate once at the end: value[i] = diff[0] + diff[1] + ... + diff[i]
+int[] value = new int[n];
+int running = 0;
+for (int i = 0; i &lt; n; i++) {
+    running += diff[i];             // prefix sum of the markers = actual value
+    value[i] = running;
+}</code></pre>
+
+<!-- ============================================================ -->
+<h2 id="compare">When to use what</h2>
+
+<div class="tablewrap">
+<table>
+  <tr><th>Technique</th><th>Answers</th><th>Cost</th><th>Reach for it when…</th></tr>
+  <tr><td><strong>Recompute the range</strong></td><td>one-off sum</td><td>O(n) per query</td><td>a single query — don't over-engineer</td></tr>
+  <tr><td><strong>Prefix sum array</strong></td><td>any range sum, repeatedly</td><td>O(n) build, O(1) query</td><td>immutable data + many range queries</td></tr>
+  <tr><td><strong>Prefix + HashMap</strong></td><td>count/find subarrays hitting a target</td><td>O(n) time, O(n) space</td><td>"subarray sum equals / divisible by k", negatives allowed</td></tr>
+  <tr><td><strong>Sliding window</strong> (<a href="03-sliding-window.html">03</a>)</td><td>best window under a monotone constraint</td><td>O(n), O(1)-ish space</td><td>all-positive values, or shrink/grow logic provably valid</td></tr>
+  <tr><td><strong>Difference array</strong></td><td>many range <em>updates</em>, read at end</td><td>O(1) per update + O(n) finish</td><td>batch updates, nobody reads mid-stream</td></tr>
+  <tr><td><strong>Fenwick / segment tree</strong> (<a href="24-advanced-structures.html">24</a>)</td><td>interleaved updates <em>and</em> queries</td><td>O(log n) each</td><td>the array mutates between queries</td></tr>
+</table>
+</div>
+
+<p>Decision cues:</p>
+<ul>
+  <li>The problem says <em>"range sum query"</em>, <em>"sum between indices"</em>, or a loop keeps re-summing slices → <strong>prefix array</strong>.</li>
+  <li>It says <em>"subarray sum equals / divisible by / at most k"</em> and values can be negative (or it asks for a <em>count</em>) → <strong>prefix + HashMap</strong>.</li>
+  <li>It says <em>"apply these bookings/updates, then report the result"</em> → <strong>difference array</strong>.</li>
+  <li>It mixes <em>updates and queries</em> throughout → prefix arrays go stale in O(n); that's the cue for a <strong>Fenwick tree</strong> (page 24), not this page.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="realworld">Where this shows up in real systems</h2>
+<div class="grid2">
+  <div class="card">
+    <h4>OLAP &amp; analytics dashboards</h4>
+    <p class="small">"Revenue month-to-date" and "cumulative signups" charts are prefix sums over daily rollups.
+    Warehouses (BigQuery, Snowflake) expose it directly as the window function
+    <code>SUM(x) OVER (ORDER BY day)</code> — and "revenue between any two dates" is exactly the two-balance
+    subtraction from this page.</p>
+  </div>
+  <div class="card">
+    <h4>Integral images in computer vision</h4>
+    <p class="small">The Viola–Jones face detector (the classic real-time face-box algorithm in cameras) evaluates
+    thousands of rectangular brightness features per frame. Each is O(1) thanks to a 2D prefix table computed once
+    per image — the textbook industrial win for inclusion–exclusion.</p>
+  </div>
+  <div class="card">
+    <h4>Calendar &amp; booking systems</h4>
+    <p class="small">"How many meetings overlap at 10:15?" or "can this flight take more standby passengers?" —
+    booking systems drop <code>+1</code> at each start and <code>−1</code> at each end, then prefix-sum along the
+    timeline to get concurrent load at every instant. Car Pooling (worked below) is precisely this.</p>
+  </div>
+  <div class="card">
+    <h4>Monitoring counters</h4>
+    <p class="small">Prometheus counters are ever-growing cumulative totals — prefix sums by design. When Grafana
+    graphs a rate, it subtracts two cumulative samples over a time range: <code>counter(t2) − counter(t1)</code>.
+    Storing the running total instead of raw deltas makes every range query cheap and loss-tolerant.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="problems">Problems, fully worked (easy → hard)</h2>
+<p class="muted small">Full statement, example, and every useful variation per problem — try each yourself
+before opening the walkthrough.</p>
+
+<details class="sol" id="lc1480">
+  <summary><span class="badge easy">easy</span> Running Sum of 1d Array — LeetCode 1480</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Return the array of running sums:
+    <code>result[i] = nums[0] + nums[1] + … + nums[i]</code>.</p>
+    <p><strong>Example.</strong> <code>[1,2,3,4]</code> → <code>[1,3,6,10]</code>.
+    <code>[3,1,2,10,1]</code> → <code>[3,4,6,16,17]</code>.</p>
+    <p class="code-title">The build loop — the atom every other problem on this page reuses · O(n)</p>
+<pre class="code"><code>public int[] runningSum(int[] nums) {
+    int[] sum = new int[nums.length];
+    sum[0] = nums[0];
+    for (int i = 1; i &lt; nums.length; i++)
+        sum[i] = sum[i - 1] + nums[i];   // each entry = previous total + one element
+    return sum;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Deliberately trivial — it exists to make the build step automatic.
+    Notice the recurrence "current = previous + increment": that shape is also the simplest possible
+    dynamic program (<a href="18-dp-1d.html">page 18</a>).</p>
+  </div>
+</details>
+
+<details class="sol" id="lc303">
+  <summary><span class="badge easy">easy</span> Range Sum Query, Immutable — LeetCode 303</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Design a class over a fixed array answering many
+    <code>sumRange(left, right)</code> queries (sum of the inclusive range). The array never changes;
+    queries are frequent.</p>
+    <p><strong>Example.</strong> For <code>nums=[-2,0,3,-5,2,-1]</code>: <code>sumRange(0,2)</code> → 1,
+    <code>sumRange(2,5)</code> → −1, <code>sumRange(0,5)</code> → −3.</p>
+
+    <p class="code-title">Variation 1 — loop per query · O(n) per query (too slow for many queries)</p>
+<pre class="code"><code>public int sumRangeLoop(int[] nums, int left, int right) {
+    int sum = 0;
+    for (int i = left; i &lt;= right; i++) sum += nums[i];  // re-adds the range every time
+    return sum;
+}</code></pre>
+    <p>10⁴ queries × 10⁴ elements = 10⁸ adds. The array is immutable — precompute once instead:</p>
+
+    <p class="code-title">Variation 2 — prefix array (optimal) · O(n) build, O(1) per query</p>
+<pre class="code"><code>public class RangeSumQueryImmutable {
+
+    // prefix[i] = sum of the first i elements: nums[0] + ... + nums[i-1].
+    // One extra slot (prefix[0] = 0) means no special case for ranges starting at 0.
+    private final long[] prefix;
+
+    public RangeSumQueryImmutable(int[] nums) {
+        prefix = new long[nums.length + 1];          // prefix[0] stays 0: "sum of nothing"
+        for (int i = 0; i &lt; nums.length; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];     // extend the running total by one element
+        }
+    }
+
+    // Sum of nums[left..right] inclusive, in O(1):
+    // everything up to right, minus everything strictly before left.
+    public int sumRange(int left, int right) {
+        return (int) (prefix[right + 1] - prefix[left]);
+    }
+}</code></pre>
+    <p><strong>Takeaway.</strong> The +1 offset (leading zero) is what removes the "range starts at 0"
+    special case — internalize it here and it never bites again. If the array could <em>change</em> between
+    queries, a prefix array breaks (every update invalidates the tail) — that's when a Fenwick tree /
+    segment tree takes over (<a href="24-advanced-structures.html">page 24</a>).
+    Mirror: <code>code/04-prefix-sum/RangeSumQueryImmutable.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc724">
+  <summary><span class="badge easy">easy</span> Find Pivot Index — LeetCode 724</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> The leftmost index where the sum of everything strictly to the
+    left equals the sum of everything strictly to the right (−1 if none).</p>
+    <p><strong>Example.</strong> <code>[1,7,3,6,5,6]</code> → 3 (left 1+7+3 = 11 = right 5+6).
+    <code>[2,1,-1]</code> → 0 (empty left side counts as 0).</p>
+    <p class="code-title">Total once, then a running left sum · O(n) time, O(1) space</p>
+<pre class="code"><code>public static int pivotIndex(int[] nums) {
+    int total = 0;
+    for (int x : nums) total += x;
+
+    int leftSum = 0;
+    for (int i = 0; i &lt; nums.length; i++) {
+        if (leftSum == total - leftSum - nums[i])   // right side by subtraction
+            return i;
+        leftSum += nums[i];                          // i joins the left side
+    }
+    return -1;
+}</code></pre>
+    <p><strong>Takeaway.</strong> You don't always need the prefix <em>array</em> — one running number
+    plus the precomputed total gives any "left vs right" comparison by subtraction. Watch the empty
+    sides: at i=0 the left sum is legitimately 0, which is why <code>[2,1,-1]</code> answers 0.
+    Mirror: <code>code/04-prefix-sum/PivotIndex.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc560">
+  <summary><span class="badge medium">medium</span> Subarray Sum Equals K — LeetCode 560</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Count how many contiguous subarrays sum to exactly <code>k</code>.
+    Values may be <strong>negative</strong> — which is exactly what breaks a sliding window here.</p>
+    <p><strong>Example.</strong> <code>nums=[1,1,1], k=2</code> → <code>2</code> ([1,1] twice).
+    <code>nums=[1,2,3], k=3</code> → <code>2</code> ([1,2] and [3]).
+    <code>nums=[1,-1,0], k=0</code> → <code>3</code> ([1,−1], [0], and [1,−1,0]).</p>
+
+    <p class="code-title">Variation 1 — brute force over all ranges · O(n²)</p>
+<pre class="code"><code>public int subarraySumBrute(int[] nums, int k) {
+    int count = 0;
+    for (int start = 0; start &lt; nums.length; start++) {
+        long sum = 0;
+        for (int end = start; end &lt; nums.length; end++) {
+            sum += nums[end];             // running sum of nums[start..end]
+            if (sum == k) count++;        // don't break — negatives can bring it back
+        }
+    }
+    return count;
+}</code></pre>
+    <p>Note why there's no early exit: with negatives, the sum can hit k, leave, and return.
+    The same reason forbids a grow/shrink window — growth doesn't monotonically raise the sum.</p>
+
+    <p class="code-title">Variation 2 — prefix sum + HashMap (optimal) · O(n)</p>
+<pre class="code"><code>public int subarraySum(int[] nums, int k) {
+    // How many times have we seen each prefix sum so far?
+    // Seed: the empty prefix (sum 0) has been seen once — it lets a
+    // subarray that starts at index 0 be counted.
+    Map&lt;Long, Integer&gt; seen = new HashMap&lt;&gt;();
+    seen.put(0L, 1);
+
+    long running = 0;                  // prefix sum ending at the current index
+    int count = 0;
+    for (int x : nums) {
+        running += x;                  // extend the prefix by one element
+        // A subarray ending here sums to k  &lt;=&gt;  some earlier prefix equals running - k.
+        // Each earlier occurrence is a distinct start index, so add them all at once.
+        count += seen.getOrDefault(running - k, 0);
+        // Only NOW record the current prefix — recording first would let the
+        // zero-length subarray match itself when k == 0.
+        seen.merge(running, 1, Integer::sum);
+    }
+    return count;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The identity <code>sum(i..j] = prefix[j] − prefix[i]</code> turns "find a
+    subarray summing to k" into "find an earlier prefix equal to running − k" — a complement lookup, i.e.
+    Two Sum (<a href="01-arrays-hashing.html">page 01</a>) played on prefix sums. This combination is the
+    single most useful medium-problem trick in the array world.
+    Mirror: <code>code/04-prefix-sum/SubarraySumEqualsK.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc525">
+  <summary><span class="badge medium">medium</span> Contiguous Array — LeetCode 525</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given a binary array (only 0s and 1s), find the length of the longest
+    contiguous subarray containing an <em>equal number</em> of 0s and 1s.</p>
+    <p><strong>Example.</strong> <code>[0,1]</code> → <code>2</code>. <code>[0,1,0]</code> → <code>2</code>
+    ([0,1] or [1,0]). <code>[0,0,1,0,1,1]</code> → <code>6</code> (three of each).</p>
+    <p><strong>The insight.</strong> Re-read every 0 as −1. Then "equal 0s and 1s" becomes "subarray summing
+    to zero" — and a subarray sums to zero exactly when the prefix sum <em>repeats</em>:
+    <code>prefix[j] = prefix[i]</code> means everything between i and j cancelled out.</p>
+
+    <p class="code-title">Variation 1 — brute force with running counts · O(n²)</p>
+<pre class="code"><code>public int findMaxLengthBrute(int[] nums) {
+    int best = 0;
+    for (int start = 0; start &lt; nums.length; start++) {
+        int balance = 0;                       // (#1s) - (#0s) in nums[start..end]
+        for (int end = start; end &lt; nums.length; end++) {
+            balance += nums[end] == 1 ? 1 : -1;
+            if (balance == 0)                  // equal counts
+                best = Math.max(best, end - start + 1);
+        }
+    }
+    return best;
+}</code></pre>
+
+    <p class="code-title">Variation 2 — first-seen prefix map (optimal) · O(n)</p>
+<pre class="code"><code>public int findMaxLength(int[] nums) {
+    // firstSeen.get(b) = earliest index where the running balance was b.
+    // Balance b repeating at j means nums[(first index)+1 .. j] is balanced.
+    Map&lt;Integer, Integer&gt; firstSeen = new HashMap&lt;&gt;();
+    firstSeen.put(0, -1);              // balance 0 "before the array starts"
+
+    int balance = 0, best = 0;
+    for (int i = 0; i &lt; nums.length; i++) {
+        balance += nums[i] == 1 ? 1 : -1;   // 0 counts as -1
+        if (firstSeen.containsKey(balance)) {
+            // Same balance seen before -&gt; the stretch between is perfectly mixed.
+            // Use the EARLIEST occurrence for the longest stretch.
+            best = Math.max(best, i - firstSeen.get(balance));
+        } else {
+            firstSeen.put(balance, i);      // record only the first time
+        }
+    }
+    return best;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Two differences from Subarray Sum Equals K: the map stores the
+    <em>first index</em> (longest span) instead of a <em>count</em> (number of subarrays), and the 0→−1
+    re-encoding converts a "balance" condition into a "sum equals zero" condition. Re-encoding values so a
+    prefix trick applies is a move worth remembering.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc238">
+  <summary><span class="badge medium">medium</span> Product of Array Except Self — LeetCode 238</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> <code>answer[i]</code> = product of every element except
+    <code>nums[i]</code>, in O(n), without division.</p>
+    <p><strong>Example.</strong> <code>[1,2,3,4]</code> → <code>[24,12,8,6]</code>.</p>
+    <p>This is prefix sums with × instead of + : prefix products from the left, suffix products from the
+    right, answer = left[i] × right[i]. Both variations (two arrays, then the O(1)-extra-space squeeze) are
+    fully worked on <a href="01-arrays-hashing.html#problems">page 01</a> — revisit it now with prefix-sum
+    eyes and the solution reads as one line: <em>"prefix × suffix"</em>.
+    Mirror: <code>code/01-arrays-hashing/ProductExceptSelf.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc1094">
+  <summary><span class="badge medium">medium</span> Car Pooling — LeetCode 1094</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> A car drives one way down a road. Each trip is
+    <code>[passengers, from, to]</code>: that many passengers board at kilometer <code>from</code> and leave
+    at kilometer <code>to</code>. With seat capacity <code>capacity</code>, can the car complete all trips
+    without ever being overfull?</p>
+    <p><strong>Example.</strong> <code>trips=[[2,1,5],[3,3,7]], capacity=4</code> → <code>false</code>
+    (between km 3 and 5 the car holds 2+3 = 5 &gt; 4). Same trips with <code>capacity=5</code> →
+    <code>true</code>.</p>
+
+    <p class="code-title">Variation 1 — paint each trip onto the road · O(t · R)</p>
+<pre class="code"><code>public boolean carPoolingPaint(int[][] trips, int capacity) {
+    int[] onboard = new int[1001];            // road positions 0..1000
+    for (int[] t : trips)
+        for (int km = t[1]; km &lt; t[2]; km++)  // mark EVERY km of the trip
+            if ((onboard[km] += t[0]) &gt; capacity) return false;
+    return true;
+}</code></pre>
+    <p>Each trip touches every kilometer it spans. The difference array reduces that to two touches:</p>
+
+    <p class="code-title">Variation 2 — difference array (optimal) · O(t + R)</p>
+<pre class="code"><code>public boolean carPooling(int[][] trips, int capacity) {
+    // diff[p] = net change in passengers at kilometer p.
+    // Positions are bounded (0..1000 in the constraints), so a plain
+    // array beats a TreeMap of events here.
+    int[] diff = new int[1001];
+    for (int[] t : trips) {
+        int passengers = t[0], from = t[1], to = t[2];
+        diff[from] += passengers;   // they board at 'from'
+        diff[to]   -= passengers;   // and are gone by 'to' (drop-off is exclusive)
+    }
+    // Prefix-sum the markers: onboard = passengers in the car at position p.
+    int onboard = 0;
+    for (int p = 0; p &lt; diff.length; p++) {
+        onboard += diff[p];
+        if (onboard &gt; capacity) return false;   // overfull at this kilometer
+    }
+    return true;
+}</code></pre>
+    <p><strong>Takeaway.</strong> "+x at start, −x just past the end, integrate once" is the difference-array
+    shape for every interval-overlap counting problem — the same sweep counts simultaneous meetings in
+    Meeting Rooms II (<a href="21-greedy-intervals.html">page 21</a>). The exclusive drop-off index is the
+    detail to be careful with: a passenger leaving at km 5 frees the seat for someone boarding at km 5.
+    Mirror: <code>code/04-prefix-sum/CarPooling.java</code>.</p>
+  </div>
+</details>
+
+<!-- ============================================================ -->
+<details class="sol" id="lc304">
+  <summary><span class="badge medium">medium</span> Range Sum Query 2D, Immutable — LeetCode 304</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Preprocess a matrix so <code>sumRegion(r1,c1,r2,c2)</code> —
+    the sum of any axis-aligned sub-rectangle — answers in O(1), over many queries.</p>
+    <p><strong>Example.</strong> For the classic 5×5 test matrix, sumRegion(2,1,4,3) = 8,
+    sumRegion(1,1,2,2) = 11.</p>
+    <p class="code-title">2D prefix table + inclusion–exclusion · O(mn) build, O(1) query</p>
+<pre class="code"><code>public class RangeSum2D {
+    // prefix[r][c] = sum of the rectangle (0,0)..(r-1,c-1); the extra
+    // zero row/column kills all boundary special-casing.
+    private final int[][] prefix;
+
+    public RangeSum2D(int[][] matrix) {
+        int rows = matrix.length, cols = matrix[0].length;
+        prefix = new int[rows + 1][cols + 1];
+        for (int r = 0; r &lt; rows; r++)
+            for (int c = 0; c &lt; cols; c++)
+                // cell + above-rect + left-rect − their double-counted overlap
+                prefix[r + 1][c + 1] = matrix[r][c]
+                        + prefix[r][c + 1] + prefix[r + 1][c] - prefix[r][c];
+    }
+
+    public int sumRegion(int r1, int c1, int r2, int c2) {
+        // big rectangle − top strip − left strip + corner (subtracted twice)
+        return prefix[r2 + 1][c2 + 1] - prefix[r1][c2 + 1]
+             - prefix[r2 + 1][c1] + prefix[r1][c1];
+    }
+}</code></pre>
+    <p><strong>Takeaway.</strong> The 1D "two lookups" trick becomes <em>four</em> lookups in 2D via
+    inclusion–exclusion — draw the rectangles once and the formula writes itself. The zero-padding
+    row/column is the same guard as 1D's <code>prefix[0]=0</code>. This is how image processing
+    computes box blurs ("summed-area tables") and how OLAP dashboards pre-aggregate.
+    Mirror: <code>code/04-prefix-sum/RangeSum2D.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc974">
+  <summary><span class="badge medium">medium</span> Subarray Sums Divisible by K — LeetCode 974</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Count subarrays whose sum is divisible by k (elements may be
+    negative).</p>
+    <p><strong>Example.</strong> <code>[4,5,0,-2,-3,1], k=5</code> → 7.</p>
+    <p class="code-title">Count prefixes by remainder class · O(n)</p>
+<pre class="code"><code>public static int subarraysDivByK(int[] nums, int k) {
+    // Subarray (i, j] divisible by k  ⇔  prefix[j] ≡ prefix[i]  (mod k).
+    int[] byRemainder = new int[k];
+    byRemainder[0] = 1;             // the empty prefix: remainder 0, seen once
+    int prefix = 0, count = 0;
+    for (int x : nums) {
+        prefix += x;
+        int r = ((prefix % k) + k) % k;   // Java's % is negative for negatives!
+        count += byRemainder[r];    // pairs with every earlier equal remainder
+        byRemainder[r]++;
+    }
+    return count;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Subarray Sum Equals K asks for prefix <em>differences</em> equal to
+    k; this asks for prefix <em>remainders</em> that match — same "have I seen a compatible earlier
+    prefix?" engine, different equivalence. The one Java landmine: <code>%</code> yields negative
+    remainders for negative numbers, hence the <code>((p % k) + k) % k</code> normalization.
+    Mirror: <code>code/04-prefix-sum/SubarraysDivByK.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc523">
+  <summary><span class="badge medium">medium</span> Continuous Subarray Sum — LeetCode 523</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Does a subarray of length ≥ 2 sum to a multiple of k?
+    (Non-negative elements; 0 is a multiple of everything.)</p>
+    <p><strong>Example.</strong> <code>[23,2,4,6,7], k=6</code> → true ([2,4]).
+    <code>[1,0], k=2</code> → false (the qualifying zero is length 1). <code>[0,0], k=2</code> → true.</p>
+    <p class="code-title">Earliest index per remainder + distance check · O(n)</p>
+<pre class="code"><code>public static boolean checkSubarraySum(int[] nums, int k) {
+    Map&lt;Integer, Integer&gt; firstAt = new HashMap&lt;&gt;();
+    firstAt.put(0, -1);                  // empty prefix, "index" -1
+    int prefix = 0;
+    for (int i = 0; i &lt; nums.length; i++) {
+        prefix += nums[i];
+        int r = prefix % k;
+        Integer first = firstAt.putIfAbsent(r, i);  // keep the EARLIEST only
+        if (first != null &amp;&amp; i - first &gt;= 2)        // same remainder, ≥ 2 apart
+            return true;
+    }
+    return false;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The length-≥-2 constraint changes the bookkeeping from
+    <em>counting</em> remainders to remembering each remainder's <em>first</em> index —
+    <code>putIfAbsent</code> does the "never overwrite" part for free, and the distance check enforces
+    the length. Storing first-occurrence-index instead of count is a recurring micro-variation across
+    the prefix-map family (compare Contiguous Array above).
+    Mirror: <code>code/04-prefix-sum/CheckSubarraySum.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc1109">
+  <summary><span class="badge medium">medium</span> Corporate Flight Bookings — LeetCode 1109</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> n flights; each booking <code>[first, last, seats]</code> adds
+    seats to every flight in the range. Return the final seat count per flight.</p>
+    <p><strong>Example.</strong> bookings <code>[[1,2,10],[2,3,20],[2,5,25]]</code>, n=5 →
+    <code>[10,55,45,25,25]</code>.</p>
+    <p class="code-title">Difference array: O(1) per booking, one final scan · O(n + b)</p>
+<pre class="code"><code>public static int[] corpFlightBookings(int[][] bookings, int n) {
+    int[] diff = new int[n + 1];             // +1 slot so `last` never overflows
+    for (int[] b : bookings) {
+        int first = b[0], last = b[1], seats = b[2];
+        diff[first - 1] += seats;            // seats start here (1-indexed input)
+        diff[last] -= seats;                 // and stop after `last`
+    }
+    int[] out = new int[n];
+    int running = 0;
+    for (int i = 0; i &lt; n; i++) {
+        running += diff[i];                  // prefix sum = actual seat count
+        out[i] = running;
+    }
+    return out;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The difference array is the prefix sum's inverse: range updates
+    become two point edits, and one integration pass at the end recovers the values. Car Pooling
+    (above) is the same trick keyed by time instead of flight number. Any "N range-add operations,
+    then read the result" problem — booking systems, brightness adjustments on image rows, load
+    accumulation — wants this shape.
+    Mirror: <code>code/04-prefix-sum/CorpFlightBookings.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc862">
+  <summary><span class="badge hard">hard</span> Shortest Subarray with Sum at Least K — LeetCode 862</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Shortest non-empty subarray with sum ≥ k — but elements may be
+    <em>negative</em> (−1 if none exists).</p>
+    <p><strong>Example.</strong> <code>[2,-1,2], k=3</code> → 3. <code>[84,-37,32,40,95], k=167</code>
+    → 3. With <code>[1,2], k=4</code> → −1.</p>
+    <p class="code-title">Prefix sums + monotonic deque of candidate starts · O(n)</p>
+<pre class="code"><code>public static int shortestSubarray(int[] nums, int k) {
+    // Negatives break page 03's shrinking window: growing the window can now
+    // DECREASE the sum, so "shrink while it qualifies" loses answers.
+    int n = nums.length;
+    long[] prefix = new long[n + 1];         // sums can exceed int range
+    for (int i = 0; i &lt; n; i++)
+        prefix[i + 1] = prefix[i] + nums[i];
+
+    int best = n + 1;
+    Deque&lt;Integer&gt; dq = new ArrayDeque&lt;&gt;();  // indices; prefix strictly rising
+    for (int j = 0; j &lt;= n; j++) {
+        // 1) Harvest: while the oldest candidate start satisfies sum ≥ k,
+        //    record it and RETIRE it — any later end j only gives a longer
+        //    subarray from that same start.
+        while (!dq.isEmpty() &amp;&amp; prefix[j] - prefix[dq.peekFirst()] &gt;= k)
+            best = Math.min(best, j - dq.pollFirst());
+        // 2) Prune: an earlier start with a bigger prefix is strictly worse
+        //    (longer AND leaves more sum to cover) — drop it forever.
+        while (!dq.isEmpty() &amp;&amp; prefix[dq.peekLast()] &gt;= prefix[j])
+            dq.pollLast();
+        dq.offerLast(j);
+    }
+    return best == n + 1 ? -1 : best;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The graduation exam of this page: prefix sums restate the question
+    as "for each j, the latest i with prefix[j] − prefix[i] ≥ k", and the monotonic deque
+    (<a href="09-stacks-queues.html">page 09</a>'s tool) keeps exactly the starts that could still
+    win. Both pruning rules are one-way-door arguments — once retired, a start can never be optimal
+    again, which is what makes it linear. If the interviewer adds "negative numbers" to a window
+    problem, this is the escalation path they're probing for.
+    Mirror: <code>code/04-prefix-sum/ShortestSubarraySumK.java</code>.</p>
+  </div>
+</details>
+
+
+<h2 id="pitfalls">Pitfalls</h2>
+<ul>
+  <li><strong>Size the prefix array n+1, not n.</strong> The leading zero eliminates the "range starts at 0" special
+    case. If you find yourself writing <code>if (left == 0)</code>, you built it one slot short.</li>
+  <li><strong>Overflow:</strong> 10⁵ elements near ±10⁹ each push prefix totals past <code>int</code> range. Build
+    prefixes in <code>long</code> by default — it costs nothing and interviewers notice.</li>
+  <li><strong>Seed the map with <code>(0, 1)</code>.</strong> Forgetting the empty prefix silently drops every
+    subarray that starts at index 0 — the most common wrong-answer on LC 560.</li>
+  <li><strong>Count before you record.</strong> In the HashMap pattern, look up <code>running − k</code> <em>before</em>
+    inserting <code>running</code>; inserting first lets a zero-length subarray match itself when <code>k == 0</code>.</li>
+  <li><strong>Difference arrays end exclusive.</strong> The cancel marker goes at <code>r + 1</code> (one <em>past</em>
+    the last updated index). Size the diff array <code>n + 1</code> so that marker always has a home.</li>
+  <li><strong>Say the limitation out loud:</strong> "prefix arrays assume the data is immutable — if updates interleave
+    with queries I'd move to a Fenwick tree for O(log n) both ways." One sentence, and you've flagged the page-24
+    upgrade path like a senior engineer.</li>
+</ul>
+
+<nav class="pager">
+  <a class="prev" href="03-sliding-window.html"><span class="dir">⟵ Previous</span><span class="name">03 · Sliding Window</span></a>
+  <a class="next" href="05-matrix.html"><span class="dir">Next ⟶</span><span class="name">05 · Matrix &amp; 2D Simulation</span></a>
+</nav>
+
+</div>
+
+<script>
+new Stepper('prefixAnim', {
+  totalSteps: 8,
+  intervalMs: 1700,
+  captions: [
+    'The array nums = [3, −1, 4, 2, −2]. We want to answer range-sum questions like sum(1..3) again and again without rescanning.',
+    'Build the prefix row: prefix[0] = 0 is "the sum of nothing". Then prefix[1] = prefix[0] + nums[0] = 3.',
+    'prefix[2] = prefix[1] + nums[1] = 3 + (−1) = 2. Each entry extends the running total by exactly one element.',
+    'prefix[3] = prefix[2] + nums[2] = 2 + 4 = 6.',
+    'The same recipe fills the rest: prefix = [0, 3, 2, 6, 8, 6]. One O(n) pass — paid once, reused forever.',
+    'Query time: what is the sum of nums[1..3] (the highlighted −1 + 4 + 2)? Naively that is an O(length) rescan on every query.',
+    'But prefix[4] already holds nums[0..3], and prefix[1] holds nums[0..0]. Subtracting cancels their shared head, leaving exactly nums[1..3].',
+    'sum(1..3) = prefix[4] − prefix[1] = 8 − 3 = 5. Every range query is now two array reads and a subtraction — O(1).'
+  ],
+  apply: function (svg, step) {
+    var pShow = [true, step >= 1, step >= 2, step >= 3, step >= 4, step >= 4];
+    for (var i = 0; i <= 5; i++) {
+      var act = (step >= 1 && step <= 3 && i === step) || (step === 4 && (i === 4 || i === 5));
+      var fro = step >= 6 && (i === 1 || i === 4);
+      var dim = step >= 6 && !fro;
+      svg.querySelector('#pv' + i).style.opacity = pShow[i] ? 1 : 0;
+      Stepper.setClass(svg, '#p' + i, 'active', act);
+      Stepper.setClass(svg, '#p' + i, 'frontier', fro);
+      Stepper.setClass(svg, '#p' + i, 'dim', dim);
+      Stepper.setClass(svg, '#pv' + i, 'onfill', act);
+    }
+    for (var j = 0; j <= 4; j++) {
+      var aAct = false, aDim = false;
+      if (step >= 1 && step <= 3) aAct = (j === step - 1);
+      else if (step === 4) aAct = (j === 3 || j === 4);
+      else if (step >= 5) { aAct = (j >= 1 && j <= 3); aDim = !aAct; }
+      Stepper.setClass(svg, '#a' + j, 'active', aAct);
+      Stepper.setClass(svg, '#a' + j, 'dim', aDim);
+      Stepper.setClass(svg, '#av' + j, 'onfill', aAct);
+    }
+    svg.querySelector('#qtext').style.opacity = step >= 6 ? 1 : 0;
+    svg.querySelector('#qresult').style.opacity = step >= 7 ? 1 : 0;
+  }
+});
+</script>
+
+</body>
+</html>

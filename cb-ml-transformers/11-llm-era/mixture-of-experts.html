@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mixture of Experts &amp; the Modern Decoder — The Missing Middle</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body data-page="11-llm-era/mixture-of-experts">
+<main id="content">
+
+  <h1>Mixture of Experts &amp; the Modern Decoder</h1>
+
+  <p>
+    The model card says <strong>"8×7B — 46.7B parameters, 12.9B active."</strong>
+    Until now, that sentence had a contradiction in it: how can a model both have
+    47 billion parameters and not have them? This page resolves it — and while
+    we're inside a modern decoder anyway, it closes the course's architecture
+    thread by reading a real flagship config file line by line, every line mapping
+    to a page you've already done.
+  </p>
+
+  <h2>Specialize the FFN, route per token</h2>
+
+  <p>
+    Recall where a transformer keeps its bulk: M5.5 showed the FFN holds roughly
+    <strong>two-thirds of every block's parameters</strong> — and hinted it acts as
+    key–value memory, where patterns get recognized and facts get written back.
+    <strong>Mixture of Experts</strong> takes that observation literally: if the FFN
+    is the memory, why should every token consult <em>all</em> of it? MoE replaces
+    each block's single FFN with <strong>N parallel FFNs — "experts"</strong> — plus
+    a tiny <strong>router</strong>: a linear layer that scores the experts for each
+    token, picks the top-k (typically <strong>2 of 8</strong>), and sends the token
+    through only those. Attention is untouched — every token still attends over the
+    full sequence with shared, dense attention weights (M5.3–M5.4). Only the
+    memory-lookup half of the block got carved into specialists.
+  </p>
+
+  <div class="formula">
+    <div class="math">y &nbsp;=&nbsp; Σ<sub>i ∈ top-2</sub> g<sub>i</sub> · E<sub>i</sub>(x),
+      &nbsp;&nbsp; g = softmax(W<sub>router</sub> · x)</div>
+    <div class="plain">
+      <b>In plain words:</b> a tiny linear layer scores all the experts for this
+      token; only the two winners actually run; their outputs mix, weighted by the
+      scores. Everything else stays a normal transformer block.
+    </div>
+  </div>
+
+  <figure class="anim" id="fig-moeroute">
+    <div class="fig-title">Animation · One token meets eight experts</div>
+    <svg viewBox="0 0 640 420" aria-labelledby="fig-mr-t">
+      <title id="fig-mr-t">A token routed through two of eight experts by a learned router, then the next token routed differently</title>
+      <g id="mr-base">
+        <rect x="30" y="30" width="140" height="34" rx="9" fill="#dbeafe" stroke="#93c5fd" stroke-width="2"/>
+        <text x="100" y="53" text-anchor="middle" font-size="18" class="mono" fill="#1d4ed8">token: "the"</text>
+        <text x="320" y="96" text-anchor="middle" font-size="18" font-weight="700" class="sv-ink">the MoE layer: 8 expert FFNs, waiting</text>
+        <g class="mono">
+          <rect x="30" y="108" width="66" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+          <rect x="104" y="108" width="66" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+          <rect x="178" y="108" width="66" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" id="mr-e3box"/>
+          <rect x="252" y="108" width="66" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+          <rect x="326" y="108" width="66" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+          <rect x="400" y="108" width="66" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+          <rect x="474" y="108" width="66" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" id="mr-e7box"/>
+          <rect x="548" y="108" width="62" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+          <text x="63" y="136" text-anchor="middle" font-size="17" fill="#475569">E1</text>
+          <text x="137" y="136" text-anchor="middle" font-size="17" fill="#475569">E2</text>
+          <text x="211" y="136" text-anchor="middle" font-size="17" fill="#475569">E3</text>
+          <text x="285" y="136" text-anchor="middle" font-size="17" fill="#475569">E4</text>
+          <text x="359" y="136" text-anchor="middle" font-size="17" fill="#475569">E5</text>
+          <text x="433" y="136" text-anchor="middle" font-size="17" fill="#475569">E6</text>
+          <text x="507" y="136" text-anchor="middle" font-size="17" fill="#475569">E7</text>
+          <text x="579" y="136" text-anchor="middle" font-size="17" fill="#475569">E8</text>
+        </g>
+      </g>
+      <g id="mr-router" class="sp-hide">
+        <text x="30" y="192" font-size="17" font-weight="700" class="sv-ink">router logits (one tiny matmul):</text>
+        <g class="mono">
+          <rect x="40" y="212" width="46" height="14" rx="3" fill="#cbd5e1"/>
+          <rect x="114" y="208" width="46" height="18" rx="3" fill="#cbd5e1"/>
+          <rect x="188" y="200" width="46" height="26" rx="3" fill="#93c5fd"/>
+          <rect x="262" y="214" width="46" height="12" rx="3" fill="#cbd5e1"/>
+          <rect x="336" y="210" width="46" height="16" rx="3" fill="#cbd5e1"/>
+          <rect x="410" y="216" width="46" height="10" rx="3" fill="#cbd5e1"/>
+          <rect x="484" y="204" width="46" height="22" rx="3" fill="#93c5fd"/>
+          <rect x="558" y="215" width="46" height="11" rx="3" fill="#cbd5e1"/>
+        </g>
+      </g>
+      <g id="mr-top2" class="sp-hide">
+        <rect x="178" y="108" width="66" height="46" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+        <text x="211" y="136" text-anchor="middle" font-size="17" class="mono" fill="#1d4ed8" font-weight="700">E3 .61</text>
+        <rect x="474" y="108" width="66" height="46" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+        <text x="507" y="136" text-anchor="middle" font-size="17" class="mono" fill="#1d4ed8" font-weight="700">E7 .27</text>
+        <text x="320" y="250" text-anchor="middle" font-size="17" class="sv-ink">top-2 win — the other six experts do <tspan font-weight="700">nothing</tspan> for this token</text>
+      </g>
+      <g id="mr-flow" class="sp-hide">
+        <line x1="100" y1="64" x2="205" y2="106" stroke="#2563eb" stroke-width="2.5"/>
+        <line x1="100" y1="64" x2="500" y2="106" stroke="#2563eb" stroke-width="2.5"/>
+        <rect x="410" y="264" width="200" height="30" rx="8" fill="#d1fae5" stroke="#6ee7b7" stroke-width="2"/>
+        <text x="510" y="284" text-anchor="middle" font-size="17" class="mono" fill="#065f46">FFN compute: 2/8 of dense</text>
+      </g>
+      <g id="mr-blend" class="sp-hide">
+        <rect x="30" y="264" width="360" height="30" rx="8" fill="#fef3c7" stroke="#fcd34d" stroke-width="2"/>
+        <text x="210" y="284" text-anchor="middle" font-size="17" class="mono" fill="#92400e">out = .61·E3(x) + .27·E7(x) → renormalized</text>
+      </g>
+      <g id="mr-next" class="sp-hide">
+        <rect x="30" y="312" width="580" height="34" rx="9" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+        <text x="320" y="335" text-anchor="middle" font-size="17" class="mono" fill="#1e293b">next token "42" → router picks E1 + E5 — routing is per token, not per sequence</text>
+      </g>
+      <g id="mr-punch" class="sp-hide">
+        <rect x="30" y="364" width="580" height="42" rx="10" fill="#d1fae5" stroke="#6ee7b7" stroke-width="2"/>
+        <text x="320" y="382" text-anchor="middle" font-size="18" font-weight="700" fill="#065f46">46.7B parameters stored — 12.9B working per token</text>
+        <text x="320" y="401" text-anchor="middle" font-size="17" fill="#065f46">the bill splits: memory you HOLD vs compute you SPEND</text>
+      </g>
+    </svg>
+    <p class="sp-caption" id="fig-moeroute-cap"></p>
+  </figure>
+  <script>
+  window.addEventListener("DOMContentLoaded", function () {
+    new StepPlayer({
+      svg: "#fig-moeroute svg",
+      caption: "#fig-moeroute-cap",
+      steps: [
+        { caption: "A token arrives at an MoE layer. Instead of one FFN, <b>eight expert FFNs</b> wait — each a full-size feed-forward network from M5.5.",
+          show: [], hide: ["#mr-router", "#mr-top2", "#mr-flow", "#mr-blend", "#mr-next", "#mr-punch"] },
+        { caption: "The <b>router</b> — one tiny linear layer — scores all eight experts for this specific token. That's the entire routing mechanism: a matmul and a softmax.",
+          show: ["#mr-router"] },
+        { caption: "<b>Top-2 selection</b>: E3 (.61) and E7 (.27) win. The other six experts are simply not run for this token.",
+          show: ["#mr-top2"] },
+        { caption: "The token flows through only the winners — <b>2/8 of the FFN compute</b>, even though all 8 experts' parameters sit in memory.",
+          show: ["#mr-flow"] },
+        { caption: "The two outputs <b>blend, weighted by the gate scores</b>. From the outside, the block behaves like one FFN — one that changed its contents for this token.",
+          show: ["#mr-blend"] },
+        { caption: "The <b>next</b> token routes to a different pair. Routing is <b>per token, not per sequence</b> — and that's the resolution: 46.7B parameters stored, 12.9B active per token. Memory bills the total; compute bills the active.",
+          show: ["#mr-next", "#mr-punch"], holdMs: 6000 }
+      ]
+    });
+  });
+  </script>
+
+  <h2>The router: a learned traffic cop with problems</h2>
+
+  <p>
+    The router trains by ordinary backprop — gradients flow through the gate
+    weights of whichever experts ran — and that creates a famous instability:
+    <strong>rich-get-richer collapse</strong>. An expert that starts marginally
+    better gets routed more tokens, so it trains more, so it gets better, so it
+    gets routed more… until a couple of experts absorb all traffic and the rest
+    sit idle — a dense model dragging dead weight. The standard fix is a
+    <strong>load-balancing auxiliary loss</strong>: a small penalty on uneven
+    expert traffic within each batch, nudging the router to spread tokens without
+    dictating assignments. Training systems also set a <strong>capacity
+    factor</strong> — a per-expert token budget per batch (needed to make batched
+    matmuls rectangular); tokens overflowing a popular expert get
+    <strong>dropped</strong> — skipped past the layer through the residual
+    connection (M5.5's highway earning its keep in a way nobody advertises).
+  </p>
+
+  <figure class="anim" id="fig-moebalance">
+    <div class="fig-title">Animation · Why routers need a leash</div>
+    <svg viewBox="0 0 640 400" aria-labelledby="fig-mb-t">
+      <title id="fig-mb-t">Rich-get-richer routing collapse and the load-balancing loss that prevents it</title>
+      <g id="mb-base">
+        <text x="320" y="34" text-anchor="middle" font-size="18" font-weight="700" class="sv-ink">tokens routed per expert (one training batch)</text>
+        <g class="mono">
+          <text x="63" y="330" text-anchor="middle" font-size="17" fill="#475569">E1</text>
+          <text x="137" y="330" text-anchor="middle" font-size="17" fill="#475569">E2</text>
+          <text x="211" y="330" text-anchor="middle" font-size="17" fill="#475569">E3</text>
+          <text x="285" y="330" text-anchor="middle" font-size="17" fill="#475569">E4</text>
+          <text x="359" y="330" text-anchor="middle" font-size="17" fill="#475569">E5</text>
+          <text x="433" y="330" text-anchor="middle" font-size="17" fill="#475569">E6</text>
+          <text x="507" y="330" text-anchor="middle" font-size="17" fill="#475569">E7</text>
+          <text x="579" y="330" text-anchor="middle" font-size="17" fill="#475569">E8</text>
+        </g>
+        <line x1="30" y1="312" x2="610" y2="312" stroke="#94a3b8" stroke-width="2"/>
+      </g>
+      <g id="mb-even" class="mono">
+        <rect x="45" y="230" width="36" height="82" fill="#93c5fd"/>
+        <rect x="119" y="242" width="36" height="70" fill="#cbd5e1"/>
+        <rect x="193" y="238" width="36" height="74" fill="#cbd5e1"/>
+        <rect x="267" y="248" width="36" height="64" fill="#cbd5e1"/>
+        <rect x="341" y="236" width="36" height="76" fill="#cbd5e1"/>
+        <rect x="415" y="250" width="36" height="62" fill="#cbd5e1"/>
+        <rect x="489" y="240" width="36" height="72" fill="#cbd5e1"/>
+        <rect x="563" y="246" width="36" height="66" fill="#cbd5e1"/>
+        <text x="63" y="218" text-anchor="middle" font-size="17" fill="#1d4ed8">+ε better</text>
+      </g>
+      <g id="mb-loop" class="sp-hide">
+        <path d="M 63 200 C 100 150, 200 150, 240 190" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        <text x="320" y="150" text-anchor="middle" font-size="17" fill="#b45309" font-weight="700">more traffic → more training → better → more traffic</text>
+        <path d="M 400 190 C 440 150, 540 150, 577 200" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+      </g>
+      <g id="mb-collapse" class="sp-hide">
+        <rect x="40" y="196" width="570" height="120" fill="#ffffff" opacity="0.92"/>
+        <g class="mono">
+          <rect x="45" y="70" width="36" height="242" fill="#2563eb"/>
+          <rect x="119" y="296" width="36" height="16" fill="#e2e8f0"/>
+          <rect x="193" y="300" width="36" height="12" fill="#e2e8f0"/>
+          <rect x="267" y="120" width="36" height="192" fill="#60a5fa"/>
+          <rect x="341" y="302" width="36" height="10" fill="#e2e8f0"/>
+          <rect x="415" y="304" width="36" height="8" fill="#e2e8f0"/>
+          <rect x="489" y="298" width="36" height="14" fill="#e2e8f0"/>
+          <rect x="563" y="303" width="36" height="9" fill="#e2e8f0"/>
+        </g>
+        <text x="320" y="56" text-anchor="middle" font-size="17" fill="#b91c1c" font-weight="700">collapse: two experts carry everything — six are dead weight in VRAM</text>
+      </g>
+      <g id="mb-balance" class="sp-hide">
+        <rect x="40" y="46" width="570" height="270" fill="#ffffff" opacity="0.95"/>
+        <g class="mono">
+          <rect x="45" y="232" width="36" height="80" fill="#6ee7b7"/>
+          <rect x="119" y="240" width="36" height="72" fill="#6ee7b7"/>
+          <rect x="193" y="236" width="36" height="76" fill="#6ee7b7"/>
+          <rect x="267" y="228" width="36" height="84" fill="#6ee7b7"/>
+          <rect x="341" y="238" width="36" height="74" fill="#6ee7b7"/>
+          <rect x="415" y="242" width="36" height="70" fill="#6ee7b7"/>
+          <rect x="489" y="234" width="36" height="78" fill="#6ee7b7"/>
+          <rect x="563" y="240" width="36" height="72" fill="#6ee7b7"/>
+        </g>
+        <rect x="150" y="66" width="340" height="32" rx="9" fill="#d1fae5" stroke="#6ee7b7" stroke-width="2"/>
+        <text x="320" y="87" text-anchor="middle" font-size="17" class="mono" fill="#065f46">+ load-balancing aux loss: penalize uneven traffic</text>
+      </g>
+      <g id="mb-punch" class="sp-hide">
+        <rect x="30" y="352" width="580" height="40" rx="10" fill="#d1fae5" stroke="#6ee7b7" stroke-width="2"/>
+        <text x="320" y="369" text-anchor="middle" font-size="18" font-weight="700" fill="#065f46">without the leash, MoE degenerates into a dense model</text>
+        <text x="320" y="387" text-anchor="middle" font-size="17" fill="#065f46">dragging seven anchors of idle parameters</text>
+      </g>
+    </svg>
+    <p class="sp-caption" id="fig-moebalance-cap"></p>
+  </figure>
+  <script>
+  window.addEventListener("DOMContentLoaded", function () {
+    new StepPlayer({
+      svg: "#fig-moebalance svg",
+      caption: "#fig-moebalance-cap",
+      steps: [
+        { caption: "Early in training, traffic is roughly even — but E1 happens to be <b>slightly better</b> than its peers. Just noise, for now.",
+          show: [], hide: ["#mb-loop", "#mb-collapse", "#mb-balance", "#mb-punch"] },
+        { caption: "The router notices and sends E1 <b>more tokens</b> — so E1 trains more, improves more, and wins even more routing. The loop feeds itself.",
+          show: ["#mb-loop"] },
+        { caption: "<b>Collapse</b>: two experts absorb nearly all traffic; six sit idle. You are now paying 8 experts' worth of VRAM for a dense model's behavior.",
+          show: ["#mb-collapse"] },
+        { caption: "The fix: a <b>load-balancing auxiliary loss</b> — a small penalty on uneven per-batch traffic that flattens the distribution without dictating routes.",
+          show: ["#mb-balance"] },
+        { caption: "Every production MoE trains with this leash on. Without it, the architecture <b>degenerates into a dense model dragging seven anchors</b> — all of MoE's cost, none of its point.",
+          show: ["#mb-punch"], holdMs: 5800 }
+      ]
+    });
+  });
+  </script>
+
+  <h2>Params ≠ FLOPs anymore</h2>
+
+  <p>
+    MoE breaks a rule the whole course has quietly relied on: that parameter count
+    predicts both memory <em>and</em> compute. Now they split. <strong>Memory
+    bills the total</strong> — all 46.7B parameters must sit in VRAM, because any
+    token might route anywhere (M7.2's arithmetic runs on the big number).
+    <strong>Compute bills the active</strong> — each token touches 12.9B, so
+    per-token FLOPs and decode speed behave like a ~13B model (M7.5's economics
+    run on the small one). That asymmetry also explains MoE's serving personality:
+    at <strong>high batch sizes</strong> it shines — many tokens spread across all
+    experts, every loaded parameter earns its keep. At <strong>batch 1</strong> it
+    disappoints — you paid the full memory bill, decode is bandwidth-bound
+    (M7.1), and the weights you must stream per token still skew large for the
+    quality you get. And at scale the experts get <strong>sharded across
+    GPUs</strong>, so every MoE layer pays an all-to-all communication tax
+    shipping tokens to their experts and back (M7.3's lesson: renting the fleet's
+    memory always charges in communication).
+  </p>
+
+  <div class="formula">
+    <div class="math">active ≈ attention + shared &nbsp;+&nbsp; k · params<sub>expert</sub>
+      &nbsp;&nbsp;(Mixtral: ≈ 12.9B of 46.7B with k = 2 of 8)</div>
+    <div class="plain">
+      <b>In plain words:</b> per token you pay for attention (always dense), the
+      shared plumbing, and just k experts' worth of FFN. The other N−k experts
+      cost memory, not compute.
+    </div>
+  </div>
+
+  <div class="realnum callout">
+    <div class="co-head">Real numbers</div>
+    <p>
+      Mixtral 8×7B: 46.7B total, 12.9B active — matched or beat Llama-2-70B on
+      most benchmarks at roughly 6× the decode speed. DeepSeek-V3: 671B total,
+      37B active, with 256 fine-grained experts routed top-8. And GPT-4 is widely
+      reported to be an MoE — a claim never officially confirmed, worth labeling
+      as such when you repeat it.
+    </p>
+  </div>
+
+  <h2>What experts actually learn</h2>
+
+  <p>
+    The name oversells it. Analyses of trained MoEs mostly do <em>not</em> find
+    "the biology expert" and "the law expert" — routing decisions correlate with
+    <strong>token-level features</strong>: punctuation, numbers, code tokens,
+    whitespace patterns, particular syntactic positions. The router operates on a
+    single token's hidden state, so it specializes on what that state exposes —
+    surface and syntax more than topic. Same honesty M5.4 demanded for attention
+    heads: real, measurable specialization, rarely the human-shaped story the
+    diagram suggests. The engineering win doesn't care — quality per FLOP improves
+    whether or not the experts' division of labor flatters our intuitions.
+  </p>
+
+  <h2>The rest of the modern decoder, in one config</h2>
+
+  <p>
+    Mixtral's <code>config.json</code> is the course's final exam, and you can now
+    pass it on sight — the same ritual as M5.6's encoder config, eight pages of
+    ideas later:
+  </p>
+
+<pre><code>{
+  "hidden_size": 4096,              // the residual stream            (5.5)
+  "num_hidden_layers": 32,          // rounds of message passing      (5.6)
+  "num_attention_heads": 32,        // query heads                    (5.4)
+  "num_key_value_heads": 8,         // GQA: 4 queries share each KV   (5.4, 11.2)
+  "rope_theta": 1000000.0,          // RoPE base — the long-ctx knob  (5.2, 11.2)
+  "rms_norm_eps": 1e-05,            // RMSNorm, pre-norm placement    (5.5)
+  "hidden_act": "silu",             // SwiGLU-family FFN activation   (5.5)
+  "num_local_experts": 8,           // the eight FFNs per layer       (this page)
+  "num_experts_per_tok": 2,         // top-2 routing                  (this page)
+  "vocab_size": 32000               // SentencePiece BPE              (5.1)
+}
+</code></pre>
+
+  <p>
+    Every line is a page. <strong>RMSNorm</strong> is M5.5's LayerNorm minus the
+    mean-centering; <strong>SwiGLU</strong> is the FFN with a learned gate
+    multiplying the expanded activations (a few percent better per FLOP — enough
+    that everyone switched); RoPE and GQA you've already met. A "modern decoder"
+    is not a new architecture — it's the 2017 transformer with five well-chosen
+    substitutions, and now one of them is yours too.
+  </p>
+
+  <div class="connect callout">
+    <div class="co-head">Connect it to your stack</div>
+    <p>
+      This is why "flagship quality at mini prices" keeps happening on pricing
+      pages: an MoE serves quality tied to total parameters at a per-token compute
+      cost tied to active ones. It's also why two dashboards disagree about the
+      same model — VRAM usage tells the 47B story (M7.2), tokens-per-second tells
+      the 13B story (M7.5). Neither is lying; they're billing different columns.
+    </p>
+  </div>
+
+  <div class="build callout">
+    <div class="co-head">Build it: a router in numpy</div>
+    <p>
+      Make 8 tiny two-layer MLPs (the experts) and one 8-way linear router. For a
+      batch of random "tokens": softmax the router logits, mask to top-2, run only
+      the chosen experts, blend by gate weight. Count multiply-adds vs running all
+      8 — you'll see the 2/8 compute ratio directly. Then train on a toy task and
+      print per-expert traffic with and without a load-balance penalty
+      (<code>penalty = var(traffic)</code> works): watch collapse happen, then
+      watch the leash prevent it.
+    </p>
+  </div>
+
+  <h2>If you remember one thing</h2>
+
+  <p>
+    MoE splits the one number you used to trust into two: <strong>total
+    parameters</strong> (what you store — memory, VRAM, download size) and
+    <strong>active parameters</strong> (what each token runs — FLOPs, latency,
+    per-token cost). A learned router picks top-k experts per token; a
+    load-balancing loss keeps it from collapsing onto favorites; attention stays
+    dense throughout. When a model card says "8×7B, 13B active," it is quoting
+    both bills — and when someone asks whether a 47B MoE is "bigger" than a 13B
+    dense model, you now know the only honest answer: bigger in memory and
+    quality, the same size in compute. One number was never going to be enough.
+  </p>
+
+  <div class="interview">
+    <h2>Interview questions</h2>
+    <details>
+      <summary>Total vs active parameters — which predicts memory, which latency, which quality?</summary>
+      <div><p>Memory: total — all experts must be resident in VRAM because any token may route to any of them, so a 47B-total MoE needs ~47B parameters' worth of storage (M7.2's math on the big number). Latency and per-token cost: active — each token executes attention plus k experts, so FLOPs and decode speed track ~13B (with a caveat: batch-1 decode is bandwidth-bound, and the weights streamed per step depend on which experts fire across layers, so small-batch latency sits somewhat worse than a true 13B dense model). Quality: between the two, empirically closer to what the total buys — Mixtral's 46.7B/12.9B matching Llama-2-70B while decoding ~6× faster is the canonical data point. Interviewers want the split stated crisply; bonus points for noting the two dashboards (VRAM vs tokens/s) tell different, equally true stories.</p></div>
+    </details>
+    <details>
+      <summary>Why does MoE need a load-balancing loss, and what happens without it?</summary>
+      <div><p>Because routing is trained by the same gradients as everything else, and that closes a positive feedback loop: an expert that starts slightly better receives more tokens, therefore more gradient updates, therefore improves faster, therefore wins even more routing. Left alone, this rich-get-richer dynamic collapses traffic onto one or two experts — the rest become dead parameters you still pay VRAM for, and the model behaves like a smaller dense network dragging anchors. The load-balancing auxiliary loss adds a small penalty on uneven per-batch expert traffic, keeping all experts in the training signal without hard-assigning tokens. Related machinery: capacity factors cap tokens per expert per batch (for rectangular batched matmuls), and overflow tokens get dropped — passed through the residual connection, skipping the layer entirely.</p></div>
+    </details>
+    <details>
+      <summary>Why put the experts in the FFN but keep attention dense?</summary>
+      <div><p>Three reasons. Capacity: the FFN holds roughly two-thirds of each block's parameters (M5.5), so expertizing it multiplies capacity where capacity lives — expertizing attention would fragment a smaller pool. Function: the FFN acts as per-token key–value memory (pattern lookup and fact storage), which decomposes naturally into specialists, while attention's job is <em>routing information between tokens</em> — carving it up would fragment the very mechanism that lets tokens communicate, and per-token expert choice sits awkwardly with an operation defined across the whole sequence. Practicality: the FFN is applied independently per token, so routing different tokens to different experts is embarrassingly parallel; sparse per-token attention variants exist in research but add complexity for less headroom. So: specialize the memory, share the switchboard.</p></div>
+    </details>
+    <details>
+      <summary>Why does MoE shine at high batch sizes but disappoint at batch 1?</summary>
+      <div><p>At high batch, many tokens per step spread across all experts, so every parameter you're holding in VRAM does useful work, and per-token compute stays at the cheap "active" rate — you get big-model quality at small-model FLOPs with the memory bill amortized across users. At batch 1, decode is memory-bandwidth-bound (M7.1, M7.5): each step streams weights from VRAM, and with different experts firing across layers and steps you stream large amounts of a 47B model's weights to serve one user at 13B quality-per-FLOP. The memory cost is fully paid but barely amortized. Add expert parallelism at scale — experts sharded across GPUs means an all-to-all communication step per MoE layer — and single-stream latency takes a further tax. Consequence: MoE is a throughput architecture; providers love it, single-user local inference much less.</p></div>
+    </details>
+    <details>
+      <summary>Is a 47B-total MoE "bigger" than a 13B dense model? Give the honest comparison.</summary>
+      <div><p>Depends which bill you read. In storage and memory: yes — ~47B parameters to download and hold, VRAM sized accordingly. In per-token compute: no — ~13B active means FLOPs, decode speed, and marginal cost in the dense-13B class. In quality: usually meaningfully better than dense-13B — the router's conditional computation lets different tokens use different parameters, extracting more capability per FLOP — though typically short of a dense 47B trained on the same data. So the honest comparison is a triple: memory of a 47B, compute of a 13B, quality in between (usually much nearer the top). Anyone answering with a single number — in either direction — is reading only one column of a two-column bill, which is exactly the confusion the "8×7B" naming exploits.</p></div>
+    </details>
+  </div>
+
+</main>
+<script src="../assets/js/manifest.js"></script>
+<script src="../assets/js/site.js"></script>
+<script src="../assets/js/stepplayer.js"></script>
+</body>
+</html>

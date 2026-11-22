@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 · Two Pointers — DSA Interview Runbook</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/app.js"></script>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="../index.html">⟵ DSA Runbook</a>
+    <nav>
+      <a href="../index.html#curriculum">All topics</a>
+      <a href="../index.html#cheatsheet">Cheat-sheet</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<h1>Two Pointers</h1>
+<p class="subtitle">Two indexes walking one array — converging from the ends, or reading and writing in place. The cheapest O(n²) → O(n) upgrade in the toolbox, and the technique sliding window grows out of.</p>
+<p>
+  <span class="badge phase">Phase 1 · Weeks 2–3</span>
+  <span class="badge freq">Top-5 pattern; feeds sliding window</span>
+</p>
+
+<!-- ============================================================ -->
+<h2 id="before">Before you start</h2>
+
+<div class="why">
+  <strong>Why this topic exists.</strong>
+  Page 01's answer to "avoid the nested loop" was <em>memory</em>: a hash table. Two pointers is the
+  answer when memory is banned or unnecessary — usually because the data is <em>sorted</em>. Order gives
+  every comparison a direction ("too small → move left pointer up"), and each comparison permanently
+  discards part of the search space. You examine n² pairs' worth of possibilities in n steps, with zero
+  extra memory.
+</div>
+
+<h3>Prerequisites</h3>
+<ul>
+  <li><a href="00-foundations.html">00 · Foundations</a> — Big-O and the ops budget.</li>
+  <li><a href="01-arrays-hashing.html">01 · Arrays &amp; Hashing</a> — you should know the HashMap solution to Two Sum cold, because this page replaces it under sortedness.</li>
+</ul>
+
+<p class="muted small"><strong>Interview relevance:</strong> a top-5 pattern; the skill tested is justifying <em>why</em> each pointer move safely discards candidates.</p>
+
+<h3>How this builds on the previous topic</h3>
+<p>
+  Arrays &amp; Hashing solved "find a pair" by remembering everything in O(n) space. Here, sortedness lets
+  you get the same answer in O(1) space — and when an interviewer asks the follow-up "now without the
+  HashMap?", this page is the expected reply. The next page, <a href="03-sliding-window.html">Sliding
+  Window</a>, is two pointers moving in the <em>same</em> direction with state maintained between them.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="concepts">Core concepts</h2>
+
+<h3>1. Converging pointers: why sortedness lets you discard</h3>
+<p class="lead">
+  Start with <code>l</code> at the first element and <code>r</code> at the last. In a sorted array,
+  <code>nums[r]</code> is the <em>largest</em> partner <code>nums[l]</code> could ever have. So if
+  <code>nums[l] + nums[r]</code> is still too small, no partner anywhere can rescue
+  <code>nums[l]</code> — discard it forever with <code>l++</code>. Symmetrically, a too-big sum retires
+  <code>nums[r]</code>. Every comparison kills one element's candidacy, so the loop ends after at most
+  n steps having implicitly ruled out all ~n²/2 pairs.
+</p>
+<p>
+  That sentence — "each step discards a provably useless part of the search space" — is the same logic
+  binary search uses (page 07); two pointers is its two-ended cousin.
+</p>
+
+<div class="anim" id="convergeAnim">
+  <svg viewBox="0 0 640 260" role="img" aria-label="Converging pointers solving Two Sum II on a sorted array">
+    <text class="lbl" x="40" y="40">target = 10</text>
+    <text id="sumTxt" class="lbl" x="240" y="40"></text>
+    <!-- array cells -->
+    <rect id="cell0" class="box" x="50" y="90" width="70" height="46" rx="8"></rect>
+    <rect id="cell1" class="box" x="140" y="90" width="70" height="46" rx="8"></rect>
+    <rect id="cell2" class="box" x="230" y="90" width="70" height="46" rx="8"></rect>
+    <rect id="cell3" class="box" x="320" y="90" width="70" height="46" rx="8"></rect>
+    <rect id="cell4" class="box" x="410" y="90" width="70" height="46" rx="8"></rect>
+    <rect id="cell5" class="box" x="500" y="90" width="70" height="46" rx="8"></rect>
+    <text class="lbl" x="77" y="119">1</text>
+    <text class="lbl" x="167" y="119">3</text>
+    <text class="lbl" x="257" y="119">4</text>
+    <text class="lbl" x="347" y="119">6</text>
+    <text class="lbl" x="437" y="119">8</text>
+    <text class="lbl" x="522" y="119">11</text>
+    <text class="small" x="80" y="156">[0]</text>
+    <text class="small" x="170" y="156">[1]</text>
+    <text class="small" x="260" y="156">[2]</text>
+    <text class="small" x="350" y="156">[3]</text>
+    <text class="small" x="440" y="156">[4]</text>
+    <text class="small" x="530" y="156">[5]</text>
+    <!-- pointers (moved with translate from ORIGINAL position) -->
+    <polygon id="lp" class="ptr" points="85,180 75,196 95,196"></polygon>
+    <text id="lpl" class="ptrlbl" x="79" y="214">L</text>
+    <polygon id="rp" class="ptr" points="535,180 525,196 545,196"></polygon>
+    <text id="rpl" class="ptrlbl" x="529" y="214">R</text>
+  </svg>
+  <div class="anim-caption"></div>
+  <div class="anim-controls"></div>
+</div>
+
+<h3>2. Read/write pointers: editing in place</h3>
+<p>
+  The second flavor has both pointers moving <em>left to right</em>: a fast <strong>read</strong> pointer
+  scans every element, and a slow <strong>write</strong> pointer marks where the next "kept" element
+  belongs. Everything left of <code>write</code> is finished output; everything between
+  <code>write</code> and <code>read</code> is discarded. Remove Duplicates and Move Zeroes are this one
+  idea. It's how you compact an array in one pass with O(1) space — and conceptually how compacting
+  garbage collectors slide live objects over dead ones.
+</p>
+
+<h3>3. Fast &amp; slow pointers (preview)</h3>
+<p>
+  A third variant runs both pointers in the same direction at different <em>speeds</em> — fast moves two
+  steps per slow's one. On linked structures this finds the middle node and detects cycles (Floyd's
+  algorithm). It needs linked-list mechanics first, so the full treatment lives in
+  <a href="08-linked-lists.html">08 · Linked Lists</a>; just file it under the same family for now.
+</p>
+
+<div class="tip">
+  <strong>Unsorted data?</strong> Converging pointers need order to justify the discard. If the input
+  isn't sorted, either sort first (paying O(n log n) — fine when you'd sort anyway, as in 3Sum) or go
+  back to page 01's HashMap.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="templates">Pattern templates (Java)</h2>
+
+<p class="code-title">Template 1 — converging pointers on a sorted array</p>
+<pre class="code"><code>int l = 0, r = arr.length - 1;
+while (l &lt; r) {                    // strict &lt;: a pair needs two distinct indexes
+    long sum = (long) arr[l] + arr[r];   // long guards against int overflow
+    if (sum == target) { /* found the pair */ }
+    else if (sum &lt; target) l++;    // arr[l] can't work with ANY partner: discard
+    else r--;                      // arr[r] too big for everyone left: discard
+}</code></pre>
+
+<p class="code-title">Template 2 — read/write pointers (in-place filtering)</p>
+<pre class="code"><code>int write = 0;                          // next slot to fill; [0, write) = kept
+for (int read = 0; read &lt; arr.length; read++) {
+    if (keep(arr[read])) {              // e.g. != previous, != 0, != val
+        arr[write] = arr[read];         // safe: write &lt;= read, never clobbers unread
+        write++;
+    }
+}
+// write is the new logical length</code></pre>
+
+<p class="code-title">Template 3 — palindrome check (converging, comparing not summing)</p>
+<pre class="code"><code>int l = 0, r = s.length() - 1;
+while (l &lt; r) {
+    // skip non-alphanumerics from either side (LeetCode 125 flavor)
+    if (!Character.isLetterOrDigit(s.charAt(l))) { l++; continue; }
+    if (!Character.isLetterOrDigit(s.charAt(r))) { r--; continue; }
+    if (Character.toLowerCase(s.charAt(l)) !=
+        Character.toLowerCase(s.charAt(r))) return false;  // mirror mismatch
+    l++; r--;                            // matched: shrink from both ends
+}
+return true;</code></pre>
+
+<!-- ============================================================ -->
+<h2 id="compare">When to use what</h2>
+
+<div class="tablewrap">
+<table>
+  <tr><th>Technique</th><th>Needs sorted?</th><th>Time</th><th>Extra space</th><th>Best for</th></tr>
+  <tr><td>Two pointers (converging)</td><td>Yes</td><td>O(n)</td><td>O(1)</td><td>pair/triple sums, palindromes, max-area style problems</td></tr>
+  <tr><td>HashMap (page 01)</td><td>No</td><td>O(n)</td><td>O(n)</td><td>unsorted "find the pair", need original indexes</td></tr>
+  <tr><td>Binary search (page 07)</td><td>Yes</td><td>O(log n) per query</td><td>O(1)</td><td>find ONE value/boundary, not a pair relation</td></tr>
+  <tr><td>Sliding window (page 03)</td><td>No</td><td>O(n)</td><td>O(1)–O(k)</td><td>contiguous subarray/substring, pointers moving the SAME way</td></tr>
+</table>
+</div>
+
+<p>Decision cues:</p>
+<ul>
+  <li>"Sorted array" + "pair/two numbers that…" → <strong>converging pointers</strong>.</li>
+  <li>Unsorted + need indexes back → <strong>HashMap</strong>; sorting would scramble the indexes.</li>
+  <li>"In place", "O(1) extra space", "remove/compact" → <strong>read/write pointers</strong>.</li>
+  <li>"Contiguous subarray/substring with property" → <strong>sliding window</strong>, next page.</li>
+  <li>k-sum problems (3Sum, 4Sum) → sort once, fix anchors, finish with converging pointers.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="realworld">Where this shows up in real systems</h2>
+<div class="grid2">
+  <div class="card">
+    <h4>The merge step everywhere</h4>
+    <p class="small">Merging two sorted runs with one pointer per run is the heart of merge sort and of
+    Java's own <code>Arrays.sort</code> for objects (TimSort merges naturally-occurring runs). Same-direction
+    two pointers, production-grade.</p>
+  </div>
+  <div class="card">
+    <h4>Merge joins in databases</h4>
+    <p class="small">When Postgres or SQL Server picks a <em>merge join</em>, it walks two sorted inputs with
+    exactly this pattern — advance whichever side's key is smaller — joining huge tables in O(n+m) without
+    a hash table's memory bill.</p>
+  </div>
+  <div class="card">
+    <h4>Log stream reconciliation</h4>
+    <p class="small">Comparing two time-ordered streams — say, payment events vs. ledger entries to find
+    mismatches — is two pointers over timestamps: advance the earlier stream, flag anything unmatched.
+    Every reconciliation job you've seen does this.</p>
+  </div>
+  <div class="card">
+    <h4>Deduplication &amp; compaction</h4>
+    <p class="small">Sorted-input dedup (<code>sort -u</code>, keeping the first of each equal run) is the
+    read/write pattern; LSM-tree engines like RocksDB use the same idea during compaction to merge SSTables
+    and drop shadowed keys.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="problems">Problems, fully worked (easy → hard)</h2>
+<p class="muted small">Full statement, example, and every useful variation per problem — try each yourself
+before opening the walkthrough.</p>
+
+<details class="sol" id="lc125">
+  <summary><span class="badge easy">easy</span> Valid Palindrome — LeetCode 125</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> A string is a palindrome if, after removing every non-alphanumeric
+    character and lowercasing, it reads the same forwards and backwards. Return whether <code>s</code> is one.</p>
+    <p><strong>Example.</strong> <code>"A man, a plan, a canal: Panama"</code> → <code>true</code>
+    (cleans to "amanaplanacanalpanama"). <code>"race a car"</code> → <code>false</code>
+    ("raceacar" reversed is "racaecar"). <code>" "</code> → <code>true</code> (empty after cleaning).</p>
+
+    <p class="code-title">Variation 1 — clean, reverse, compare · O(n) time, O(n) space</p>
+<pre class="code"><code>public boolean isPalindromeReverse(String s) {
+    StringBuilder clean = new StringBuilder();
+    for (char c : s.toCharArray())
+        if (Character.isLetterOrDigit(c))
+            clean.append(Character.toLowerCase(c));   // keep only a-z0-9, lowercased
+    return clean.toString().equals(clean.reverse().toString());
+}</code></pre>
+    <p>Perfectly fine — but it builds two throwaway strings. The follow-up "without extra memory?" leads to:</p>
+
+    <p class="code-title">Variation 2 — converging pointers (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public boolean isPalindrome(String s) {
+    int l = 0, r = s.length() - 1;
+    while (l &lt; r) {
+        // Skip characters that don't count, from either side
+        if (!Character.isLetterOrDigit(s.charAt(l))) { l++; continue; }
+        if (!Character.isLetterOrDigit(s.charAt(r))) { r--; continue; }
+        // Compare the mirror pair, case-insensitively
+        if (Character.toLowerCase(s.charAt(l)) !=
+            Character.toLowerCase(s.charAt(r))) return false;
+        l++; r--;                        // matched: shrink from both ends
+    }
+    return true;                         // pointers met -&gt; every pair matched
+}</code></pre>
+    <p><strong>Takeaway.</strong> A palindrome question is a mirror question, and mirrors are two pointers
+    converging. The same skeleton returns for "expand around center" on
+    <a href="14-strings-advanced.html">page 14</a>, just running outward instead of inward.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc167">
+  <summary><span class="badge medium">medium</span> Two Sum II (sorted input) — LeetCode 167</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Same as Two Sum, but the array is already <strong>sorted
+    ascending</strong> and the answer must be the <em>1-indexed</em> positions, using O(1) extra space
+    (exactly one solution exists).</p>
+    <p><strong>Example.</strong> <code>numbers=[2,7,11,15], target=9</code> → <code>[1,2]</code>.
+    <code>numbers=[2,3,4], target=6</code> → <code>[1,3]</code> (2+4).</p>
+
+    <p class="code-title">Variation 1 — binary-search each partner · O(n log n) time, O(1) space</p>
+<pre class="code"><code>public int[] twoSumBinarySearch(int[] numbers, int target) {
+    for (int i = 0; i &lt; numbers.length; i++) {
+        int need = target - numbers[i];
+        // Search only to the RIGHT of i so we never reuse the same element
+        int lo = i + 1, hi = numbers.length - 1;
+        while (lo &lt;= hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (numbers[mid] == need) return new int[]{i + 1, mid + 1};
+            if (numbers[mid] &lt; need) lo = mid + 1;
+            else hi = mid - 1;
+        }
+    }
+    return new int[]{};
+}</code></pre>
+    <p>Uses sortedness, but pays log n per element. Converging pointers use it better:</p>
+
+    <p class="code-title">Variation 2 — converging pointers (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public int[] twoSum(int[] numbers, int target) {
+    int l = 0, r = numbers.length - 1;   // start at the two extremes
+    while (l &lt; r) {
+        int sum = numbers[l] + numbers[r];
+        if (sum == target)
+            return new int[]{l + 1, r + 1};     // 1-indexed positions
+        if (sum &lt; target) {
+            // numbers[r] is the LARGEST partner available to numbers[l];
+            // if even that is too small, numbers[l] can never work — discard it.
+            l++;
+        } else {
+            // Symmetric: numbers[l] is the smallest partner available to
+            // numbers[r]; too big means numbers[r] is done — discard it.
+            r--;
+        }
+    }
+    return new int[]{-1, -1};            // unreachable: a solution is guaranteed
+}</code></pre>
+    <p><strong>Takeaway.</strong> The three Two Sums line up as a decision table: unsorted →
+    HashMap O(n)/O(n) (<a href="01-arrays-hashing.html">page 01</a>); sorted → two pointers O(n)/O(1);
+    sorted + many queries for single values → binary search. Mirror:
+    <code>code/02-two-pointers/TwoSumII.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc26">
+  <summary><span class="badge easy">easy</span> Remove Duplicates from Sorted Array — LeetCode 26</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given a <em>sorted</em> array, remove the duplicates <strong>in
+    place</strong> so each value appears once, keeping relative order. Return the new logical length
+    <code>k</code>; the first <code>k</code> slots must hold the answer. O(1) extra space required.</p>
+    <p><strong>Example.</strong> <code>[1,1,2]</code> → k=2, array becomes <code>[1,2,_]</code>.
+    <code>[0,0,1,1,1,2,2,3,3,4]</code> → k=5, array becomes <code>[0,1,2,3,4,...]</code>.</p>
+
+    <p class="code-title">Variation 1 — copy into a set/list · O(n) space (violates the constraint)</p>
+<pre class="code"><code>public int removeDuplicatesExtra(int[] nums) {
+    // LinkedHashSet keeps insertion order while dropping repeats
+    Set&lt;Integer&gt; set = new LinkedHashSet&lt;&gt;();
+    for (int x : nums) set.add(x);
+    int i = 0;
+    for (int x : set) nums[i++] = x;     // copy the survivors back
+    return set.size();
+}</code></pre>
+    <p>Works, but "in place / O(1) space" is the actual exercise. Enter read/write pointers:</p>
+
+    <p class="code-title">Variation 2 — read/write pointers (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public int removeDuplicates(int[] nums) {
+    int write = 1;                        // nums[0] is always kept
+    for (int read = 1; read &lt; nums.length; read++) {
+        // Sorted input =&gt; duplicates are adjacent. Keep nums[read] only
+        // if it differs from the last KEPT value.
+        if (nums[read] != nums[write - 1]) {
+            nums[write] = nums[read];     // safe: write &lt;= read always
+            write++;
+        }
+    }
+    return write;                         // first `write` slots = deduped array
+}</code></pre>
+    <p><strong>Takeaway.</strong> The invariant to hold in your head: <code>[0, write)</code> is finished
+    output, <code>[write, read)</code> is discarded junk, <code>[read, n)</code> is unread. The same
+    skeleton solves Move Zeroes (keep = "not zero") and Remove Element (keep = "!= val") — one template,
+    three problems.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc344">
+  <summary><span class="badge easy">easy</span> Reverse String — LeetCode 344</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Reverse a character array in place, O(1) extra memory.</p>
+    <p><strong>Example.</strong> <code>['h','e','l','l','o']</code> → <code>['o','l','l','e','h']</code>.</p>
+    <p class="code-title">Converging pointers — the purest form · O(n) time, O(1) space</p>
+<pre class="code"><code>public static void reverseString(char[] s) {
+    int left = 0, right = s.length - 1;
+    while (left &lt; right) {
+        char t = s[left];
+        s[left] = s[right];
+        s[right] = t;
+        left++;             // both pointers move every step —
+        right--;            // the loop runs exactly n/2 swaps
+    }
+}</code></pre>
+    <p><strong>Takeaway.</strong> This is the converging-pointer skeleton with nothing else attached —
+    worth having in muscle memory because bigger problems bolt logic onto exactly this frame: Valid
+    Palindrome adds a comparison, Rotate Array (<a href="23-math-geometry.html#lc189">page 23</a>) calls
+    it three times, and reversal-of-a-region is a building block all over linked lists and strings.
+    Mirror: <code>code/02-two-pointers/ReverseString.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc27">
+  <summary><span class="badge easy">easy</span> Remove Element — LeetCode 27</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Remove every occurrence of <code>val</code> from the array in
+    place; return the new length k with the survivors (order may be preserved) in the first k slots.</p>
+    <p><strong>Example.</strong> <code>[3,2,2,3], val=3</code> → k=2, array starts <code>[2,2]</code>.</p>
+    <p class="code-title">Reader/writer pointers · O(n) time, O(1) space</p>
+<pre class="code"><code>public static int removeElement(int[] nums, int val) {
+    int write = 0;
+    for (int read = 0; read &lt; nums.length; read++)
+        if (nums[read] != val)
+            nums[write++] = nums[read];   // keep it; writer claims the slot
+    return write;                          // new logical length
+}</code></pre>
+    <p><strong>Takeaway.</strong> The parallel-pointer (reader/writer) template at its simplest: the
+    reader visits everything, the writer advances only over keepers, so <code>write ≤ read</code>
+    always and nothing needed is ever overwritten. Remove Duplicates (above) is this with a different
+    keep-condition; Move Zeroes (next) is this plus a tail-fill.
+    Mirror: <code>code/02-two-pointers/RemoveElement.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc283">
+  <summary><span class="badge easy">easy</span> Move Zeroes — LeetCode 283</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Move all zeros to the end of the array in place while keeping the
+    relative order of the non-zero elements.</p>
+    <p><strong>Example.</strong> <code>[0,1,0,3,12]</code> → <code>[1,3,12,0,0]</code>.</p>
+    <p class="code-title">Compact forward, zero the tail · O(n) time, O(1) space</p>
+<pre class="code"><code>public static void moveZeroes(int[] nums) {
+    int write = 0;
+    for (int read = 0; read &lt; nums.length; read++)
+        if (nums[read] != 0)
+            nums[write++] = nums[read];   // compact non-zeros, order kept
+    while (write &lt; nums.length)
+        nums[write++] = 0;                // zero out the leftover tail
+}</code></pre>
+    <p><strong>Takeaway.</strong> Stability (preserving survivor order) comes free with reader/writer
+    compaction — a property the swap-based alternatives have to work for. This little pattern is real
+    systems' compaction step: log-structured storage and garbage collectors "move the live objects
+    forward, reclaim the tail" in exactly this shape.
+    Mirror: <code>code/02-two-pointers/MoveZeroes.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc977">
+  <summary><span class="badge easy">easy</span> Squares of a Sorted Array — LeetCode 977</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Given a sorted array (may contain negatives), return the squares
+    of each number, sorted, in O(n).</p>
+    <p><strong>Example.</strong> <code>[-4,-1,0,3,10]</code> → <code>[0,1,9,16,100]</code>. Squaring
+    breaks the sort because −4² = 16 outranks 3² = 9.</p>
+    <p class="code-title">Compare the ends, fill from the back · O(n) time</p>
+<pre class="code"><code>public static int[] sortedSquares(int[] nums) {
+    int n = nums.length;
+    int[] out = new int[n];
+    int left = 0, right = n - 1;
+    for (int fill = n - 1; fill &gt;= 0; fill--) {   // place largest-first
+        int ls = nums[left] * nums[left];
+        int rs = nums[right] * nums[right];
+        if (ls &gt; rs) {
+            out[fill] = ls;
+            left++;                                // consumed the left end
+        } else {
+            out[fill] = rs;
+            right--;                               // consumed the right end
+        }
+    }
+    return out;
+}</code></pre>
+    <p><strong>Takeaway.</strong> After squaring, the biggest values sit at the two <em>ends</em>
+    (most-negative and most-positive) — so converge from the ends and write the output backwards.
+    Recognizing "the extremes live at the boundaries" converts an O(n log n) re-sort into one pass.
+    Mirror: <code>code/02-two-pointers/SortedSquares.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc680">
+  <summary><span class="badge easy">easy</span> Valid Palindrome II — LeetCode 680</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Can s become a palindrome after deleting <em>at most one</em>
+    character?</p>
+    <p><strong>Example.</strong> "aba" → true (zero deletions). "abca" → true (drop 'c').
+    "abc" → false.</p>
+    <p class="code-title">Converge; on first mismatch, branch both deletions · O(n)</p>
+<pre class="code"><code>public static boolean validPalindrome(String s) {
+    int left = 0, right = s.length() - 1;
+    while (left &lt; right) {
+        if (s.charAt(left) != s.charAt(right))
+            // one free deletion: drop the left char OR the right char,
+            // and the remainder must be a clean palindrome
+            return isPalindrome(s, left + 1, right)
+                || isPalindrome(s, left, right - 1);
+        left++;
+        right--;
+    }
+    return true;                    // no mismatch at all
+}
+
+private static boolean isPalindrome(String s, int i, int j) {
+    while (i &lt; j) {
+        if (s.charAt(i) != s.charAt(j)) return false;
+        i++;
+        j--;
+    }
+    return true;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Greedy pruning: everything before the first mismatch is already
+    matched, so the single deletion must happen <em>at</em> the mismatch — only two candidates, each a
+    linear check. The k-deletions generalization becomes interval DP
+    (<a href="19-dp-2d.html#lc516">Longest Palindromic Subsequence</a>: answer = n − LPS ≤ k).
+    Mirror: <code>code/02-two-pointers/ValidPalindromeII.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc11">
+  <summary><span class="badge medium">medium</span> Container With Most Water — LeetCode 11</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> <code>height[i]</code> is a vertical wall at position i. Choose two
+    walls so the container between them holds the most water: area = <code>min(height[l], height[r]) ×
+    (r − l)</code>. Return that maximum area.</p>
+    <p><strong>Example.</strong> <code>[1,8,6,2,5,4,8,3,7]</code> → <code>49</code>: walls of height 8
+    (index 1) and 7 (index 8) give min(8,7) × 7 = 49. <code>[1,1]</code> → <code>1</code>.</p>
+
+    <p class="code-title">Variation 1 — brute force: every pair of walls · O(n²)</p>
+<pre class="code"><code>public int maxAreaBrute(int[] height) {
+    int best = 0;
+    for (int l = 0; l &lt; height.length; l++)
+        for (int r = l + 1; r &lt; height.length; r++)
+            best = Math.max(best,
+                Math.min(height[l], height[r]) * (r - l));
+    return best;
+}</code></pre>
+
+    <p class="code-title">Variation 2 — converging pointers (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public int maxArea(int[] height) {
+    int l = 0, r = height.length - 1;    // widest possible container first
+    int best = 0;
+    while (l &lt; r) {
+        // Water level is capped by the SHORTER wall; width is the gap
+        int area = Math.min(height[l], height[r]) * (r - l);
+        best = Math.max(best, area);
+        // Move the shorter wall inward. Why it's safe: any container
+        // keeping the shorter wall is narrower (width shrinks) AND still
+        // capped by that same short wall — it can never beat what we just
+        // measured. So nothing is lost by discarding it.
+        if (height[l] &lt; height[r]) l++;
+        else r--;
+    }
+    return best;
+}</code></pre>
+    <p><strong>Takeaway.</strong> This is the discard argument without sortedness: what justifies moving a
+    pointer isn't order but the min() in the area formula — the shorter wall personally caps every container
+    it could ever be part of. Mirror: <code>code/02-two-pointers/ContainerWithMostWater.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc15">
+  <summary><span class="badge medium">medium</span> 3Sum — LeetCode 15</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Return all <em>unique</em> triples <code>[a, b, c]</code> from the
+    array with <code>a + b + c = 0</code>. The same triple must not appear twice, even if the array holds
+    repeated values.</p>
+    <p><strong>Example.</strong> <code>[-1,0,1,2,-1,-4]</code> → <code>[[-1,-1,2], [-1,0,1]]</code>
+    (note only one copy of [-1,0,1] although two −1s exist). <code>[0,1,1]</code> → <code>[]</code>.
+    <code>[0,0,0]</code> → <code>[[0,0,0]]</code>.</p>
+
+    <p class="code-title">Variation 1 — brute force: every triple + a dedup set · O(n³)</p>
+<pre class="code"><code>public List&lt;List&lt;Integer&gt;&gt; threeSumBrute(int[] nums) {
+    Set&lt;List&lt;Integer&gt;&gt; res = new HashSet&lt;&gt;();      // set kills duplicate triples
+    for (int i = 0; i &lt; nums.length; i++)
+        for (int j = i + 1; j &lt; nums.length; j++)
+            for (int k = j + 1; k &lt; nums.length; k++)
+                if (nums[i] + nums[j] + nums[k] == 0) {
+                    List&lt;Integer&gt; t = Arrays.asList(nums[i], nums[j], nums[k]);
+                    Collections.sort(t);            // canonical order for the set
+                    res.add(t);
+                }
+    return new ArrayList&lt;&gt;(res);
+}</code></pre>
+    <p>O(n³) dies around n = 1000. The upgrade: fix one element, and the remaining task is exactly
+    Two Sum II.</p>
+
+    <p class="code-title">Variation 2 — sort + anchor + converging pointers (optimal) · O(n²)</p>
+<pre class="code"><code>public List&lt;List&lt;Integer&gt;&gt; threeSum(int[] nums) {
+    Arrays.sort(nums);   // O(n log n) — enables two pointers AND duplicate skips
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    for (int i = 0; i &lt; nums.length - 2; i++) {
+        // Sorted, so if the smallest of the three is positive,
+        // no triple from here on can sum to zero — stop early.
+        if (nums[i] &gt; 0) break;
+        // Same anchor value as last iteration would rebuild the same
+        // triples — skip it (this is what makes the answer unique).
+        if (i &gt; 0 &amp;&amp; nums[i] == nums[i - 1]) continue;
+        // Solve Two Sum II on nums[i+1..end] with target -nums[i]
+        int l = i + 1, r = nums.length - 1;
+        while (l &lt; r) {
+            int sum = nums[i] + nums[l] + nums[r];
+            if (sum &lt; 0) l++;              // too small — need a bigger left value
+            else if (sum &gt; 0) r--;         // too big — need a smaller right value
+            else {
+                res.add(Arrays.asList(nums[i], nums[l], nums[r]));
+                l++; r--;
+                // Skip equal values so the same triple isn't emitted again
+                while (l &lt; r &amp;&amp; nums[l] == nums[l - 1]) l++;
+                while (l &lt; r &amp;&amp; nums[r] == nums[r + 1]) r--;
+            }
+        }
+    }
+    return res;
+}</code></pre>
+    <p><strong>Takeaway.</strong> "k-sum" problems reduce one dimension at a time: fix an anchor, solve
+    (k−1)-sum on the rest, with two pointers as the base case. Sorting costs O(n log n) but is dominated by
+    the O(n²) sweep — and it's what makes duplicate-skipping a two-line affair instead of a hash set.
+    Mirror: <code>code/02-two-pointers/ThreeSum.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc16">
+  <summary><span class="badge medium">medium</span> 3Sum Closest — LeetCode 16</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Find the sum of three elements closest to <code>target</code>
+    (exactly one answer guaranteed).</p>
+    <p><strong>Example.</strong> <code>[-1,2,1,-4], target=1</code> → 2 (from −1+2+1).</p>
+    <p class="code-title">3Sum's engine, tracking the best miss · O(n²)</p>
+<pre class="code"><code>public static int threeSumClosest(int[] nums, int target) {
+    Arrays.sort(nums);                           // pointers need sorted input
+    int best = nums[0] + nums[1] + nums[2];
+    for (int i = 0; i &lt; nums.length - 2; i++) {
+        int left = i + 1, right = nums.length - 1;
+        while (left &lt; right) {
+            int sum = nums[i] + nums[left] + nums[right];
+            if (Math.abs(sum - target) &lt; Math.abs(best - target))
+                best = sum;                      // strictly closer — keep it
+            if (sum == target) return sum;       // can't beat exact
+            if (sum &lt; target) left++;            // need more -&gt; raise the floor
+            else right--;                        // need less -&gt; lower the ceiling
+        }
+    }
+    return best;
+}</code></pre>
+    <p><strong>Takeaway.</strong> Identical machinery to 3Sum (above) — sort, fix one, converge a
+    pair — with the goal changed from "hit zero exactly" to "minimize the miss". The pointer moves
+    stay valid because they're driven by sum-vs-target, not by the best-so-far. A useful pattern
+    class: many "closest/at most/at least" variants reuse an exact-match algorithm and just change
+    what gets recorded. Mirror: <code>code/02-two-pointers/ThreeSumClosest.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc18">
+  <summary><span class="badge medium">medium</span> 4Sum — LeetCode 18</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> All unique quadruplets summing to <code>target</code>.
+    Values and target can be large enough that four ints overflow int range.</p>
+    <p><strong>Example.</strong> <code>[1,0,-1,0,-2,2], target=0</code> →
+    <code>[[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]</code>.</p>
+    <p class="code-title">Two fixed layers + a pointer pair · O(n³)</p>
+<pre class="code"><code>public static List&lt;List&lt;Integer&gt;&gt; fourSum(int[] nums, int target) {
+    Arrays.sort(nums);
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    int n = nums.length;
+    for (int i = 0; i &lt; n - 3; i++) {
+        if (i &gt; 0 &amp;&amp; nums[i] == nums[i - 1]) continue;      // skip duplicate i
+        for (int j = i + 1; j &lt; n - 2; j++) {
+            if (j &gt; i + 1 &amp;&amp; nums[j] == nums[j - 1]) continue;  // duplicate j
+            int left = j + 1, right = n - 1;
+            while (left &lt; right) {
+                // long: four ints can overflow int range
+                long sum = (long) nums[i] + nums[j] + nums[left] + nums[right];
+                if (sum == target) {
+                    res.add(Arrays.asList(nums[i], nums[j], nums[left], nums[right]));
+                    left++;
+                    right--;
+                    while (left &lt; right &amp;&amp; nums[left] == nums[left - 1]) left++;   // dedup
+                    while (left &lt; right &amp;&amp; nums[right] == nums[right + 1]) right--;
+                } else if (sum &lt; target) {
+                    left++;
+                } else {
+                    right--;
+                }
+            }
+        }
+    }
+    return res;
+}</code></pre>
+    <p><strong>Takeaway.</strong> kSum has a recursive shape: fix one element, solve (k−1)Sum on the
+    rest, with 2Sum-on-sorted (the pointer pair) as the base case — so 4Sum is two fixed loops around
+    the same core, O(n^(k−1)) overall. The two traps interviewers watch for: duplicate-skipping at
+    <em>every</em> level, and the <code>long</code> cast (LeetCode's tests genuinely overflow int).
+    Mirror: <code>code/02-two-pointers/FourSum.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc287">
+  <summary><span class="badge medium">medium</span> Find the Duplicate Number — LeetCode 287</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> n+1 integers, each in [1, n], so at least one value repeats
+    (pigeonhole). Find the duplicate <em>without modifying the array</em> and in O(1) extra space.</p>
+    <p><strong>Example.</strong> <code>[1,3,4,2,2]</code> → 2. <code>[3,1,3,4,2]</code> → 3.</p>
+
+    <p class="code-title">Variation 1 — HashSet · O(n) time, O(n) space (violates the follow-up)</p>
+<pre class="code"><code>public static int findDuplicateSet(int[] nums) {
+    Set&lt;Integer&gt; seen = new HashSet&lt;&gt;();
+    for (int x : nums)
+        if (!seen.add(x)) return x;     // add() false = second sighting
+    throw new IllegalArgumentException("no duplicate");
+}</code></pre>
+
+    <p class="code-title">Variation 2 — Floyd's fast/slow on the implicit linked list · O(n) time, O(1) space</p>
+<pre class="code"><code>public static int findDuplicate(int[] nums) {
+    // Treat i -&gt; nums[i] as a linked list. Values 1..n over n+1 slots means
+    // two arrows point at the same node — a cycle whose ENTRANCE is the
+    // duplicated value. Now it's Linked List Cycle II, verbatim.
+    int slow = nums[0], fast = nums[0];
+    do {                                // phase 1: meet inside the cycle
+        slow = nums[slow];              // one hop
+        fast = nums[nums[fast]];        // two hops
+    } while (slow != fast);
+
+    slow = nums[0];                     // phase 2: restart one pointer;
+    while (slow != fast) {              // equal speed -&gt; they meet exactly
+        slow = nums[slow];              // at the cycle entrance
+        fast = nums[fast];
+    }
+    return slow;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The star insight: an array whose values are valid indices IS a
+    functional graph, and a duplicated value means two edges into one node — a cycle. Fast/slow then
+    solves it untouched from <a href="08-linked-lists.html#lc142">Linked List Cycle II</a>. (A third
+    route: binary search on the answer — count elements ≤ mid; covered conceptually on
+    <a href="07-binary-search.html">page 07</a>.) A favorite senior-loop question because it chains
+    two patterns nobody expects to meet in an array problem.
+    Mirror: <code>code/02-two-pointers/FindDuplicate.java</code>.</p>
+  </div>
+</details>
+
+<details class="sol" id="lc42">
+  <summary><span class="badge hard">hard</span> Trapping Rain Water — LeetCode 42</summary>
+  <div class="sol-body">
+    <p><strong>The problem.</strong> Bars of heights <code>height[i]</code> form a terrain. After rain,
+    water collects in the dips. Return the total units of trapped water.</p>
+    <p><strong>Example.</strong> <code>[0,1,0,2,1,0,1,3,2,1,2,1]</code> → <code>6</code>.
+    <code>[4,2,0,3,2,5]</code> → <code>9</code>.</p>
+    <p><strong>The insight.</strong> Water standing on top of bar i rises to
+    <code>min(tallest bar to my left, tallest bar to my right)</code> — minus the bar's own height. Everything
+    that follows is just computing those two maxima efficiently.</p>
+
+    <p class="code-title">Variation 1 — per-bar scans · O(n²) time, O(1) space</p>
+<pre class="code"><code>public int trapBrute(int[] height) {
+    int total = 0;
+    for (int i = 0; i &lt; height.length; i++) {
+        int maxL = 0, maxR = 0;
+        for (int j = 0; j &lt;= i; j++) maxL = Math.max(maxL, height[j]);   // scan left
+        for (int j = i; j &lt; height.length; j++) maxR = Math.max(maxR, height[j]); // scan right
+        total += Math.min(maxL, maxR) - height[i];   // water column above bar i
+    }
+    return total;
+}</code></pre>
+
+    <p class="code-title">Variation 2 — precompute prefix maxima · O(n) time, O(n) space</p>
+<pre class="code"><code>public int trapPrefix(int[] height) {
+    int n = height.length;
+    if (n == 0) return 0;
+    int[] maxL = new int[n], maxR = new int[n];
+    maxL[0] = height[0];
+    for (int i = 1; i &lt; n; i++)             // tallest bar at or left of i
+        maxL[i] = Math.max(maxL[i - 1], height[i]);
+    maxR[n - 1] = height[n - 1];
+    for (int i = n - 2; i &gt;= 0; i--)        // tallest bar at or right of i
+        maxR[i] = Math.max(maxR[i + 1], height[i]);
+    int total = 0;
+    for (int i = 0; i &lt; n; i++)
+        total += Math.min(maxL[i], maxR[i]) - height[i];
+    return total;
+}</code></pre>
+    <p>The rescans became two prefix-max arrays (the pattern of <a href="04-prefix-sum.html">page 04</a>).
+    One more squeeze removes the arrays entirely:</p>
+
+    <p class="code-title">Variation 3 — converging pointers (optimal) · O(n) time, O(1) space</p>
+<pre class="code"><code>public int trap(int[] height) {
+    int l = 0, r = height.length - 1;
+    int maxL = 0, maxR = 0;              // tallest bar seen so far from each end
+    int total = 0;
+    while (l &lt; r) {
+        if (height[l] &lt; height[r]) {
+            // The KEY step: maxR' (the true right max for l) is at least
+            // height[r] &gt; height[l], so min(maxL, trueMaxR) = maxL here.
+            // The left side's water is fully decided — settle it.
+            maxL = Math.max(maxL, height[l]);
+            total += maxL - height[l];   // 0 if height[l] is a new max
+            l++;
+        } else {
+            maxR = Math.max(maxR, height[r]);
+            total += maxR - height[r];
+            r--;
+        }
+    }
+    return total;
+}</code></pre>
+    <p><strong>Takeaway.</strong> The full ladder — O(n²) rescan → O(n)-space precompute → O(1)-space two
+    pointers — is worth internalizing as a sequence: each variation removes exactly one redundancy. The two-pointer
+    step works because whichever side is currently shorter has its water level already provably determined.</p>
+  </div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="pitfalls">Pitfalls</h2>
+<ul>
+  <li><strong>Loop on <code>l &lt; r</code>, not <code>l &lt;= r</code></strong> for pair problems — <code>l == r</code> would pair an element with itself.</li>
+  <li><strong>Always narrate the discard proof.</strong> Moving a pointer without saying <em>why the skipped candidates can't win</em> leaves the correctness argument unstated.</li>
+  <li><strong>Sum overflow:</strong> two ints near 2³¹ overflow on <code>+</code>. Cast to <code>long</code> (or note the constraints rule it out).</li>
+  <li><strong>Duplicate skipping in 3Sum:</strong> skip the <em>anchor</em> with <code>continue</code>, and skip equal <code>l</code>/<code>r</code> values <em>after</em> recording a hit — mixing these up either drops or duplicates triples.</li>
+  <li><strong>Read/write invariant:</strong> <code>write ≤ read</code> at all times, so you never overwrite unread data. If you can state that invariant, in-place problems stop being scary.</li>
+  <li><strong>Sorting destroys indexes.</strong> If the answer must be original indexes (Two Sum I), sort-then-two-pointers needs an index-carrying copy — usually the HashMap is simpler.</li>
+</ul>
+
+<nav class="pager">
+  <a class="prev" href="01-arrays-hashing.html"><span class="dir">⟵ Prev</span><span class="name">01 · Arrays &amp; Hashing</span></a>
+  <a class="next" href="03-sliding-window.html"><span class="dir">Next ⟶</span><span class="name">03 · Sliding Window</span></a>
+</nav>
+
+</div>
+
+<script>
+new Stepper('convergeAnim', {
+  totalSteps: 7,
+  captions: [
+    'Sorted array [1, 3, 4, 6, 8, 11], target 10. L starts at the smallest element, R at the largest — the widest possible pair.',
+    'Compare: 1 + 11 = 12 > 10. R holds the largest value, so if even the SMALLEST left partner overshoots, 11 overshoots with everyone. Discard 11: r--.',
+    'Now 1 + 8 = 9 < 10. 8 was the largest remaining partner for 1, so 1 can never reach 10 with anyone. Discard 1: l++.',
+    '3 + 8 = 11 > 10. Same logic as before, other direction: 8 is now proven too big for every remaining candidate. Discard it: r--.',
+    '3 + 6 = 9 < 10. The value 3 just failed with its best possible partner — discard it: l++.',
+    '4 + 6 = 10 = target. Found! Notice every step eliminated one element for good — no pair was ever revisited.',
+    'Done in 5 comparisons instead of checking all 15 pairs. O(n) time, O(1) space — sortedness converted brute force into a straight walk.'
+  ],
+  apply: function (svg, step) {
+    // pointer index per step
+    var lIdx = [0, 0, 0, 1, 1, 2, 2];
+    var rIdx = [5, 5, 4, 4, 3, 3, 3];
+    var sums = ['', '1+11 = 12 > 10', '1+8 = 9 < 10', '3+8 = 11 > 10',
+                '3+6 = 9 < 10', '4+6 = 10 ✓', 'answer: [3, 4] (1-indexed)'];
+    var li = lIdx[step], ri = rIdx[step];
+    Stepper.movePtr(svg, '#lp', li * 90, 0);
+    Stepper.movePtr(svg, '#lpl', li * 90, 0);
+    Stepper.movePtr(svg, '#rp', (ri - 5) * 90, 0);
+    Stepper.movePtr(svg, '#rpl', (ri - 5) * 90, 0);
+    Stepper.setText(svg, '#sumTxt', sums[step]);
+    var found = step >= 5;
+    for (var i = 0; i <= 5; i++) {
+      var cell = svg.querySelector('#cell' + i);
+      var isPtr = (i === li || i === ri);
+      Stepper.setClass(svg, '#cell' + i, 'dim', i < li || i > ri);        // discarded
+      Stepper.setClass(svg, '#cell' + i, 'active', step >= 1 && isPtr && !found);
+      Stepper.setClass(svg, '#cell' + i, 'done', found && isPtr);
+    }
+  }
+});
+</script>
+
+</body>
+</html>

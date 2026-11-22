@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Embeddings in Production — The Missing Middle</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body data-page="09-sentence-embeddings/embeddings-in-production">
+<main id="content">
+
+  <h1>Embeddings in Production</h1>
+
+  <p>
+    Module epilogue, and the ops manual no model card ever wrote.
+    <code>encode()</code> was the easy half — you now own two million vectors, and
+    they have opinions about RAM, recall, and release management. This page covers
+    the vector layer's operational life: what precision your floats actually need,
+    the knobs inside your ANN index (and which one silently trades away recall),
+    the versioning law that turns embedder upgrades into schema migrations, and the
+    end-to-end cost math for a corpus at scale. M12.1 covers the RAG pipeline above
+    this layer — chunking, hybrid search, HNSW's introduction; this page lives
+    <em>below</em> it, where the bytes are.
+  </p>
+
+  <h2>The storage bill: precision and dimensions</h2>
+
+  <p>
+    A vector database's core bill is one multiplication — n vectors × d dimensions ×
+    bytes per number — and both of the levers you'd expect from M11.3 apply to
+    vectors too. <strong>fp32</strong> (the default): 1.536 KB per MiniLM vector.
+    <strong>fp16</strong>: half that, recall loss unmeasurable. <strong>int8
+    scalar quantization</strong>: quarter, typically ~1% recall cost.
+    <strong>Binary quantization</strong> — one <em>bit</em> per dimension, sign only —
+    is the aggressive endpoint: 48 bytes per vector, 32× smaller than fp32, at a
+    5–10% recall hit… which a rescoring trick largely recovers: search coarsely with
+    binary vectors (Hamming distance — hardware-native and absurdly fast), then
+    re-rank the top few hundred candidates with their float versions kept on disk.
+    Sound familiar? It's M12.2's cheap-wide-net/expensive-fine-net, applied to
+    storage. The second lever is newer and worth knowing by name:
+    <strong>Matryoshka embeddings</strong> — models trained so that meaning
+    concentrates in the leading dimensions, letting you <em>truncate</em> a 768-d
+    vector to its first 256 dims and keep most retrieval quality. Dimensionality
+    stops being fixed at training time and becomes a serving decision.
+  </p>
+
+  <div class="formula">
+    <div class="math">index bytes ≈ n · d · bytes-per-dim &nbsp;(+ graph overhead ≈ 1.5×)</div>
+    <div class="plain">
+      <b>In plain words:</b> vectors × dimensions × precision, plus roughly half
+      again for the ANN graph's link structure. Every optimization on this page
+      attacks one of the three factors — fewer bytes (quantize), fewer dims
+      (truncate), or smarter neighbors (the index itself).
+    </div>
+  </div>
+
+  <figure class="anim" id="fig-vecbudget">
+    <div class="fig-title">Animation · One million vectors on a budget</div>
+    <svg viewBox="0 0 640 400" aria-labelledby="fig-vb-t">
+      <title id="fig-vb-t">Storage bars shrinking through fp16, int8 and binary quantization with recall meters</title>
+      <text x="30" y="36" font-size="18" class="sv-ink" font-weight="700">1M MiniLM vectors (384-d), storage vs recall</text>
+      <g id="vb-fp32">
+        <rect x="30" y="52" width="440" height="36" rx="8" fill="#2563eb"/>
+        <text x="480" y="77" font-size="17" class="mono" fill="#1d4ed8">fp32 · 1.5 GB · recall 1.00</text>
+      </g>
+      <g id="vb-fp16" class="sp-hide">
+        <rect x="30" y="104" width="220" height="36" rx="8" fill="#3b82f6"/>
+        <text x="260" y="129" font-size="17" class="mono" fill="#1d4ed8">fp16 · 0.77 GB · ≈1.00</text>
+      </g>
+      <g id="vb-int8" class="sp-hide">
+        <rect x="30" y="156" width="110" height="36" rx="8" fill="#60a5fa"/>
+        <text x="150" y="181" font-size="17" class="mono" fill="#1d4ed8">int8 · 0.38 GB · ≈0.99</text>
+      </g>
+      <g id="vb-bin" class="sp-hide">
+        <rect x="30" y="208" width="18" height="36" rx="6" fill="#d97706"/>
+        <text x="58" y="233" font-size="17" class="mono" fill="#b45309">binary · 48 MB · 0.90–0.95</text>
+      </g>
+      <g id="vb-rescue" class="sp-hide">
+        <rect x="330" y="204" width="280" height="44" rx="10" fill="#d1fae5" stroke="#6ee7b7" stroke-width="2"/>
+        <text x="470" y="222" text-anchor="middle" font-size="17" fill="#047857" font-weight="700">+ float rescoring of top-200:</text>
+        <text x="470" y="242" text-anchor="middle" font-size="17" fill="#047857">most recall recovered, 1/32 storage</text>
+      </g>
+      <g id="vb-mat" class="sp-hide">
+        <rect x="30" y="272" width="580" height="52" rx="12" fill="#fef3c7" stroke="#fcd34d"/>
+        <text x="320" y="294" text-anchor="middle" font-size="17" fill="#92400e" font-weight="700">the other lever — Matryoshka: truncate trained-to-nest dimensions</text>
+        <text x="320" y="316" text-anchor="middle" font-size="17" fill="#92400e">768 → 256 dims ≈ ⅓ the bytes, most of the quality</text>
+      </g>
+      <g id="vb-punch" class="sp-hide">
+        <rect x="30" y="340" width="580" height="36" rx="10" fill="#dbeafe" stroke="#93c5fd"/>
+        <text x="320" y="364" text-anchor="middle" font-size="17" fill="#1d4ed8" font-weight="700">precision, dimensions, and reranking are ONE budget you trade inside</text>
+      </g>
+    </svg>
+    <p class="sp-caption" id="fig-vb-cap"></p>
+  </figure>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      new StepPlayer({
+        svg: "#fig-vecbudget svg",
+        caption: "#fig-vb-cap",
+        steps: [
+          { caption: "The baseline: a million fp32 vectors is 1.5 GB before the index's own overhead. Comfortable — until the corpus is 50M, or RAM is billed by the GB." },
+          { caption: "fp16 halves the bill for effectively nothing — vector similarity doesn't need the precision gradient descent barely earned (M11.3's lesson, vector edition).", show: ["#vb-fp16"] },
+          { caption: "int8 scalar quantization: a quarter of the bytes for ~1 recall point. The default 'we grew up' setting in most managed vector stores.", show: ["#vb-int8"] },
+          { caption: "Binary: keep only each dimension's SIGN. 48 bytes a vector, Hamming-distance search at silly speeds — and a real 5–10% recall dent.", show: ["#vb-bin"], holdMs: 5600 },
+          { caption: "Unless you rescore: binary search finds the top-200, their float versions (cold storage) re-rank to a top-10. Cheap wide net, expensive fine net — M12.2's shape, inside the index.", show: ["#vb-rescue"], holdMs: 5800 },
+          { caption: "And Matryoshka training makes DIMENSIONS tradeable too — truncate to the leading dims at serve time. Precision, dimensionality, rescoring: one budget, three dials.", show: ["#vb-mat", "#vb-punch"], holdMs: 6200 }
+        ]
+      });
+    });
+  </script>
+
+  <h2>ANN under the hood: HNSW's bill and its one big dial</h2>
+
+  <p>
+    M12.1 introduces HNSW's skip-list-of-graphs idea; here's the part you'll actually
+    operate. The index has two <strong>build-time</strong> knobs —
+    <code>M</code> (links per node: more = better recall ceiling, more RAM — the
+    ~1.5× overhead in the formula above) and <code>efConstruction</code> (build-time
+    search width: higher = better graph, slower indexing) — and one
+    <strong>query-time</strong> dial that matters more than both:
+    <code>efSearch</code>, how many candidate nodes each query explores. It is a
+    direct recall↔latency dial: ef=10 might give recall 0.82 at 0.4 ms; ef=200,
+    recall 0.99 at 2.8 ms. Two operational truths follow. First, <strong>your vector
+    DB's default is a marketing number</strong> — tuned to look fast; measure recall
+    at your ef against brute force on <em>your</em> data (the M9.5 harness does
+    this in ten lines) before trusting it. Second, <strong>deletes are lies</strong>:
+    HNSW graphs can't cheaply unlink nodes, so deletions are usually
+    <em>tombstones</em> — marked dead, still occupying graph and RAM — and a corpus
+    with heavy churn needs periodic index rebuilds or its performance quietly rots.
+  </p>
+
+  <figure class="anim" id="fig-efsearch">
+    <div class="fig-title">Animation · efSearch: the recall dial</div>
+    <svg viewBox="0 0 640 380" aria-labelledby="fig-ef-t">
+      <title id="fig-ef-t">A query exploring an HNSW graph with a narrow then wide candidate beam</title>
+      <g id="ef-graph">
+        <text x="320" y="34" text-anchor="middle" font-size="17" class="sv-ink" font-weight="700">an HNSW layer: nodes = vectors, edges = precomputed neighbors</text>
+        <g stroke="#cbd5e1" stroke-width="1.5">
+          <line x1="90" y1="120" x2="200" y2="90"/><line x1="200" y1="90" x2="320" y2="130"/><line x1="320" y1="130" x2="430" y2="100"/><line x1="430" y1="100" x2="550" y2="140"/>
+          <line x1="90" y1="120" x2="160" y2="200"/><line x1="200" y1="90" x2="280" y2="210"/><line x1="320" y1="130" x2="390" y2="220"/><line x1="430" y1="100" x2="500" y2="230"/>
+          <line x1="160" y1="200" x2="280" y2="210"/><line x1="280" y1="210" x2="390" y2="220"/><line x1="390" y1="220" x2="500" y2="230"/><line x1="550" y1="140" x2="500" y2="230"/>
+        </g>
+        <g fill="#94a3b8">
+          <circle cx="90" cy="120" r="9"/><circle cx="200" cy="90" r="9"/><circle cx="320" cy="130" r="9"/><circle cx="430" cy="100" r="9"/><circle cx="550" cy="140" r="9"/>
+          <circle cx="160" cy="200" r="9"/><circle cx="280" cy="210" r="9"/><circle cx="390" cy="220" r="9"/><circle cx="500" cy="230" r="9"/>
+        </g>
+        <circle cx="500" cy="230" r="13" fill="none" stroke="#059669" stroke-width="3"/>
+        <text x="500" y="262" text-anchor="middle" font-size="17" fill="#047857">true nearest</text>
+      </g>
+      <g id="ef-narrow" class="sp-hide">
+        <path d="M 90 120 L 200 90 L 320 130 L 390 220" fill="none" stroke="#dc2626" stroke-width="4" opacity="0.8"/>
+        <circle cx="390" cy="220" r="12" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <rect x="30" y="282" width="270" height="44" rx="10" fill="#fee2e2" stroke="#fca5a5"/>
+        <text x="165" y="300" text-anchor="middle" font-size="17" fill="#b91c1c" font-weight="700">ef=10: greedy narrow beam</text>
+        <text x="165" y="320" text-anchor="middle" font-size="17" class="mono" fill="#b91c1c">recall .82 · 0.4 ms — missed it</text>
+      </g>
+      <g id="ef-wide" class="sp-hide">
+        <path d="M 90 120 L 160 200 L 280 210 L 390 220 L 500 230" fill="none" stroke="#059669" stroke-width="4" opacity="0.8"/>
+        <path d="M 200 90 L 280 210" stroke="#059669" stroke-width="2.5" opacity="0.5"/>
+        <path d="M 320 130 L 390 220" stroke="#059669" stroke-width="2.5" opacity="0.5"/>
+        <rect x="340" y="282" width="270" height="44" rx="10" fill="#d1fae5" stroke="#6ee7b7"/>
+        <text x="475" y="300" text-anchor="middle" font-size="17" fill="#047857" font-weight="700">ef=200: wide exploration</text>
+        <text x="475" y="320" text-anchor="middle" font-size="17" class="mono" fill="#047857">recall .99 · 2.8 ms — found it</text>
+      </g>
+      <g id="ef-punch" class="sp-hide">
+        <rect x="30" y="340" width="580" height="34" rx="9" fill="#dbeafe" stroke="#93c5fd"/>
+        <text x="320" y="363" text-anchor="middle" font-size="17" fill="#1d4ed8" font-weight="700">ANN recall is a CONFIG KNOB — measure it with YOUR eval set, not vendor defaults</text>
+      </g>
+    </svg>
+    <p class="sp-caption" id="fig-ef-cap"></p>
+  </figure>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      new StepPlayer({
+        svg: "#fig-efsearch svg",
+        caption: "#fig-ef-cap",
+        steps: [
+          { caption: "One HNSW layer: your vectors as nodes, precomputed neighbor links as edges. A query navigates this graph greedily toward its nearest vector (circled green)." },
+          { caption: "With efSearch=10, the beam is narrow: the walk follows the locally-best edges, commits early — and lands on a good-but-wrong neighbor. Recall 0.82, blisteringly fast, silently imperfect.", show: ["#ef-narrow"], holdMs: 6000 },
+          { caption: "efSearch=200 keeps 200 candidates alive, exploring side paths the greedy walk skipped. It reaches the true nearest — recall 0.99 — for 7× the (still tiny) latency.", show: ["#ef-wide"], holdMs: 6000 },
+          { caption: "The point: 'approximate' in ANN is a dial you own. Sweep efSearch against brute force on your own queries (the build below) and CHOOSE your point on the curve — never inherit it.", show: ["#ef-punch"], holdMs: 6000 }
+        ]
+      });
+    });
+  </script>
+
+  <h2>The versioning law: one index, one model</h2>
+
+  <p>
+    M1.1 taught it as geometry, M9.5 flagged it as a regression; here it becomes
+    operations. <strong>Vectors are only comparable within the geometry that made
+    them</strong> — so the embedder version is effectively your index's schema
+    version, and changing it (upgrade, fine-tune, even a "minor" revision) is a
+    migration, never a patch. The production pattern is <strong>blue-green
+    re-indexing</strong>: keep v1 serving; build the v2 index in a shadow pipeline
+    (re-embed everything — budget the throughput with M7.1's batching); run a
+    <strong>dual-read window</strong> where a sample of live queries hits both
+    indexes and you compare recall on the golden set; then flip traffic atomically,
+    keeping v1 warm for rollback. Tag every stored row with its embedder version so
+    a mixed-geometry index is <em>detectable</em> rather than a silent quality
+    collapse. Teams that skip this discover it as a postmortem titled "search got
+    mysteriously worse after the model upgrade."
+  </p>
+
+  <figure class="anim" id="fig-reindex">
+    <div class="fig-title">Animation · The model-upgrade swap</div>
+    <svg viewBox="0 0 640 360" aria-labelledby="fig-ri-t">
+      <title id="fig-ri-t">Blue-green index migration with shadow re-embedding and atomic traffic flip</title>
+      <g id="ri-live">
+        <rect x="30" y="40" width="260" height="70" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+        <text x="160" y="68" text-anchor="middle" font-size="17" fill="#1d4ed8" font-weight="700">index v1 · MiniLM v1</text>
+        <text x="160" y="92" text-anchor="middle" font-size="17" fill="#1d4ed8">serving 100% of traffic</text>
+      </g>
+      <g id="ri-shadow" class="sp-hide">
+        <rect x="350" y="40" width="260" height="70" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 5"/>
+        <text x="480" y="68" text-anchor="middle" font-size="17" class="sv-ink" font-weight="700">shadow: re-embed ALL chunks</text>
+        <text x="480" y="92" text-anchor="middle" font-size="17" fill="#64748b">with tuned model → index v2</text>
+      </g>
+      <g id="ri-dual" class="sp-hide">
+        <rect x="120" y="140" width="400" height="64" rx="12" fill="#fef3c7" stroke="#fcd34d" stroke-width="2"/>
+        <text x="320" y="166" text-anchor="middle" font-size="17" fill="#b45309" font-weight="700">dual-read window: sampled queries hit BOTH</text>
+        <text x="320" y="190" text-anchor="middle" font-size="17" class="mono" fill="#b45309">golden-set recall@5: v1 .68 · v2 .79 ✓</text>
+      </g>
+      <g id="ri-flip" class="sp-hide">
+        <rect x="120" y="224" width="400" height="48" rx="12" fill="#d1fae5" stroke="#6ee7b7" stroke-width="2"/>
+        <text x="320" y="244" text-anchor="middle" font-size="17" fill="#047857" font-weight="700">atomic flip: traffic → v2 · v1 kept warm for rollback</text>
+        <text x="320" y="264" text-anchor="middle" font-size="17" fill="#047857">every row tagged: embedder=v2</text>
+      </g>
+      <g id="ri-punch" class="sp-hide">
+        <rect x="30" y="296" width="580" height="42" rx="10" fill="#dbeafe" stroke="#93c5fd"/>
+        <text x="320" y="316" text-anchor="middle" font-size="17" fill="#1d4ed8" font-weight="700">an embedder version is a SCHEMA version —</text>
+        <text x="320" y="334" text-anchor="middle" font-size="17" fill="#1d4ed8">migrate like one, never mix geometries in one index</text>
+      </g>
+    </svg>
+    <p class="sp-caption" id="fig-ri-cap"></p>
+  </figure>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      new StepPlayer({
+        svg: "#fig-reindex svg",
+        caption: "#fig-ri-cap",
+        steps: [
+          { caption: "Steady state: index v1, built by MiniLM v1, serving everything. Then M9.5's fine-tune hands you a better model — and a migration." },
+          { caption: "A shadow pipeline re-embeds the ENTIRE corpus with the new model into a separate v2 index. The live system never notices; the batch job (M7.1) hums.", show: ["#ri-shadow"] },
+          { caption: "The dual-read window: sampled real queries run against both indexes, scored on the golden set. v2 must prove its +11 points on live traffic shapes, not just offline.", show: ["#ri-dual"], holdMs: 6000 },
+          { caption: "Then one atomic flip — never a gradual mix, because a HALF-migrated index compares v1 geometry against v2 queries and degrades everywhere. v1 idles as the rollback.", show: ["#ri-flip"], holdMs: 5800 },
+          { caption: "The law, as ops: embedder version = schema version. Version-tag rows, migrate blue-green, and 'we upgraded the model' stops being a postmortem title.", show: ["#ri-punch"], holdMs: 6000 }
+        ]
+      });
+    });
+  </script>
+
+  <h2>Freshness, drift, and the monitoring loop</h2>
+
+  <p>
+    Day-two operations, quickly. <strong>Incremental upserts are safe</strong> — new
+    documents embedded with the <em>same</em> model version slot into the graph
+    happily (mind the tombstone caveat for the documents they replace). The slow
+    threat is <strong>content drift</strong>: your corpus's vocabulary and topics
+    evolve — new products, new jargon, new question styles — while the embedder's
+    geometry stands still, so retrieval quality erodes without any code change.
+    The defense is the M9.5 harness on a schedule: re-run the golden set weekly,
+    refresh it quarterly with current real queries, and alert on recall deltas like
+    any other SLO. When the metric sags, you know the ladder: threshold/label fixes
+    first, a fresh fine-tune (and this page's migration) when the drift is real.
+  </p>
+
+  <h2>The cost math, end to end</h2>
+
+  <p>
+    Close the module with a napkin worthy of M7.2. Ten million chunks:
+    <strong>embedding time</strong> — at ~2,000 sentences/sec batched on one modest
+    GPU (M7.1), ≈ 1.4 GPU-hours: dollars, not days — re-indexing is cheaper than
+    teams fear. <strong>RAM</strong> — fp32: 15 GB of vectors + ~50% HNSW overhead
+    ≈ 23 GB (a real machine); int8: ~6 GB total (a small one); binary + rescoring:
+    under 2 GB (a laptop). <strong>Queries</strong> — HNSW at these scales returns
+    in single-digit milliseconds; your latency budget lives almost entirely in the
+    LLM call downstream (M7.5). The strategic reading: the vector layer's costs are
+    front-loaded (embedding, RAM) and its marginal query is nearly free — the
+    opposite shape from the LLM layer — which is why over-retrieving then reranking
+    (M12.2) is economically sane.
+  </p>
+
+  <div class="realnum callout">
+    <div class="co-head">Real numbers</div>
+    <p>
+      One 384-d fp32 vector = <strong>1.536 KB</strong>; 1M ≈ 1.5 GB; 10M ≈ 15 GB —
+      ≈ <strong>23 GB</strong> with HNSW overhead, or ~6 GB at int8. Binary + float
+      rescoring: ~<strong>0.5 GB + cold floats</strong>, recovering most recall at
+      1/32 the hot storage. efSearch calibration points (typical 1M-vector index):
+      ef 10 → recall ~0.82 @ 0.4 ms · ef 50 → ~0.95 @ 1.1 ms · ef 200 → ~0.99 @
+      2.8 ms. Re-embedding 10M chunks with MiniLM: ≈ <strong>1.4 GPU-hours</strong>.
+      The bill that surprises teams is never compute — it's RAM held 24/7.
+    </p>
+  </div>
+
+  <div class="connect callout">
+    <div class="co-head">Connect the dots</div>
+    <p>
+      This page is why your vector DB's pricing page reads the way it does: RAM-based
+      tiers (the formula above IS their cost model), "storage optimization" toggles
+      (int8/binary quantization), and "pod resizing" warnings around reindexing.
+      It also closes M9's arc honestly: 9.1–9.5 taught you to make and improve the
+      geometry; this page keeps it <em>true in production</em> — versioned, measured,
+      and priced. When M12.1 shows the full RAG pipeline, every box downstream of
+      <code>encode()</code> now has a bill and a knob you can name.
+    </p>
+  </div>
+
+  <div class="build callout">
+    <div class="co-head">Build: measure YOUR recall-vs-efSearch curve</div>
+<pre><code># pip install faiss-cpu sentence-transformers numpy
+import faiss, numpy as np, time
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+docs = [f"Document about topic {i%1000}, variant {i}" for i in range(100_000)]
+X = model.encode(docs, batch_size=256, normalize_embeddings=True,
+                 show_progress_bar=True).astype("float32")
+Q = X[:200] + np.random.default_rng(0).normal(0, 0.02, (200, 384)).astype("float32")
+
+flat = faiss.IndexFlatIP(384); flat.add(X)          # brute force = ground truth
+_, truth = flat.search(Q, 10)
+
+hnsw = faiss.IndexHNSWFlat(384, 32)                  # M=32 links/node
+hnsw.hnsw.efConstruction = 200
+hnsw.add(X)
+
+for ef in [10, 25, 50, 100, 200]:
+    hnsw.hnsw.efSearch = ef
+    t0 = time.perf_counter(); _, got = hnsw.search(Q, 10)
+    ms = (time.perf_counter() - t0) / len(Q) * 1000
+    recall = np.mean([len(set(g) &amp; set(t)) / 10 for g, t in zip(got, truth)])
+    print(f"efSearch {ef:4d}: recall@10 {recall:.3f} | {ms:.2f} ms/query")
+</code></pre>
+    <p>
+      The printed table is this page's second animation, measured on your hardware.
+      Find the ef where recall crosses your requirement, note the latency, and set
+      it deliberately — then run the same sweep against your production DB's
+      equivalent knob and compare it to the default it shipped with.
+    </p>
+  </div>
+
+  <h2>If you remember one thing</h2>
+  <p>
+    The vector layer has three dials — <strong>precision, dimensions, and
+    efSearch</strong> — trading RAM and latency against recall you must
+    <em>measure</em>, never assume. And one law: <strong>an embedder version is a
+    schema version</strong> — new geometry means full re-embed, blue-green swap,
+    version tags. Front-loaded costs, near-free queries: engineer accordingly, and
+    the layer disappears into reliability, which is the highest compliment
+    infrastructure gets.
+  </p>
+
+  <div class="interview">
+    <h2>Interview questions</h2>
+    <details>
+      <summary>Your vector DB bill explodes at 50M vectors — what three levers do you pull before switching products?</summary>
+      <div><p>(1) Precision: fp32 → int8 scalar quantization cuts hot storage 4× for ~1 recall point; binary + float rescoring cuts 32× if recall tolerances allow. (2) Dimensions: a Matryoshka-trained or smaller-d embedder (768→384→256) scales the bill linearly — validated against your golden set, since this is a model change (re-embed + migration). (3) Tiering: most corpora have cold segments — move rarely-hit collections to disk-based indexes (IVF/DiskANN-style) and keep HNSW-in-RAM for the hot set. Then the honest fourth option: check whether n itself is inflated — near-duplicate chunks and dead documents commonly pad 20–30%. Only after these four does "switch products" enter the conversation, because every product obeys the same n·d·bytes formula.</p></div>
+    </details>
+    <details>
+      <summary>Why can't vectors from two embedder versions share one index?</summary>
+      <div><p>Similarity is only defined within one learned geometry: each training run places meanings into its own coordinate system (unique up to rotation, shaped by its data and loss), so a v1 document vector and a v2 query vector have no meaningful dot product — scores become noise that still LOOKS like scores. Fine-tuning counts fully: it deliberately moved the geometry (that was the point). Operationally this makes the embedder version a schema version: full re-embed, blue-green index swap, per-row version tags so mixing is detectable. The subtle failure worth naming: a partial migration degrades quietly — no errors, just recall decaying in proportion to the mixed fraction — which is why the flip must be atomic.</p></div>
+    </details>
+    <details>
+      <summary>How do you determine whether the ANN index (not the embedder) is costing you recall?</summary>
+      <div><p>Differential measurement: run your golden-set queries against the SAME vectors with brute-force exact search (FAISS IndexFlat) and with the ANN index at production settings. The exact-search recall is the embedder's ceiling; the gap between it and ANN recall is the index's tax. If exact search also misses, the geometry is the problem (fine-tune territory, M9.5); if the gap is material, sweep efSearch/nprobe upward and re-measure — usually a config-line fix. Do this at production filter conditions too: metadata-filtered ANN queries can have much worse recall than unfiltered ones (filtering shrinks the navigable graph), a well-known gotcha this method exposes.</p></div>
+    </details>
+    <details>
+      <summary>Binary embeddings cut storage 32× — how is retrieval quality preserved?</summary>
+      <div><p>Two mechanisms. First, high-dimensional grace: keeping only each dimension's sign preserves direction surprisingly well at 384–1024 dims — Hamming distance on bits correlates strongly with cosine on floats, so the top of the ranking survives even though fine ordering blurs. Second, two-stage rescoring: binary search over-retrieves (top 100–500 candidates at negligible cost), then full-precision vectors — kept in cheap cold storage, only fetched for candidates — re-rank to the final top-k. The wide net's recall losses mostly happen BELOW the rescoring cutoff, so end-to-end recall lands within 1–3 points of full-precision at ~1/32 the hot RAM. It's the retrieve-then-rerank pattern (M12.2) implemented inside the storage layer.</p></div>
+    </details>
+    <details>
+      <summary>When is brute-force (exact) vector search the right choice?</summary>
+      <div><p>More often than vendors suggest. Under ~100k–1M vectors, exact search is a single matrix multiply (M1.2's grid): a 100k×384 sweep is ~40M multiply-adds — sub-millisecond on GPU, a few ms vectorized on CPU — with recall exactly 1.0, zero build time, zero tuning, trivial deletes and filters. Choose it when: corpora are small-to-medium, correctness is contractual (eval harnesses should ALWAYS use it as ground truth), churn is high (no graph to rot), or you're debugging (removes the ANN variable entirely). Graduate to ANN when p99 latency at your scale demands it — and keep the flat index around forever as the measuring stick the previous question depends on.</p></div>
+    </details>
+  </div>
+
+</main>
+<script src="../assets/js/manifest.js"></script>
+<script src="../assets/js/site.js"></script>
+<script src="../assets/js/stepplayer.js"></script>
+</body>
+</html>

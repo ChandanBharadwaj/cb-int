@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transformers &amp; Self-Attention · cb-ml</title>
+  <meta name="description" content="The architecture behind every modern LLM, derived from scratch: why transformers replaced recurrent networks, self-attention step by step, multi-head attention, the transformer block, and encoder vs decoder variants.">
+  <script>(function(){try{var t=localStorage.getItem('cbml-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script defer src="assets/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <button id="menuBtn" class="iconbtn" aria-label="Open navigation" aria-expanded="false">☰</button>
+    <a class="topbar__brand" href="index.html"><span class="logo">ml</span> cb-ml</a>
+    <span class="topbar__spacer"></span>
+    <button id="themeBtn" class="iconbtn" aria-label="Toggle theme">☾</button>
+  </header>
+
+  <aside id="drawer" class="drawer" aria-label="Site navigation">
+    <div class="drawer__head">
+      <span class="logo">ml</span>
+      <div><div class="drawer__title">cb-ml</div><div class="drawer__sub">AI/ML · GenAI interview prep</div></div>
+    </div>
+    <nav id="drawerNav"></nav>
+  </aside>
+  <div id="scrim" class="scrim"></div>
+
+  <main id="main">
+    <span class="eyebrow">Part 1 · Foundations</span>
+    <h1>Transformers &amp; Self-Attention</h1>
+    <p class="lede">
+      The architecture behind every modern Large Language Model. If an interviewer goes deep on one thing,
+      it is attention — so this page derives it from scratch. By the end you can explain <em>what</em> a
+      transformer is, <em>why</em> it replaced recurrent networks, draw self-attention, and defend the
+      design choices.
+    </p>
+
+    <p class="prereq">
+      <b>Builds on</b> <a href="p1-tokenization-embeddings.html">Tokenization, Embeddings &amp; NLP</a>
+      <b>Next</b> <a href="p1-genai-llm-slm.html">GenAI, LLMs &amp; SLMs</a>
+    </p>
+
+    <div class="callout ladder">
+      <div class="callout__title">Where this sits on the ladder</div>
+      Transformers are rung 3–4. They shine on <strong>sequence / language</strong> data where order and
+      long-range context matter and hand-written rules or tabular classical machine learning can’t capture
+      meaning. They are <em>not</em> the answer for a 10-column spreadsheet — that’s still gradient-boosted
+      trees on a CPU.
+      <div class="chips">
+        <span class="chip gpu">GPU for training</span>
+        <span class="chip cost">$$–$/token</span>
+        <span class="chip">unstructured text / sequences</span>
+      </div>
+    </div>
+
+    <div class="keyterms" aria-label="Key terms on this page">
+      <div class="keyterms__title">Key terms on this page</div>
+      <dl>
+        <div><dt>Transformer</dt><dd>A neural architecture built on self-attention, no recurrence.</dd></div>
+        <div><dt>Recurrent Neural Network <span class="abbr">(RNN)</span></dt><dd>Older sequence model that reads one token at a time, carrying a hidden state.</dd></div>
+        <div><dt>Self-attention</dt><dd>Each token looks at every other token and blends their information.</dd></div>
+        <div><dt>Query / Key / Value <span class="abbr">(Q/K/V)</span></dt><dd>Three vectors per token: what it seeks, what it offers, what it passes on.</dd></div>
+        <div><dt>Multi-head attention</dt><dd>Several attention patterns run in parallel, then combined.</dd></div>
+        <div><dt>Feed-Forward Network <span class="abbr">(FFN)</span></dt><dd>The per-token mini-MLP in each transformer block.</dd></div>
+        <div><dt>Residual connection</dt><dd>A skip path that adds a sub-layer’s input to its output.</dd></div>
+        <div><dt>BERT / GPT</dt><dd>Encoder-only (understanding) vs decoder-only (generation) transformers.</dd></div>
+      </dl>
+    </div>
+
+    <nav class="toc" aria-label="On this page">
+      <div class="toc__title">On this page</div>
+      <ol>
+        <li><a href="#what">What a transformer is</a></li>
+        <li><a href="#why">Why transformers replaced RNNs</a></li>
+        <li><a href="#attention">Self-attention, derived</a></li>
+        <li><a href="#multihead">Multi-head attention</a></li>
+        <li><a href="#block">The transformer block</a></li>
+        <li><a href="#variants">Encoder vs decoder vs encoder-decoder</a></li>
+        <li><a href="#qa">Interview Q&amp;A</a></li>
+        <li><a href="#code">Code: attention from scratch</a></li>
+      </ol>
+    </nav>
+
+    <!-- ===== What ===== -->
+    <h2 id="what">What a transformer is</h2>
+    <div class="callout def">
+      <div class="callout__title">What it is</div>
+      <p>
+        <strong>A transformer is a neural network built around self-attention</strong> — a mechanism that
+        lets every token in a sequence look directly at every other token, in parallel. Introduced in the
+        2017 paper <em>“Attention Is All You Need,”</em> it replaced the step-by-step recurrence of earlier
+        sequence models and became the backbone of essentially every modern language model.
+      </p>
+    </div>
+    <p>
+      Stripped down, a transformer is a stack of identical <strong>blocks</strong>, each combining
+      self-attention (tokens mixing information) with a small per-token neural network. Its inputs are the
+      token embeddings and positional encodings from the previous page; its output is a context-aware
+      vector for every token. Everything else — chat models, code models, embeddings models — is a
+      configuration of this one idea.
+    </p>
+    <div class="callout deeper">
+      <div class="callout__title">Bottom line</div>
+      A transformer = embeddings + positional info, run through a stack of self-attention blocks. Master
+      attention and you understand the whole family.
+    </div>
+
+    <!-- ===== Why ===== -->
+    <h2 id="why">Why transformers replaced RNNs</h2>
+    <div class="callout def">
+      <div class="callout__title">What it is</div>
+      <p>
+        Before transformers, sequences were handled by <strong>Recurrent Neural Networks (RNNs)</strong>
+        and their <strong>Long Short-Term Memory (LSTM)</strong> variants, which read a sequence one token
+        at a time while carrying a running hidden state. Transformers threw out that recurrence.
+      </p>
+    </div>
+    <p>
+      RNNs had two crippling problems. <strong>(1) No parallelism:</strong> token <code>t</code> needs
+      token <code>t-1</code>’s hidden state, so training can’t be spread across the sequence — it’s slow.
+      <strong>(2) Fading memory:</strong> long-range dependencies get squeezed through many steps and the
+      signal vanishes. Self-attention fixes both at once: every token attends to <strong>every other token
+      directly</strong>, in parallel, with a constant-length path between any two positions. That single
+      change unlocked GPU-parallel training on internet-scale data — which is what made today’s LLMs
+      possible.
+    </p>
+    <div class="callout deeper">
+      <div class="callout__title">One-line answer</div>
+      “Transformers replace sequential recurrence with parallel self-attention, so every token can attend to
+      every other token in O(1) path length — enabling long-range context and massively parallel training.”
+    </div>
+
+    <!-- ===== Attention ===== -->
+    <h2 id="attention">Self-attention, derived</h2>
+    <div class="callout def">
+      <div class="callout__title">What it is</div>
+      <p>
+        <strong>Self-attention rebuilds each token’s representation as a weighted average of every token’s
+        information</strong>, where the weights measure how relevant each other token is. It’s how a
+        transformer gives a word meaning <em>in context</em>.
+      </p>
+    </div>
+    <p>For each token we compute three vectors by multiplying its embedding by learned matrices:</p>
+    <ul>
+      <li><strong>Query (Q)</strong> — “what am I looking for?”</li>
+      <li><strong>Key (K)</strong> — “what do I offer?”</li>
+      <li><strong>Value (V)</strong> — “what I’ll actually pass on if attended to.”</li>
+    </ul>
+    <p>
+      A token’s new representation is a <strong>weighted average of every token’s Value</strong>, where the
+      weight is how well this token’s Query matches that token’s Key. The full formula:
+    </p>
+    <div class="callout">
+      <div class="callout__title">Scaled dot-product attention</div>
+      <div style="font-family:var(--font-mono);font-size:1.05rem;text-align:center;padding:6px 0;">
+        Attention(Q, K, V) = softmax( <b>Q·Kᵀ / √d<sub>k</sub></b> ) · V
+      </div>
+    </div>
+
+    <div class="figure">
+      <svg viewBox="0 0 460 180" role="img" aria-label="Self-attention: the token 'sat' attending to all other tokens with different weights">
+        <g font-family="monospace" font-size="13" text-anchor="middle">
+          <g><rect x="30"  y="120" width="70" height="34" rx="8" fill="var(--surface-2,#1c2333)" stroke="var(--border,#3a4457)"/><text x="65"  y="142" fill="var(--text,#e6edf3)">The</text></g>
+          <g><rect x="120" y="120" width="70" height="34" rx="8" fill="var(--surface-2,#1c2333)" stroke="var(--border,#3a4457)"/><text x="155" y="142" fill="var(--text,#e6edf3)">cat</text></g>
+          <g><rect x="210" y="120" width="70" height="34" rx="8" fill="var(--accent-soft,#2b2f55)" stroke="#7c8cff" stroke-width="2"/><text x="245" y="142" fill="#7c8cff" font-weight="700">sat</text></g>
+          <g><rect x="300" y="120" width="70" height="34" rx="8" fill="var(--surface-2,#1c2333)" stroke="var(--border,#3a4457)"/><text x="335" y="142" fill="var(--text,#e6edf3)">on</text></g>
+          <g><rect x="390" y="120" width="60" height="34" rx="8" fill="var(--surface-2,#1c2333)" stroke="var(--border,#3a4457)"/><text x="420" y="142" fill="var(--text,#e6edf3)">mat</text></g>
+        </g>
+        <g fill="none" stroke="#7c8cff" class="anim-flow" stroke-linecap="round">
+          <path d="M245,120 C200,70 90,70 65,120"  stroke-width="1.6" opacity="0.45"/>
+          <path d="M245,120 C210,55 165,60 155,120" stroke-width="4"   opacity="0.9"/>
+          <path d="M245,120 C260,50 330,60 335,120" stroke-width="2.4" opacity="0.65"/>
+          <path d="M245,120 C300,50 400,70 420,120" stroke-width="3.2" opacity="0.75"/>
+        </g>
+        <text x="230" y="30" fill="var(--text-muted,#9aa7b8)" font-size="11" text-anchor="middle">“sat” attends most to “cat” and “mat” (thicker = higher weight)</text>
+      </svg>
+      <div class="figure__cap">Every token builds its meaning from a weighted blend of the others. Here “sat” leans on its subject “cat” and object “mat.”</div>
+    </div>
+
+    <h3>Why divide by √d<sub>k</sub>?</h3>
+    <p>
+      A classic interview follow-up. The dot product <code>Q·Kᵀ</code> sums over <code>d<sub>k</sub></code>
+      dimensions, so its variance grows with <code>d<sub>k</sub></code>. Large values push
+      <code>softmax</code> into saturated regions where gradients vanish and it behaves like a hard
+      <code>argmax</code>. Dividing by <code>√d<sub>k</sub></code> keeps the scores unit-variance, so the
+      softmax stays smooth and trainable.
+    </p>
+
+    <details class="reveal">
+      <summary>Show the causal-mask detail (decoders)</summary>
+      <p>
+        In a <strong>decoder</strong> (GPT-style, generating left-to-right) a token must not see the
+        future. Before the softmax we add a <strong>causal mask</strong> that sets all “future” scores to
+        <code>-∞</code>, so their softmax weight becomes 0. That’s the only difference that makes attention
+        autoregressive.
+      </p>
+    </details>
+    <div class="callout deeper">
+      <div class="callout__title">Bottom line</div>
+      Self-attention = match every Query to every Key, softmax the scores, and mix the Values. It’s all
+      matrix multiplication, which is why it runs fast on a GPU and scales to huge models.
+    </div>
+
+    <!-- ===== Multi-head ===== -->
+    <h2 id="multihead">Multi-head attention</h2>
+    <div class="callout def">
+      <div class="callout__title">What it is</div>
+      <p>
+        <strong>Multi-head attention runs several self-attention operations in parallel</strong>, each with
+        its own Q/K/V projections, then concatenates their outputs. Each “head” can focus on a different
+        kind of relationship.
+      </p>
+    </div>
+    <p>
+      One attention pattern isn’t enough — a token may need syntactic <em>and</em> semantic relationships at
+      once. So we run attention <strong>h times in parallel</strong> (e.g. 8–96 heads), each with its own
+      small Q/K/V projections, then concatenate and project back. Each head can specialise: one tracks
+      subject→verb agreement, another tracks which pronoun refers to which noun, and so on. The total
+      compute is about the same as one big attention, but the representation is far richer.
+    </p>
+
+    <div class="figure">
+      <svg viewBox="0 0 460 160" role="img" aria-label="Multi-head attention splits into parallel heads then concatenates">
+        <rect x="30" y="66" width="70" height="30" rx="7" fill="var(--surface-2,#1c2333)" stroke="var(--border,#3a4457)"/>
+        <text x="65" y="86" text-anchor="middle" font-size="12" fill="var(--text,#e6edf3)" font-family="monospace">Q,K,V</text>
+        <g stroke="#38bdf8" fill="none" class="anim-flow"><path d="M100,81 C140,40 150,35 175,40"/><path d="M100,81 L175,81"/><path d="M100,81 C140,120 150,125 175,122"/></g>
+        <g font-family="monospace" font-size="11" text-anchor="middle">
+          <rect x="178" y="26" width="80" height="28" rx="7" fill="var(--accent-soft,#2b2f55)" stroke="#7c8cff"/><text x="218" y="45" fill="#7c8cff">head 1</text>
+          <rect x="178" y="67" width="80" height="28" rx="7" fill="var(--accent-soft,#2b2f55)" stroke="#7c8cff"/><text x="218" y="86" fill="#7c8cff">head 2</text>
+          <rect x="178" y="108" width="80" height="28" rx="7" fill="var(--accent-soft,#2b2f55)" stroke="#7c8cff"/><text x="218" y="127" fill="#7c8cff">head h</text>
+        </g>
+        <g stroke="#38bdf8" fill="none" class="anim-flow"><path d="M258,40 C300,45 305,70 330,81"/><path d="M258,81 L330,81"/><path d="M258,122 C300,120 305,95 330,81"/></g>
+        <rect x="332" y="66" width="96" height="30" rx="7" fill="var(--surface-2,#1c2333)" stroke="#38bdf8"/>
+        <text x="380" y="86" text-anchor="middle" font-size="11" fill="#38bdf8" font-family="monospace">concat + W_O</text>
+      </svg>
+      <div class="figure__cap">Split into h heads → each attends independently → concatenate → linear projection. Same total compute, far richer representations.</div>
+    </div>
+    <div class="callout deeper">
+      <div class="callout__title">Bottom line</div>
+      One head sees one kind of relationship; many heads see many at once. Concatenate and project, and the
+      model captures syntax, meaning, and reference simultaneously.
+    </div>
+
+    <!-- ===== Block ===== -->
+    <h2 id="block">The transformer block</h2>
+    <div class="callout def">
+      <div class="callout__title">What it is</div>
+      <p>
+        A <strong>transformer block is the repeating unit of the architecture</strong>: multi-head
+        self-attention followed by a small per-token <strong>Feed-Forward Network (FFN)</strong>, each
+        wrapped in a residual connection and layer normalization. Stack N of them and you have the model.
+      </p>
+    </div>
+    <p>
+      The block has two sub-layers. First, <strong>multi-head self-attention</strong> lets tokens exchange
+      information. Second, a <strong>position-wise feed-forward network</strong> — a tiny MLP applied to
+      each token independently — transforms each token’s representation. Each sub-layer is wrapped in a
+      <strong>residual connection</strong> (add the input back to the output) and <strong>layer
+      normalization</strong>, the same tricks from the neural-networks page that let you stack dozens of
+      layers without the gradient degrading. GPT-3, for example, stacks 96 of these blocks.
+    </p>
+
+    <div class="figure">
+      <svg viewBox="0 0 300 300" role="img" aria-label="Transformer block: attention and feed-forward sub-layers with residual connections">
+        <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L6,4 L0,8 Z" fill="#9aa7b8"/></marker></defs>
+        <g font-family="monospace" font-size="11" text-anchor="middle">
+          <rect x="90" y="256" width="120" height="30" rx="7" fill="var(--surface-2,#1c2333)" stroke="var(--border,#3a4457)"/><text x="150" y="275" fill="var(--text,#e6edf3)">input + pos</text>
+          <line x1="150" y1="256" x2="150" y2="230" stroke="#9aa7b8" marker-end="url(#a2)"/>
+          <rect x="70" y="196" width="160" height="34" rx="8" fill="var(--accent-soft,#2b2f55)" stroke="#7c8cff"/><text x="150" y="217" fill="#7c8cff" font-weight="700">Multi-Head Attention</text>
+          <rect x="90" y="156" width="120" height="26" rx="7" fill="none" stroke="#38bdf8" stroke-dasharray="4 3"/><text x="150" y="173" fill="#38bdf8">Add &amp; Norm</text>
+          <line x1="150" y1="156" x2="150" y2="140" stroke="#9aa7b8" marker-end="url(#a2)"/>
+          <rect x="70" y="104" width="160" height="34" rx="8" fill="var(--accent-soft,#2b2f55)" stroke="#7c8cff"/><text x="150" y="125" fill="#7c8cff" font-weight="700">Feed-Forward</text>
+          <rect x="90" y="64" width="120" height="26" rx="7" fill="none" stroke="#38bdf8" stroke-dasharray="4 3"/><text x="150" y="81" fill="#38bdf8">Add &amp; Norm</text>
+          <line x1="150" y1="64" x2="150" y2="48" stroke="#9aa7b8" marker-end="url(#a2)"/>
+          <rect x="90" y="18" width="120" height="30" rx="7" fill="var(--surface-2,#1c2333)" stroke="var(--border,#3a4457)"/><text x="150" y="37" fill="var(--text,#e6edf3)">to next block</text>
+        </g>
+        <path d="M64,213 C40,213 40,169 86,169" fill="none" stroke="#3fb950" stroke-width="1.5" class="anim-flow"/>
+        <path d="M64,121 C40,121 40,77 86,77" fill="none" stroke="#3fb950" stroke-width="1.5" class="anim-flow"/>
+        <text x="20" y="150" fill="#3fb950" font-size="10" transform="rotate(-90 20 150)" text-anchor="middle">residual</text>
+      </svg>
+      <div class="figure__cap">Residual connections (green) let gradients flow straight through, so you can stack dozens of blocks without the signal degrading.</div>
+    </div>
+    <div class="callout deeper">
+      <div class="callout__title">Bottom line</div>
+      Attention mixes tokens; the feed-forward network processes each one; residuals and normalization keep
+      a deep stack trainable. Repeat the block N times and you have a transformer.
+    </div>
+
+    <!-- ===== Variants ===== -->
+    <h2 id="variants">Encoder vs decoder vs encoder-decoder</h2>
+    <div class="callout def">
+      <div class="callout__title">What it is</div>
+      <p>
+        Transformers come in three flavours depending on <strong>what each token is allowed to attend
+        to</strong>: encoder-only (see everything, for understanding), decoder-only (see only the past, for
+        generation), and encoder-decoder (understand one sequence, generate another).
+      </p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Type</th><th>Attention</th><th>Good at</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Encoder-only</strong></td><td>Bidirectional (sees full context)</td><td>Understanding: classification, embeddings, retrieval</td><td>BERT, sentence-transformers</td></tr>
+          <tr><td><strong>Decoder-only</strong></td><td>Causal (left-to-right)</td><td>Generation: chat, completion, code</td><td>GPT, LLaMA, Mistral</td></tr>
+          <tr><td><strong>Encoder-decoder</strong></td><td>Encoder bidirectional + decoder cross-attends</td><td>Seq-to-seq: translation, summarization</td><td>T5, BART</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout deeper">
+      <div class="callout__title">Rule of thumb</div>
+      Need a <em>vector</em> that represents text (search, RAG, classification)? Reach for an
+      <strong>encoder</strong>. Need to <em>produce</em> text? Reach for a <strong>decoder</strong>. Almost
+      every chat LLM today is decoder-only — which is exactly where the <a href="p1-genai-llm-slm.html">next
+      page</a> picks up.
+    </div>
+
+    <!-- ===== Q&A ===== -->
+    <h2 id="qa">Interview Q&amp;A</h2>
+
+    <details class="qa">
+      <summary class="qa__q"><span class="badge core">core</span>Walk me through self-attention.</summary>
+      <div class="qa__a">
+        <p>
+          Project each token embedding into Query, Key and Value vectors. Score every token pair with the
+          dot product of one token’s Query and another’s Key, scale by <code>1/√d<sub>k</sub></code>,
+          softmax the scores into weights, then take the weighted sum of Values. That weighted sum is the
+          token’s new, context-aware representation. It’s done for all tokens at once as matrix
+          multiplications, which is why it’s GPU-friendly.
+        </p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary class="qa__q"><span class="badge trap">trap</span>Why the <code>√d<sub>k</sub></code> scaling — what breaks without it?</summary>
+      <div class="qa__a">
+        <p>
+          Without scaling, dot products grow with dimension (variance ∝ <code>d<sub>k</sub></code>). Large
+          logits saturate the softmax → near-zero gradients → the model can’t learn, and attention collapses
+          to a hard pick of one token. Dividing by <code>√d<sub>k</sub></code> normalizes the score variance
+          to ~1, keeping softmax in its sensitive, differentiable range.
+        </p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary class="qa__q"><span class="badge core">core</span>What’s the computational complexity of self-attention, and why does it matter?</summary>
+      <div class="qa__a">
+        <p>
+          <code>O(n²·d)</code> in sequence length <code>n</code> — every token attends to every other, so the
+          attention matrix is <code>n×n</code>. That quadratic cost is exactly why long context is expensive
+          and why techniques like <strong>FlashAttention</strong>, sliding-window attention, and
+          <strong>KV-caching</strong> exist (see Part 3 → <a href="p3-inference-optimization.html">Inference
+          Optimization</a>).
+        </p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary class="qa__q"><span class="badge core">core</span>Why did transformers beat RNNs?</summary>
+      <div class="qa__a">
+        <p>
+          RNNs process tokens sequentially, so they can’t parallelize across a sequence and they lose
+          long-range signal through many steps. Self-attention connects every token to every other directly
+          and in parallel, giving constant-length paths for long-range dependencies and enabling
+          GPU-parallel training on massive corpora — the combination that made large language models
+          feasible.
+        </p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary class="qa__q"><span class="badge senior">senior</span>Encoder-only vs decoder-only — which would you pick for semantic search, and why?</summary>
+      <div class="qa__a">
+        <p>
+          Encoder-only (e.g. a sentence-transformer). Search needs a single, high-quality <em>embedding</em>
+          per document, and bidirectional attention lets every token see the full context, producing better
+          representations. Decoder-only models are optimized to <em>generate</em> the next token, not to
+          summarize meaning into one vector — though you <em>can</em> pool their hidden states, encoders are
+          usually cheaper and stronger for pure retrieval.
+        </p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary class="qa__q"><span class="badge trap">trap</span>What does multi-head attention buy you over a single larger head?</summary>
+      <div class="qa__a">
+        <p>
+          Multiple heads let the model attend to different relationships in different representation
+          subspaces at the same time — one head for syntax, another for coreference, another for position —
+          then combine them. A single head of the same total size can only express one weighted-average
+          pattern per token, so it can’t separate those signals as cleanly.
+        </p>
+      </div>
+    </details>
+
+    <!-- ===== Code ===== -->
+    <h2 id="code">Code: attention from scratch</h2>
+    <p>
+      The mechanics in NumPy — no framework magic, so you can see every step. This is the exact thing an
+      interviewer may ask you to whiteboard.
+    </p>
+
+    <div class="codewrap">
+      <div class="codewrap__bar"><span class="codewrap__lang">python</span><span>scaled dot-product self-attention (NumPy)</span><button class="copybtn" type="button">Copy</button></div>
+<pre><code class="language-python"># Scaled dot-product self-attention, implemented from scratch to show the mechanics.
+# No deep-learning framework — just NumPy — so every step is visible.
+import numpy as np
+
+def softmax(x, axis=-1):
+    # Subtract the max for numerical stability (avoids overflow in exp).
+    x = x - x.max(axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=axis, keepdims=True)
+
+def self_attention(X, W_q, W_k, W_v, causal=False):
+    """
+    X   : (seq_len, d_model)  input token embeddings (one row per token)
+    W_* : (d_model, d_k)      learned projection matrices for Q, K, V
+    Returns: (seq_len, d_k)   context-aware representation for each token
+    """
+    # 1) Project each token into Query, Key, Value spaces.
+    Q = X @ W_q                      # (seq_len, d_k) — "what each token is looking for"
+    K = X @ W_k                      # (seq_len, d_k) — "what each token offers"
+    V = X @ W_v                      # (seq_len, d_k) — "what each token passes on"
+
+    d_k = Q.shape[-1]
+
+    # 2) Score every query against every key: how well do they match?
+    scores = Q @ K.T                 # (seq_len, seq_len)
+
+    # 3) Scale by sqrt(d_k) so the softmax doesn't saturate (the key trick).
+    scores = scores / np.sqrt(d_k)
+
+    # 4) Optional causal mask: a token must not attend to future tokens (decoders).
+    if causal:
+        seq_len = scores.shape[0]
+        # Upper-triangular positions (above the diagonal) are "the future".
+        mask = np.triu(np.ones((seq_len, seq_len)), k=1).astype(bool)
+        scores[mask] = -np.inf       # -inf -> softmax weight becomes exactly 0
+
+    # 5) Turn scores into probabilities (each row sums to 1).
+    weights = softmax(scores, axis=-1)   # (seq_len, seq_len)
+
+    # 6) Weighted sum of Values = the new representation of each token.
+    return weights @ V, weights          # output (seq_len, d_k), plus weights to inspect
+
+# --- tiny demo ---------------------------------------------------------------
+np.random.seed(0)
+X = np.random.randn(4, 8)            # 4 tokens, 8-dim embeddings
+Wq, Wk, Wv = (np.random.randn(8, 8) for _ in range(3))
+out, attn = self_attention(X, Wq, Wk, Wv, causal=True)
+print("output shape:", out.shape)   # (4, 8)
+print("attention row 0 (sums to 1):", attn[0].round(3))
+</code></pre>
+    </div>
+
+    <div class="callout">
+      <div class="callout__title">Where to go next</div>
+      You have the engine. The final Part 1 page is about what happens when you train a decoder-only
+      transformer to predict the next token over the whole internet: <a href="p1-genai-llm-slm.html">GenAI,
+      LLMs &amp; SLMs</a>.
+    </div>
+
+    <nav class="pagenav" id="pageNav" aria-label="Page navigation"></nav>
+
+    <div class="sitefoot">cb-ml · Part 1 · Foundations &amp; Concepts</div>
+  </main>
+</body>
+</html>
