@@ -291,6 +291,7 @@
     self.onunhandledrejection = (e) => send('err', ['Uncaught (in promise) ' + (e.reason && e.reason.message ? e.reason.name + ': ' + e.reason.message : String(e.reason))]);
     self.onerror = (m) => { send('err', ['Uncaught ' + m]); };
     onmessage = async (m) => {
+      if (m.data === '__ping') { postMessage({ k: 'pong' }); return; }   // answered only when the event loop is free
       try { await (new (Object.getPrototypeOf(async function () {}).constructor)(m.data))(); }
       catch (e) { send('err', ['Uncaught ' + (e && e.name ? e.name + ': ' + e.message : String(e))]); }
       postMessage({ k: 'done' });
@@ -298,11 +299,17 @@
   function runJs(code) {
     return new Promise((ok) => {
       const url = URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' }));
-      const w = new Worker(url); const lines = []; let idle = null;
-      const finish = (why) => { clearTimeout(hard); clearTimeout(idle); w.terminate(); URL.revokeObjectURL(url); if (why) lines.push({ t: why, k: 'warn' }); ok(lines); };
+      const w = new Worker(url); const lines = []; let pinger = null; let quiet = 0;
+      const finish = (why) => { clearTimeout(hard); clearInterval(pinger); w.terminate(); URL.revokeObjectURL(url); if (why) lines.push({ t: why, k: 'warn' }); ok(lines); };
       const hard = setTimeout(() => finish('Stopped after 5 s.'), 5000);
-      const settle = () => { clearTimeout(idle); idle = setTimeout(() => finish(), 600); };  // let timers fire, then stop
-      w.onmessage = (m) => { if (m.data.k === 'done') settle(); else { lines.push(m.data); if (idle) settle(); } };
+      // After the code returns, ping the worker. A busy worker (long microtask chains, CPU loops) can't answer,
+      // so we stop only after ~1 s in which the worker was responsive and printed nothing (pending timers get to fire).
+      w.onmessage = (m) => {
+        const k = m.data.k;
+        if (k === 'done') { pinger = setInterval(() => w.postMessage('__ping'), 100); return; }
+        if (k === 'pong') { if (++quiet >= 10) finish(); return; }
+        lines.push(m.data); quiet = 0;
+      };
       w.onerror = (e) => { lines.push({ t: e.message, k: 'err' }); e.preventDefault(); };
       w.postMessage(code);
     });

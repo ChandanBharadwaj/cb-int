@@ -230,7 +230,7 @@ print(f.__annotations__)`, options: ["{'a': &lt;class 'int'&gt;, 'b': &lt;class 
     { kind: 'predict', q: 'What does this print? (3.12+)', code: `def first[T](xs: list[T]) -> T:
     return xs[0]
 
-print(first.__type_params__, type(first.__type_params__[0]).__name__)`, options: ['(T,) TypeVar', '(~T,) TypeVar', "('T',) str", '() NoneType'], answer: 1, run: true, expect: '(~T,) TypeVar', explain: 'PEP 695 syntax creates a real <code>TypeVar</code> object, scoped to the function, and records it in <code>__type_params__</code>. A TypeVar’s repr is <code>~T</code> (the tilde marks it invariant).' },
+print(first.__type_params__, type(first.__type_params__[0]).__name__)`, options: ['(T,) TypeVar', '(~T,) TypeVar', "('T',) str", '() NoneType'], answer: 0, run: true, expect: '(T,) TypeVar', explain: 'PEP 695 syntax creates a real <code>TypeVar</code> object, scoped to the function, and records it in <code>__type_params__</code>. Its variance is <i>inferred</i> by type checkers, so its repr is a bare <code>T</code>. The <code>~T</code> / <code>+T</code> / <code>-T</code> prefixes appear only on old-style <code>TypeVar(\'T\')</code> objects with declared (in-, co-, contra-) variance.' },
     { kind: 'predict', q: 'Does the self-reference work? What does this print? (3.12+)', code: `type Tree = dict[str, Tree] | None
 
 print(type(Tree).__name__, Tree.__name__)`, options: ['NameError', 'TypeAliasType Tree', 'UnionType Tree', 'type Tree'], answer: 1, run: true, expect: 'TypeAliasType Tree', explain: 'The <code>type</code> statement creates a <code>typing.TypeAliasType</code> whose value is evaluated <b>lazily</b> (on first access of <code>__value__</code>), so recursive and forward references need no quotes.' },
