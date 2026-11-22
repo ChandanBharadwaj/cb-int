@@ -16,8 +16,8 @@
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 8 | 13 | 0 |
-| Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **67** | **82** | **0** |
+| Azure (`azure`) | 26 | 8 | 18 | 0 |
+| **Total** | **149** | **58** | **91** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -38,7 +38,7 @@
 | 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | done | 6 written, 24 runnable puzzles; uncertain: Node 22 default highWaterMark 64 KiB, pipeline destroy order, DataCloneError name, memoryUsage key order, undici channel names |
 | 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | pending | |
 | 1 | azure-A | Azure | 9 topics: `azure-hierarchy`, `regions-zones`, `entra-managed-identity`, `rbac-policy`, `compute-choice`, `app-service`, `container-apps`, `aks`, `functions` | done | 9 written, 59 scenario puzzles, extras aks-net/aks-wi/functions-durable; uncertain: role GUIDs, App Service/Container Apps defaults, Flex CLI flags, DefaultAzureCredential order |
-| 2 | azure-B | Azure | 9 topics: `storage-accounts`, `azure-sql-postgres`, `cosmos-db`, `redis-cache`, `messaging-choice`, `api-management`, `vnet-private-endpoints`, `key-vault`, `front-door-gateway` | pending | |
+| 2 | azure-B | Azure | 9 topics: `storage-accounts`, `azure-sql-postgres`, `cosmos-db`, `redis-cache`, `messaging-choice`, `api-management`, `vnet-private-endpoints`, `key-vault`, `front-door-gateway` | done | 9 written, 64 scenario puzzles, 4 extras (access, consistency, net, choose); uncertain: az CLI flags (migration, redis access policy, dns-resolver, WAF exclusions), KQL column names, Spring Cloud Azure property names; APIM XML shown as yaml |
 | 2 | azure-C | Azure | 8 topics: `monitor-app-insights`, `bicep-terraform`, `devops-pipelines`, `cost-management`, `azure-openai`, `well-architected`, `spring-on-azure`, `tricky-azure` | pending | |
 
 ## Java & JVM (`java`, 28 topics)
@@ -243,17 +243,17 @@ Verified by: `docs`. Code language: `bash`.
 | 8 | `aks` | AKS | node pools; networking (kubenet, CNI overlay); workload identity; upgrades | X | A | written | |
 | 9 | `functions` | Azure Functions | triggers & bindings; plans (Consumption, Flex, Premium); cold starts; Durable Functions | D | A | written | |
 | **M2** | | **Data** | | | | | |
-| 10 | `storage-accounts` | Storage accounts | Blob tiers; redundancy (LRS→GZRS); SAS vs MI access; lifecycle rules | D | B | todo | |
-| 11 | `azure-sql-postgres` | Azure SQL & Postgres Flexible Server | tiers; HA & read replicas; connection pooling (PgBouncer); backups & PITR | D | B | todo | |
-| 12 | `cosmos-db` | Cosmos DB | partition keys; RUs; the five consistency levels; change feed | X | B | todo | |
-| 13 | `redis-cache` | Azure Cache for Redis | tiers; eviction; clustering; cache-aside with Spring | D | B | todo | |
+| 10 | `storage-accounts` | Storage accounts | Blob tiers; redundancy (LRS→GZRS); SAS vs MI access; lifecycle rules | D | B | written | |
+| 11 | `azure-sql-postgres` | Azure SQL & Postgres Flexible Server | tiers; HA & read replicas; connection pooling (PgBouncer); backups & PITR | D | B | written | |
+| 12 | `cosmos-db` | Cosmos DB | partition keys; RUs; the five consistency levels; change feed | X | B | written | |
+| 13 | `redis-cache` | Azure Cache for Redis | tiers; eviction; clustering; cache-aside with Spring | D | B | written | |
 | **M3** | | **Integration** | | | | | |
-| 14 | `messaging-choice` | Service Bus vs Event Hubs vs Event Grid | queues & topics; sessions & DLQ; partitions & consumer groups; event routing | X | B | todo | |
-| 15 | `api-management` | API Management | policies; products & subscriptions; rate limiting; versioning | D | B | todo | |
+| 14 | `messaging-choice` | Service Bus vs Event Hubs vs Event Grid | queues & topics; sessions & DLQ; partitions & consumer groups; event routing | X | B | written | |
+| 15 | `api-management` | API Management | policies; products & subscriptions; rate limiting; versioning | D | B | written | |
 | **M4** | | **Networking & security** | | | | | |
-| 16 | `vnet-private-endpoints` | VNets & private endpoints | subnets & NSGs; private endpoint vs service endpoint; private DNS zones; hub-spoke | X | B | todo | |
-| 17 | `key-vault` | Key Vault | secrets, keys & certs; RBAC vs access policies; Spring Cloud Azure integration; rotation | D | B | todo | |
-| 18 | `front-door-gateway` | Front Door & Application Gateway | global vs regional; WAF; routing rules; choosing a load balancer | D | B | todo | |
+| 16 | `vnet-private-endpoints` | VNets & private endpoints | subnets & NSGs; private endpoint vs service endpoint; private DNS zones; hub-spoke | X | B | written | |
+| 17 | `key-vault` | Key Vault | secrets, keys & certs; RBAC vs access policies; Spring Cloud Azure integration; rotation | D | B | written | |
+| 18 | `front-door-gateway` | Front Door & Application Gateway | global vs regional; WAF; routing rules; choosing a load balancer | D | B | written | |
 | **M5** | | **Operations & architecture** | | | | | |
 | 19 | `monitor-app-insights` | Monitor & Application Insights | Log Analytics & KQL; App Insights Java agent; alerts; distributed tracing | D | C | todo | |
 | 20 | `bicep-terraform` | Bicep & Terraform | ARM vs Bicep; modules; Terraform azurerm; what-if & drift | D | C | todo | |

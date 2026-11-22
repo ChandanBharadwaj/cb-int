@@ -5,7 +5,7 @@ IA.widget('jvm-on-k8s', (root, ctx) => {
     document.head.append(el('style', { id: 'w-k8jvm-style', text: `
 .k8jvm svg text { font-family: var(--sans); }
 .k8jvm .frame { fill: var(--surface-2); stroke: var(--border); }
-.k8jvm .seg { transition: y .6s ease, height .6s ease; stroke: var(--surface); stroke-width: 1; }
+.k8jvm .mseg { transition: y .6s ease, height .6s ease; stroke: var(--surface); stroke-width: 1; }
 .k8jvm .lim { stroke: var(--err); stroke-width: 2.5; stroke-dasharray: 8 5; }
 .k8jvm .liml { font-size: 12px; font-weight: 800; fill: var(--err); font-family: var(--mono); }
 .k8jvm .xmx { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 3 4; }
@@ -27,13 +27,13 @@ IA.widget('jvm-on-k8s', (root, ctx) => {
   const LIVE = 380; // MiB of live data this service needs at peak
   const PHASES = ['Boot', 'Warm-up', 'Traffic', 'Peak'];
   const SEGS = [
-    ['heap', 'Java heap (committed)', 'var(--accent)', 'objects; G1 grows it towards MaxHeapSize under load'],
-    ['gc', 'GC structures', 'var(--k-queue)', 'G1 remembered sets, card table, marking bitmaps'],
-    ['meta', 'Metaspace', 'var(--accent-2)', 'class metadata: Spring, Hibernate, proxies'],
-    ['code', 'Code cache', 'var(--k-compute)', 'JIT-compiled code (up to 240 MiB reserved)'],
-    ['thr', 'Thread stacks', 'var(--k-edge)', '≈0.5 MiB touched each (-Xss 1 MiB reserved)'],
-    ['direct', 'Direct buffers', 'var(--k-store)', 'NIO / Netty; default max = MaxHeapSize'],
-    ['other', 'Other native', 'var(--k-external)', 'malloc arenas, JIT compiler, symbols, libs']
+    ['heap', 'Java heap', 'var(--accent)', 'objects; grows towards max'],
+    ['gc', 'GC structures', 'var(--k-queue)', 'G1 remembered sets, card table'],
+    ['meta', 'Metaspace', 'var(--accent-2)', 'class metadata, proxies'],
+    ['code', 'Code cache', 'var(--k-compute)', 'JIT code (240 MiB reserved)'],
+    ['thr', 'Thread stacks', 'var(--k-edge)', '≈0.5 MiB used each (-Xss 1M)'],
+    ['direct', 'Direct buffers', 'var(--k-store)', 'NIO/Netty; max = MaxHeapSize'],
+    ['other', 'Other native', 'var(--k-external)', 'malloc, JIT compiler, libs']
   ];
   let L = 1024; let H = '75'; let T = 200; let phase = 0; let gen = 0; let running = false; let speed = 2600;
   const heapMax = () => (H === 'xmx' ? L : Math.round(L * Number(H) / 100));
@@ -81,13 +81,13 @@ IA.widget('jvm-on-k8s', (root, ctx) => {
     const v = model(p); const hm = heapMax();
     const scaleMax = Math.max(L * 1.25, model(3).total * 1.05);
     const Y = (m) => BOT - (m / scaleMax) * (BOT - TOP);
-    PHASES.forEach((t, i) => stage.append(svg('text', { class: 'ph' + (i === p ? ' on' : ''), x: BX + i * 52, y: 16, text: (i ? '› ' : '') + t })));
+    PHASES.forEach((t, i) => stage.append(svg('text', { class: 'ph' + (i === p ? ' on' : ''), x: BX + i * 72, y: 16, text: (i ? '› ' : '') + t })));
     stage.append(svg('rect', { class: 'frame', x: BX, y: TOP, width: BWD, height: BOT - TOP, rx: 6 }));
     [0, 0.25, 0.5, 0.75, 1, 1.25].forEach((f) => { const m = L * f; if (m > scaleMax) return; stage.append(svg('text', { class: 'ax', x: BX - 6, y: Y(m) + 3, 'text-anchor': 'end', text: Math.round(m) })); });
     let acc = 0;
     SEGS.forEach(([k, , col]) => {
       const h = (v[k] / scaleMax) * (BOT - TOP);
-      stage.append(svg('rect', { class: 'seg', x: BX + 2, y: Y(acc + v[k]), width: BWD - 4, height: Math.max(0, h), fill: col, opacity: k === 'heap' ? 0.85 : 0.9 }));
+      stage.append(svg('rect', { class: 'mseg', x: BX + 2, y: Y(acc + v[k]), width: BWD - 4, height: Math.max(0, h), fill: col, opacity: k === 'heap' ? 0.85 : 0.9 }));
       acc += v[k];
     });
     stage.append(svg('line', { class: 'xmx', x1: BX, y1: Y(hm), x2: BX + BWD, y2: Y(hm) }), svg('text', { class: 'xmxl', x: BX + BWD - 4, y: Y(hm) - 4, 'text-anchor': 'end', text: 'MaxHeapSize ' + hm }));
@@ -99,7 +99,7 @@ IA.widget('jvm-on-k8s', (root, ctx) => {
     [...SEGS].reverse().forEach(([k, name, col, note], i) => {
       const y = 58 + i * 26;
       stage.append(svg('rect', { x: LX, y: y - 10, width: 12, height: 12, rx: 3, fill: col }), svg('text', { class: 'lg', x: LX + 18, y, text: name }),
-        svg('text', { class: 'lv', x: LX + 186, y, 'text-anchor': 'end', text: String(v[k]) }), svg('text', { class: 'ln', x: LX + 205, y: y + 0.5, text: note.length > 34 ? note.slice(0, 33) + '…' : note }));
+        svg('text', { class: 'lv', x: LX + 186, y, 'text-anchor': 'end', text: String(v[k]) }), svg('text', { class: 'ln', x: LX + 205, y: y + 0.5, text: note }));
     });
     const y2 = 58 + SEGS.length * 26 + 6;
     stage.append(svg('text', { class: 'sum', x: LX, y: y2, text: `heap ${v.heap} + non-heap ${v.total - v.heap}` }),
