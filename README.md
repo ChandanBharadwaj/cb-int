@@ -10,8 +10,8 @@ One repo and one GitHub Pages site for every track. Each track keeps its origina
 | Interview Atlas: SQL & Postgres, Java & JVM, Spring & Spring Boot, Kubernetes, Python, Node.js, Azure | `docs/` (one folder per track) | `/cb-int/atlas/<track>/` (old `/cb-int/sql-atlas/…` links redirect) | cb-int |
 | Modern AI/ML & GenAI | `cb-ml/` | `/cb-int/cb-ml/` | cb-ml |
 | The Missing Middle (Transformers) | `cb-ml-transformers/` | `/cb-int/cb-ml-transformers/` | cb-ml-transformers |
-| System Design Atlas | `cb-sys-design/` (site in `cb-sys-design/docs/`) | `/cb-int/cb-sys-design/` | cb-sys-design |
-| DSA Interview Runbook | `dsa-interview/` | `/cb-int/dsa-interview/` | dsa-interview |
+| Design Atlas: System Design (53 systems) and Software Architecture (49 topics) | `cb-sys-design/` (site in `cb-sys-design/docs/`) | `/cb-int/cb-sys-design/system-design/` and `/cb-int/cb-sys-design/architecture/` | cb-sys-design (`main` plus the unmerged Architecture and HLD-pages branches, merged here) |
+| DSA Interview Runbook | `dsa-interview/` | `/cb-int/dsa-interview/` | dsa-interview (`main`) |
 
 Each track folder has its own README with its details.
 

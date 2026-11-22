@@ -93,6 +93,7 @@ function extract() {
 function trackKey(rel) {
   const p = rel.split('/');
   if (p[0] === 'atlas') return p.length > 2 ? 'atlas-' + p[1] : 'atlas';
+  if (p[0] === 'cb-sys-design' && p[1] === 'architecture') return 'cb-sys-design-arch';
   return p[0];
 }
 
@@ -121,7 +122,9 @@ async function buildIndex() {
   const base = 'http://127.0.0.1:' + srv.address().port + '/';
   const files = htmlFiles(OUT)
     .map((f) => path.relative(OUT, f).split(path.sep).join('/'))
-    .filter((r) => r !== 'index.html' && !r.endsWith('404.html') && TRACKS.some(([, d]) => r.startsWith(d + '/')));
+    .filter((r) => r !== 'index.html' && !r.endsWith('404.html') && TRACKS.some(([, d]) => r.startsWith(d + '/')))
+    // skip redirect stubs (pages that only forward to a moved page); they'd duplicate the target in search
+    .filter((r) => !/http-equiv=["']refresh["']/i.test(fs.readFileSync(path.join(OUT, r), 'utf8').slice(0, 2000)));
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
   const pages = []; const failed = [];

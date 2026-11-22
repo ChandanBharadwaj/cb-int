@@ -9,7 +9,7 @@
   var TRACKS = {
     'atlas-sql': 'SQL & Postgres', 'atlas-java': 'Java', 'atlas-spring': 'Spring', 'atlas-python': 'Python',
     'atlas-nodejs': 'Node.js', 'atlas-kubernetes': 'Kubernetes', 'atlas-azure': 'Azure',
-    'cb-ml': 'AI/ML & GenAI', 'cb-ml-transformers': 'Transformers', 'cb-sys-design': 'System Design', 'dsa-interview': 'DSA'
+    'cb-ml': 'AI/ML & GenAI', 'cb-ml-transformers': 'Transformers', 'cb-sys-design': 'System Design', 'cb-sys-design-arch': 'Architecture', 'dsa-interview': 'DSA'
   };
   var LABEL = Object.assign({ atlas: 'Interview Atlas' }, TRACKS);
   var here = location.href.split('#')[0].split('?')[0];
