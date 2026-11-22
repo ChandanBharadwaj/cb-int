@@ -55,7 +55,7 @@ az monitor activity-log list --resource-id $PG_ID --offset 1h \\
       cause: 'Maintenance triggered a planned failover. Existing connections broke and requests failed instead of retrying. HA worked as designed; the app wasn’t built to reconnect.',
       fix: 'Add retry with backoff for idempotent operations (Spring Retry or Resilience4j), keep Hikari validating connections, schedule a <b>custom maintenance window</b> off-peak, and rehearse with a forced failover in staging.',
       fixCode: `az postgres flexible-server update -g rg-orders-prod -n pg-orders-prod \\
-  --maintenance-window "Sun:2:0"` },
+  --maintenance-window "Sun:02:00"` },
     { title: 'Users “lose” their edits for a few seconds',
       symptom: 'After saving a profile, the redirect page sometimes shows the old values. A refresh a few seconds later shows the new ones.',
       diagnose: `-- on the replica
