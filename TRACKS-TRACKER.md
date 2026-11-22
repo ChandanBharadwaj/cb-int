@@ -16,8 +16,8 @@
 | Kubernetes (`kubernetes`) | 25 | 25 | 0 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
-| Azure (`azure`) | 26 | 26 | 0 | 0 |
-| **Total** | **149** | **134** | **15** | **0** |
+| Azure (`azure`) | 26 | 17 | 9 | 0 |
+| **Total** | **149** | **125** | **24** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -37,7 +37,7 @@
 | 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | done | 7 written, 25 runnable puzzles; uncertain: ESM nextTick order, return-await ticks, require(esm) version notes, AbortError/TimeoutError names |
 | 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | pending | |
 | 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | pending | |
-| 1 | azure-A | Azure | 9 topics: `azure-hierarchy`, `regions-zones`, `entra-managed-identity`, `rbac-policy`, `compute-choice`, `app-service`, `container-apps`, `aks`, `functions` | pending | |
+| 1 | azure-A | Azure | 9 topics: `azure-hierarchy`, `regions-zones`, `entra-managed-identity`, `rbac-policy`, `compute-choice`, `app-service`, `container-apps`, `aks`, `functions` | done | 9 written, 59 scenario puzzles, extras aks-net/aks-wi/functions-durable; uncertain: role GUIDs, App Service/Container Apps defaults, Flex CLI flags, DefaultAzureCredential order |
 | 2 | azure-B | Azure | 9 topics: `storage-accounts`, `azure-sql-postgres`, `cosmos-db`, `redis-cache`, `messaging-choice`, `api-management`, `vnet-private-endpoints`, `key-vault`, `front-door-gateway` | pending | |
 | 2 | azure-C | Azure | 8 topics: `monitor-app-insights`, `bicep-terraform`, `devops-pipelines`, `cost-management`, `azure-openai`, `well-architected`, `spring-on-azure`, `tricky-azure` | pending | |
 
@@ -232,16 +232,16 @@ Verified by: `docs`. Code language: `bash`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Foundations** | | | | | |
-| 1 | `azure-hierarchy` | Tenants to resources | Entra tenant; management groups; subscriptions; resource groups & ARM | F | A | todo | |
-| 2 | `regions-zones` | Regions & availability zones | region pairs; zonal vs zone-redundant; SLAs & composite SLAs | F | A | todo | |
-| 3 | `entra-managed-identity` | Entra ID & managed identities | app registrations vs service principals; system vs user-assigned MI; DefaultAzureCredential | D | A | todo | |
-| 4 | `rbac-policy` | RBAC & Azure Policy | role assignments & scopes; custom roles; Policy & initiatives; landing zones | D | A | todo | |
+| 1 | `azure-hierarchy` | Tenants to resources | Entra tenant; management groups; subscriptions; resource groups & ARM | F | A | written | |
+| 2 | `regions-zones` | Regions & availability zones | region pairs; zonal vs zone-redundant; SLAs & composite SLAs | F | A | written | |
+| 3 | `entra-managed-identity` | Entra ID & managed identities | app registrations vs service principals; system vs user-assigned MI; DefaultAzureCredential | D | A | written | |
+| 4 | `rbac-policy` | RBAC & Azure Policy | role assignments & scopes; custom roles; Policy & initiatives; landing zones | D | A | written | |
 | **M1** | | **Compute** | | | | | |
-| 5 | `compute-choice` | Choosing compute | VMs vs App Service vs Container Apps vs AKS vs Functions decision guide | D | A | todo | |
-| 6 | `app-service` | App Service | plans & scaling; deployment slots; Java/Spring deploys; always-on & health checks | D | A | todo | |
-| 7 | `container-apps` | Container Apps | environments; revisions & traffic split; KEDA scaling; Dapr | D | A | todo | |
-| 8 | `aks` | AKS | node pools; networking (kubenet, CNI overlay); workload identity; upgrades | X | A | todo | |
-| 9 | `functions` | Azure Functions | triggers & bindings; plans (Consumption, Flex, Premium); cold starts; Durable Functions | D | A | todo | |
+| 5 | `compute-choice` | Choosing compute | VMs vs App Service vs Container Apps vs AKS vs Functions decision guide | D | A | written | |
+| 6 | `app-service` | App Service | plans & scaling; deployment slots; Java/Spring deploys; always-on & health checks | D | A | written | |
+| 7 | `container-apps` | Container Apps | environments; revisions & traffic split; KEDA scaling; Dapr | D | A | written | |
+| 8 | `aks` | AKS | node pools; networking (kubenet, CNI overlay); workload identity; upgrades | X | A | written | |
+| 9 | `functions` | Azure Functions | triggers & bindings; plans (Consumption, Flex, Premium); cold starts; Durable Functions | D | A | written | |
 | **M2** | | **Data** | | | | | |
 | 10 | `storage-accounts` | Storage accounts | Blob tiers; redundancy (LRS→GZRS); SAS vs MI access; lifecycle rules | D | B | todo | |
 | 11 | `azure-sql-postgres` | Azure SQL & Postgres Flexible Server | tiers; HA & read replicas; connection pooling (PgBouncer); backups & PITR | D | B | todo | |

@@ -27,16 +27,17 @@ IA.widget('leaks-oom', (root, ctx) => {
   function render() {
     stage.innerHTML = '';
     stage.append(svg('defs', null, ...['', 'hot', 'ok', 'err', 'warn'].map((t) => svg('marker', { id: 'lk-a' + t, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, svg('path', { d: 'M0 0 L10 5 L0 10 z', fill: LC[t] })))));
+    Object.values(S.nodes).forEach((n) => { const [f, s] = TONE[n.state || ''];
+      stage.append(svg('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 7, fill: f, stroke: s, 'stroke-width': n.state && n.state !== 'dim' ? 2.2 : 1.2, 'stroke-dasharray': n.state === 'dim' ? '4 3' : null }));
+      if (n.label) stage.append(svg('text', { x: n.x + (n.left ? 10 : n.w / 2), y: n.y + (n.sub ? 17 : n.h / 2 + 5), 'text-anchor': n.left ? 'start' : 'middle', 'font-size': n.fs || 12.5, 'font-weight': 700, fill: n.state === 'dim' ? 'var(--text-3)' : 'var(--text)', text: n.label }));
+      if (n.sub) stage.append(svg('text', { x: n.x + (n.left ? 10 : n.w / 2), y: n.y + 32, 'text-anchor': n.left ? 'start' : 'middle', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--text-2)', text: n.sub }));
+      if (n.right) stage.append(svg('text', { x: n.x + n.w - 110, y: n.y + n.h / 2 + 4, 'text-anchor': 'end', 'font-size': 11.5, 'font-family': 'var(--mono)', fill: n.rightC || 'var(--text-2)', text: n.right }));
+      if (n.right2) stage.append(svg('text', { x: n.x + n.w - 10, y: n.y + n.h / 2 + 4, 'text-anchor': 'end', 'font-size': 11.5, 'font-family': 'var(--mono)', 'font-weight': 700, fill: n.rightC || 'var(--text)', text: n.right2 })); });
     (S.lines || []).forEach((l) => stage.append(svg('polyline', { points: l.pts.map((p) => p.join(',')).join(' '), fill: 'none', stroke: l.c, 'stroke-width': l.w || 1.6, 'stroke-dasharray': l.dash || null, 'stroke-linejoin': 'round' })));
     (S.dots || []).forEach((d) => stage.append(svg('circle', { cx: d[0], cy: d[1], r: 3, fill: d[2] || 'var(--warn)' })));
     (S.edges || []).forEach((e) => { const a = S.nodes[e.from], b = S.nodes[e.to]; if (!a || !b) return; const [x1, y1] = clip(a, b); const [x2, y2] = clip(b, a); const st = e.state || '';
       stage.append(svg('line', { x1, y1, x2, y2, stroke: LC[st], 'stroke-width': st ? 2.2 : 1.3, 'stroke-dasharray': e.dash ? '5 4' : null, 'marker-end': `url(#lk-a${st})` }));
       if (e.label) stage.append(svg('text', { x: (x1 + x2) / 2 + 4, y: (y1 + y2) / 2 - 5, 'font-size': 10.5, fill: LC[st], text: e.label })); });
-    Object.values(S.nodes).forEach((n) => { const [f, s] = TONE[n.state || ''];
-      stage.append(svg('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 7, fill: f, stroke: s, 'stroke-width': n.state && n.state !== 'dim' ? 2.2 : 1.2, 'stroke-dasharray': n.state === 'dim' ? '4 3' : null }));
-      if (n.label) stage.append(svg('text', { x: n.x + (n.left ? 10 : n.w / 2), y: n.y + (n.sub ? 17 : n.h / 2 + 5), 'text-anchor': n.left ? 'start' : 'middle', 'font-size': n.fs || 12.5, 'font-weight': 700, fill: n.state === 'dim' ? 'var(--text-3)' : 'var(--text)', text: n.label }));
-      if (n.sub) stage.append(svg('text', { x: n.x + (n.left ? 10 : n.w / 2), y: n.y + 32, 'text-anchor': n.left ? 'start' : 'middle', 'font-size': 10.5, 'font-family': 'var(--mono)', fill: 'var(--text-2)', text: n.sub }));
-      if (n.right) stage.append(svg('text', { x: n.x + n.w - 10, y: n.y + n.h / 2 + 4, 'text-anchor': 'end', 'font-size': 11.5, 'font-family': 'var(--mono)', 'font-weight': 700, fill: n.rightC || 'var(--text)', text: n.right })); });
     (S.notes || []).forEach((t) => stage.append(svg('text', { x: t.x, y: t.y, 'font-size': t.size || 12, 'text-anchor': t.anchor || 'start', 'font-family': t.mono ? 'var(--mono)' : null, 'font-weight': t.bold ? 700 : 400, fill: t.c || 'var(--text-2)', text: t.t })));
     stats.innerHTML = ''; (S.stats || []).forEach(([l, v]) => stats.append(el('span', { class: 'w-stat', html: `${l} <b>${v}</b>` })));
   }
@@ -46,7 +47,7 @@ IA.widget('leaks-oom', (root, ctx) => {
   /* ---------- heap-over-time simulation ---------- */
   const CX = 60, CW = 660, CY = 30, CH = 230, MAXMB = 1024;
   const sim = (() => { const pts = []; const gcs = []; let used = 220; let live = 200;
-    for (let i = 0; i <= 120; i++) { if (i > 30) live = Math.min(1000, live + 7); used += 48; if (used >= 1000) { pts.push([i, 1000]); used = Math.min(live, 1000); gcs.push([i, used]); } pts.push([i, Math.min(used, 1010)]); }
+    for (let i = 0; i <= 120; i++) { if (i > 30) live = Math.min(1000, live + 9); used += 48; if (used >= 1000) { pts.push([i, 1000]); used = Math.min(live, 1000); gcs.push([i, used]); } pts.push([i, Math.min(used, 1010)]); }
     return { pts, gcs }; })();
   const X = (i) => CX + i / 120 * CW; const Y = (mb) => CY + CH - mb / MAXMB * CH;
   function chartUpTo(n) {
@@ -92,9 +93,9 @@ IA.widget('leaks-oom', (root, ctx) => {
     } else if (mode === 'mat') {
       code('jcmd <pid> GC.heap_dump /dumps/app.hprof        # live objects only (forces a full GC)\n# open in Eclipse MAT: Leak Suspects report → Dominator Tree → Path to GC Roots', 'bash');
       const rows = [['r0', 'class com.acme.QuoteCache @ 0x7f…', 'static CACHE', '16 B', '1.41 GB'], ['r1', 'java.util.concurrent.ConcurrentHashMap', '', '64 B', '1.41 GB'], ['r2', 'ConcurrentHashMap$Node[2097152]', '', '8.0 MB', '1.41 GB'], ['r3', '1,200,000 × ConcurrentHashMap$Node', '', '38 MB', '1.40 GB'], ['r4', '1,200,000 × com.acme.Quote', 'each ~1.2 KB retained', '29 MB', '1.36 GB']];
-      N('hdr', 20, 20, 720, 26, 'object', '', { left: true, state: 'dim', fs: 11, right: 'shallow      retained', rightC: 'var(--text-3)' });
+      N('hdr', 20, 20, 720, 26, 'object', '', { left: true, state: 'dim', fs: 11, right: 'shallow', right2: 'retained', rightC: 'var(--text-3)' });
       P(() => { S.notes = [{ x: 20, y: 300, t: 'Leak Suspects: “One instance of QuoteCache occupies 1.41 GB (78%)”', bold: true, c: 'var(--err)' }]; S.stats = [['heap in dump', '1.8 GB'], ['objects', '9.4 M']]; }, 'Open the dump in Eclipse MAT. The <b>Leak Suspects</b> report runs automatically and often names the culprit outright: one object retaining 78% of the heap.');
-      rows.forEach(([id, label, sub, sh, ret], i) => P(() => { N(id, 20 + i * 18, 54 + i * 46, 720 - i * 18, 40, label, sub, { left: true, right: sh.padStart(7) + '   ' + ret.padStart(8), state: i === 0 ? 'hot' : i === 4 ? 'err' : '', fs: 12 }); if (i) S.edges = (S.edges || []).concat([{ from: rows[i - 1][0], to: id }]); },
+      rows.forEach(([id, label, sub, sh, ret], i) => P(() => { N(id, 20 + i * 18, 54 + i * 46, 720 - i * 18, 40, label, sub, { left: true, right: sh, right2: ret, state: i === 0 ? 'hot' : i === 4 ? 'err' : '', fs: 12 }); if (i) S.edges = (S.edges || []).concat([{ from: rows[i - 1][0], to: id }]); },
         i === 0 ? 'The <b>dominator tree</b> lists objects by <b>retained size</b>: the memory that would be freed if that object were gone. At the top: the QuoteCache class, through its static field. <b>Shallow</b> size is only the object itself (16 bytes); retained is everything it keeps alive.'
           : i === 2 ? 'Expanding: the map, then its table. The table itself is 8 MB shallow, but what matters is the retained column, which stays at ~1.4 GB all the way down the path.'
           : i === 4 ? 'At the bottom: 1.2 million <code>Quote</code> objects. Now open a few of them (“List objects → with outgoing references”) and look at the keys: each contains a timestamp. That is the bug.' : 'Each level down retains almost the same amount: this is the chain keeping the memory alive.'));
@@ -118,7 +119,7 @@ IA.widget('leaks-oom', (root, ctx) => {
     } else {
       code('# pod: memory limit 2Gi\nJAVA_TOOL_OPTIONS="-Xmx1800m"     # ✗ leaves ~250 MB for everything else', 'bash');
       N('lim', 20, 40, 720, 30, '', '', { state: 'dim' }); S.notes = [{ x: 740, y: 34, t: 'limit 2048 MB', anchor: 'end', size: 11, c: 'var(--err)' }];
-      const scale = 720 / 2048; const seg2 = (id, x0, mb, l, st) => N(id, 20 + x0 * scale, 90, mb * scale, 50, mb * scale > 60 ? l : '', mb * scale > 60 ? mb + ' MB' : '', { state: st, fs: 12 });
+      const scale = 720 / 2048; const seg2 = (id, x0, mb, l, st) => N(id, 20 + x0 * scale, 90, mb * scale, 50, mb * scale > l.length * 7 + 8 ? l : '', mb * scale > 60 ? mb + ' MB' : '', { state: st, fs: 12 });
       P(() => { seg2('heap', 0, 1800, 'heap (committed)', 'hot'); S.stats = [['RSS', '1800 MB']]; }, 'Heap committed grows towards <code>-Xmx</code> as the app warms up: 1800 MB of a 2048 MB limit. The heap dashboard looks fine: lots of free heap inside it.');
       P(() => { seg2('meta', 1800, 150, 'metaspace', 'warn'); S.stats = [['RSS', '1950 MB']]; }, 'Add metaspace and code cache: ~150 MB.');
       P(() => { seg2('thr', 1950, 120, 'threads + direct', 'err'); S.stats = [['RSS', '2070 MB > limit']]; S.notes.push({ x: 380, y: 180, t: 'kernel: Memory cgroup out of memory: Killed process (java)', anchor: 'middle', bold: true, mono: true, size: 12, c: 'var(--err)' }, { x: 380, y: 202, t: 'kubectl: Last State: Terminated, Reason: OOMKilled, Exit Code: 137', anchor: 'middle', mono: true, size: 11.5, c: 'var(--text-2)' }); },

@@ -50,7 +50,7 @@ IA.register({
   scenarios: [
     { title: 'Cluster upgrade stuck for 6 hours on one node',
       symptom: 'A managed node-pool upgrade stopped progressing. One old node is cordoned and still runs a single pod.',
-      diagnose: `kubectl get pdb -A | awk '$5 == 0'\n# shop   legacy-api   1   N/A   0      ← minAvailable 1, replicas 1\nkubectl get events -A --field-selector reason=EvictionBlocked 2>/dev/null | tail -2\n# Cannot evict pod as it would violate the pod's disruption budget.`,
+      diagnose: `kubectl get pdb -A | awk '$5 == 0'\n# shop   legacy-api   1   N/A   0      ← minAvailable 1, replicas 1\nkubectl drain node-17 --ignore-daemonsets --delete-emptydir-data\n# error when evicting pods/"legacy-api-6c…" -n "shop" (will retry after 5s):\n#   Cannot evict pod as it would violate the pod's disruption budget.`,
       diagnoseLang: 'bash',
       cause: 'A single-replica Deployment had <code>minAvailable: 1</code>. Every eviction returned 429, so the drain retried forever. Depending on the provider, the upgrade either waits or force-deletes after its own timeout.',
       fix: 'Run 2+ replicas with <code>maxUnavailable: 1</code>, or drop the PDB for workloads that can tolerate a short outage. Add a policy check (for example Kyverno or Gatekeeper) rejecting PDBs that allow 0 disruptions.',
