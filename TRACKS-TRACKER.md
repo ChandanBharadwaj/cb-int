@@ -14,10 +14,10 @@
 | Java & JVM (`java`) | 28 | 10 | 18 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 9 | 18 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
-| Python (`python`) | 22 | 14 | 8 | 0 |
+| Python (`python`) | 22 | 7 | 15 | 0 |
 | Node.js (`nodejs`) | 21 | 8 | 13 | 0 |
 | Azure (`azure`) | 26 | 8 | 18 | 0 |
-| **Total** | **149** | **58** | **91** | **0** |
+| **Total** | **149** | **51** | **98** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -32,7 +32,7 @@
 | 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | done | 8 written, 59 scenario puzzles, 4 extras (netpol, spread, nodes, shutdown); uncertain: GA versions (nftables 1.33, PVC retention 1.32, unhealthyPodEvictionPolicy 1.31), ingress-nginx retirement dates |
 | 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | pending | |
 | 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | done | 8 written, 60 runnable puzzles, 6 Pyodide presets each; uncertain: class-body comprehension scope, 3.13 dataclass __eq__, Pydantic lax-mode coercions, runtime_checkable data members |
-| 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | pending | |
+| 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | done | 7 written, 36 runnable puzzles, 38 Pyodide presets; uncertain: 3.13/3.14 GC + free-threading details, dict/set resize rules, default pool sizing, Pyodide tempfile + task order |
 | 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | pending | |
 | 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | done | 7 written, 25 runnable puzzles; uncertain: ESM nextTick order, return-await ticks, require(esm) version notes, AbortError/TimeoutError names |
 | 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | done | 6 written, 24 runnable puzzles; uncertain: Node 22 default highWaterMark 64 KiB, pipeline destroy order, DataCloneError name, memoryUsage key order, undici channel names |
@@ -175,14 +175,14 @@ Verified by: `python3`. Code language: `python`.
 | 7 | `typing` | Type hints | generics & Protocols; TypedDict; mypy/pyright; runtime vs static | D | A | written | |
 | 8 | `dataclasses-pydantic` | Dataclasses & Pydantic | field defaults; frozen & slots; Pydantic v2 validation; when to use which | D | A | written | |
 | **M1** | | **Internals** | | | | | |
-| 9 | `memory-gc` | Memory & garbage collection | reference counting; cyclic GC & generations; weakref; memory leaks | X | B | todo | |
-| 10 | `gil` | The GIL & free-threading | what the GIL protects; CPU- vs I/O-bound; PEP 703 free-threaded 3.13 | X | B | todo | |
-| 11 | `dict-internals` | Dict & set internals | hash tables; insertion order; key requirements; performance traps | X | B | todo | |
-| 12 | `imports` | Import system | modules & packages; sys.path; circular imports; __main__ | D | B | todo | |
+| 9 | `memory-gc` | Memory & garbage collection | reference counting; cyclic GC & generations; weakref; memory leaks | X | B | written | |
+| 10 | `gil` | The GIL & free-threading | what the GIL protects; CPU- vs I/O-bound; PEP 703 free-threaded 3.13 | X | B | written | |
+| 11 | `dict-internals` | Dict & set internals | hash tables; insertion order; key requirements; performance traps | X | B | written | |
+| 12 | `imports` | Import system | modules & packages; sys.path; circular imports; __main__ | D | B | written | |
 | **M2** | | **Concurrency** | | | | | |
-| 13 | `threading-multiprocessing` | Threads vs processes | threading; multiprocessing & pickling; concurrent.futures; shared state | D | B | todo | |
-| 14 | `asyncio` | asyncio event loop | coroutines & tasks; await semantics; blocking the loop; TaskGroup & cancellation | X | B | todo | |
-| 15 | `concurrency-choice` | Choosing a concurrency model | decision guide; mixing sync & async; async frameworks | D | B | todo | |
+| 13 | `threading-multiprocessing` | Threads vs processes | threading; multiprocessing & pickling; concurrent.futures; shared state | D | B | written | |
+| 14 | `asyncio` | asyncio event loop | coroutines & tasks; await semantics; blocking the loop; TaskGroup & cancellation | X | B | written | |
+| 15 | `concurrency-choice` | Choosing a concurrency model | decision guide; mixing sync & async; async frameworks | D | B | written | |
 | **M3** | | **Practice** | | | | | |
 | 16 | `packaging` | Packaging & environments | venv; pip vs uv vs poetry; pyproject.toml; lockfiles & reproducibility | F | C | todo | |
 | 17 | `pytest` | Testing with pytest | fixtures & scopes; parametrize; mocking & monkeypatch; coverage | D | C | todo | |
