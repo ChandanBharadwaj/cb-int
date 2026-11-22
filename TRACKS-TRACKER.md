@@ -13,11 +13,11 @@
 |---|---|---|---|---|
 | Java & JVM (`java`) | 28 | 10 | 18 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 0 | 27 | 0 |
-| Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
+| Kubernetes (`kubernetes`) | 25 | 0 | 25 | 0 |
 | Python (`python`) | 22 | 0 | 22 | 0 |
 | Node.js (`nodejs`) | 21 | 0 | 21 | 0 |
 | Azure (`azure`) | 26 | 0 | 26 | 0 |
-| **Total** | **149** | **19** | **130** | **0** |
+| **Total** | **149** | **10** | **139** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -30,7 +30,7 @@
 | 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | done | 9 written incl. tricky-spring (50 Qs); 55 concept puzzles, 6 extras (outbox, storm, shedlock, memory, startup); uncertain: Security 6 chain-order startup failure version, Boot 3.x property minors, readiness after ApplicationReadyEvent |
 | 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | done | 8 written, 59 scenario puzzles, extras rollout-strategies/qos-eviction; uncertain: native sidecar GA 1.33, CronJob 100-missed rule, eviction order, JDK cgroup backports |
 | 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | done | 8 written, 59 scenario puzzles, 4 extras (netpol, spread, nodes, shutdown); uncertain: GA versions (nftables 1.33, PVC retention 1.32, unhealthyPodEvictionPolicy 1.31), ingress-nginx retirement dates |
-| 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | pending | |
+| 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | done | 9 written incl. tricky-k8s (50 Qs, shuffled); 67 scenario puzzles, extra jvm-on-k8s-cpu; uncertain: JDK CPU-shares change, Paketo thread count, MutatingAdmissionPolicy alpha 1.32, Argo CD poll interval |
 | 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | done | 8 written, 60 runnable puzzles, 6 Pyodide presets each; uncertain: class-body comprehension scope, 3.13 dataclass __eq__, Pydantic lax-mode coercions, runtime_checkable data members |
 | 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | done | 7 written, 36 runnable puzzles, 38 Pyodide presets; uncertain: 3.13/3.14 GC + free-threading details, dict/set resize rules, default pool sizing, Pyodide tempfile + task order |
 | 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | done | 7 written incl. tricky-python (46 Qs, 33 runnable); 29 runnable topic puzzles, 2 extras (logging flow, Java habits); uncertain: FastAPI yield-teardown timing, uv image tag, Pyodide settrace/cProfile availability |
@@ -149,16 +149,16 @@ Verified by: `docs`. Code language: `yaml`.
 | 15 | `autoscaling` | HPA, VPA & Cluster Autoscaler | metrics pipeline; HPA algorithm & stabilization; VPA modes; Karpenter / Cluster Autoscaler; KEDA | X | B | written | |
 | 16 | `disruptions-pdb` | Disruptions & PDBs | voluntary vs involuntary; PodDisruptionBudgets; node drains; graceful termination & preStop | D | B | written | |
 | **M5** | | **Security & operations** | | | | | |
-| 17 | `rbac-security` | RBAC & Pod security | Roles & bindings; service accounts & tokens; Pod Security Standards; securityContext | D | C | todo | |
-| 18 | `debugging` | Debugging workloads | CrashLoopBackOff, ImagePullBackOff & Pending; kubectl debug & ephemeral containers; events & logs | D | C | todo | |
-| 19 | `observability` | Observability | metrics-server & Prometheus; logging architectures; tracing; golden signals | D | C | todo | |
-| 20 | `helm-kustomize-gitops` | Helm, Kustomize & GitOps | charts & values; overlays; Argo CD / Flux; drift | D | C | todo | |
-| 21 | `operators-crds` | Operators & CRDs | custom resources; the operator pattern; admission webhooks; finalizers | X | C | todo | |
-| 22 | `jvm-on-k8s` | Java/Spring on Kubernetes | container-aware JVM (MaxRAMPercentage); probes with Actuator; graceful shutdown; image building (Jib, buildpacks) | X | C | todo | |
-| 23 | `multi-tenancy-cost` | Namespaces, quotas & cost | ResourceQuota & LimitRange; multi-tenancy models; right-sizing | D | C | todo | |
-| 24 | `cluster-upgrades` | Upgrades & cluster ops | version skew; node upgrades; etcd backup; API deprecations | X | C | todo | |
+| 17 | `rbac-security` | RBAC & Pod security | Roles & bindings; service accounts & tokens; Pod Security Standards; securityContext | D | C | written | |
+| 18 | `debugging` | Debugging workloads | CrashLoopBackOff, ImagePullBackOff & Pending; kubectl debug & ephemeral containers; events & logs | D | C | written | |
+| 19 | `observability` | Observability | metrics-server & Prometheus; logging architectures; tracing; golden signals | D | C | written | |
+| 20 | `helm-kustomize-gitops` | Helm, Kustomize & GitOps | charts & values; overlays; Argo CD / Flux; drift | D | C | written | |
+| 21 | `operators-crds` | Operators & CRDs | custom resources; the operator pattern; admission webhooks; finalizers | X | C | written | |
+| 22 | `jvm-on-k8s` | Java/Spring on Kubernetes | container-aware JVM (MaxRAMPercentage); probes with Actuator; graceful shutdown; image building (Jib, buildpacks) | X | C | written | |
+| 23 | `multi-tenancy-cost` | Namespaces, quotas & cost | ResourceQuota & LimitRange; multi-tenancy models; right-sizing | D | C | written | |
+| 24 | `cluster-upgrades` | Upgrades & cluster ops | version skew; node upgrades; etcd backup; API deprecations | X | C | written | |
 | **M6** | | **Drill** | | | | | |
-| ★ | `tricky-k8s` | Tricky Kubernetes (timed) | 50 mixed scenario puzzles | X | C | todo | |
+| ★ | `tricky-k8s` | Tricky Kubernetes (timed) | 50 mixed scenario puzzles | X | C | written | |
 
 ## Python (`python`, 22 topics)
 Verified by: `python3`. Code language: `python`.
