@@ -42,7 +42,7 @@ IA.widget('actuator-observability', (root, ctx) => {
   function plan() {
     const P = (live, ready, restarts, phase) => ({ live, ready, restarts, phase });
     const S = [];
-    S.push({ db: true, pods: [P('up', 'oos', 0, 'starting'), P('up', 'oos', 0, 'starting'), P('up', 'oos', 0, 'starting')], say: 'Pods start. During startup <b>liveness</b> is <code>CORRECT</code> (UP) but <b>readiness</b> is <code>REFUSING_TRAFFIC</code> (OUT_OF_SERVICE), so the Service sends them nothing. Boot enables probe groups automatically when it detects Kubernetes.' });
+    S.push({ db: true, pods: [P('up', 'oos', 0, 'starting'), P('up', 'oos', 0, 'starting'), P('up', 'oos', 0, 'starting')], say: 'Pods start. Once the context is refreshed, <b>liveness</b> is <code>CORRECT</code> (UP), but while runners and warm-up are still going, <b>readiness</b> stays <code>REFUSING_TRAFFIC</code> (OUT_OF_SERVICE), so the Service sends them nothing. Boot enables the probe groups automatically when it detects Kubernetes. Give slow starters a <code>startupProbe</code>.' });
     S.push({ db: true, pods: [P('up', 'up', 0, 'ready'), P('up', 'up', 0, 'ready'), P('up', 'up', 0, 'ready')], tone: 'ok', say: 'After <code>ApplicationReadyEvent</code> (runners done), readiness flips to <code>ACCEPTING_TRAFFIC</code>. <code>/actuator/health/readiness</code> returns 200 and the pods join the Service endpoints.' });
     if (pol === 'def') {
       S.push({ db: false, pods: [P('up', 'up', 0, '500s'), P('up', 'up', 0, '500s'), P('up', 'up', 0, '500s')], tone: 'warn', say: 'The database goes down. <code>/actuator/health</code> (all contributors) is DOWN with HTTP 503, but neither probe group includes <code>db</code>. Pods stay in the Service and answer with errors, ideally fast thanks to connection timeouts.' });
@@ -77,7 +77,8 @@ IA.widget('actuator-observability', (root, ctx) => {
         svg('text', { x: PX + 80, y: y + 22, 'font-size': 11.5, fill: 'var(--text-3)', text: p.phase + (p.restarts ? ` · restarts ${p.restarts}` : '') }));
       [['liveness', p.live], ['readiness', p.ready]].forEach(([n, v], j) => {
         const x = PX + 12 + j * 118;
-        stage.append(svg('circle', { class: 'dot ' + (v === 'up' ? 'up' : v === 'down' ? 'down' : 'oos'), cx: x + 6, cy: y + 46, r: 6 }), svg('text', { x: x + 18, y: y + 50, 'font-size': 11.5, fill: 'var(--text-2)', text: `${n} ${v === 'up' ? 'UP' : v === 'down' ? 'DOWN' : 'OOS'}` }));
+        const lab = { up: 'UP', down: 'DOWN', oos: 'OOS', na: '—' }[v];
+        stage.append(svg('circle', { class: 'dot ' + v, cx: x + 6, cy: y + 46, r: 6 }), svg('text', { x: x + 18, y: y + 50, 'font-size': 11.5, fill: 'var(--text-2)', text: `${n} ${lab}` }));
       });
     });
     const a = st.pods[0];

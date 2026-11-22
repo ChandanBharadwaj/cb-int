@@ -59,7 +59,7 @@ az webapp config appsettings set -g rg-orders -n app-orders --slot staging \\
   --slot-settings SPRING_DATASOURCE_URL="jdbc:postgresql://pg-orders-stg...:5432/orders?sslmode=require"` },
     { title: 'Random 30-second timeouts calling a partner API',
       symptom: 'Under peak load, around 2% of calls to <code>api.partner.example</code> time out. CPU and memory look fine.',
-      diagnose: 'Portal → app → Diagnose and solve problems → “SNAT Port Exhaustion”. Then search the code for <code>new RestTemplate()</code> or <code>HttpClient.newHttpClient()</code> inside request handlers.',
+      diagnoseLang: 'text', diagnose: 'Portal → app → Diagnose and solve problems → “SNAT Port Exhaustion”. Then search the code for <code>new RestTemplate()</code> or <code>HttpClient.newHttpClient()</code> inside request handlers.',
       cause: 'A new HTTP client was built per request, so connections were never reused and the instance ran out of SNAT ports.',
       fix: 'Share one pooled client bean with keep-alive. For heavy outbound traffic, add VNet integration with a NAT gateway.',
       fixCode: `@Bean

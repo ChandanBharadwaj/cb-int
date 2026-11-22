@@ -46,7 +46,7 @@ IA.register({
   scenarios: [
     { title: 'Monthly report endpoint fails with 502 after ~4 minutes',
       symptom: 'An HTTP-triggered Java function on a Premium plan builds a PDF report. Large customers always get a 502 at around 230 seconds, although <code>functionTimeout</code> is set to 30 minutes.',
-      diagnose: `// App Insights (KQL)
+      diagnoseLang: 'kql', diagnose: `// App Insights (KQL)
 requests
 | where name == "MonthlyReport" and resultCode == "502"
 | summarize count(), avg(duration) by bin(timestamp, 1d)`,

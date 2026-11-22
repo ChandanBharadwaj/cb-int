@@ -71,7 +71,7 @@ az network private-dns record-set cname set-record -g rg-dns -z internal.corp \\
   -n pg-orders-writer -c pg-orders-neu.postgres.database.azure.com`, lang: 'bash' },
     { title: 'Business asked for 99.99%, and the design could only deliver ~99.8%',
       symptom: 'After a quarter of incidents, the SLA report showed 99.81% against a 99.99% contract target.',
-      diagnose: 'List every component on the request path and multiply: Front Door × App Gateway × App Service × Redis × Postgres × Service Bus. Each one is at 99.9–99.99%, so the product lands around 99.8%.',
+      diagnoseLang: 'text', diagnose: 'List every component on the request path and multiply: Front Door × App Gateway × App Service × Redis × Postgres × Service Bus. Each one is at 99.9–99.99%, so the product lands around 99.8%.',
       cause: 'Hard serial dependencies in a single region. The cache and the message bus were on the synchronous request path.',
       fix: 'Take the cache and bus off the critical path (degrade gracefully), use zone-redundant SKUs, and add an active-active second region for the stateless tier. Renegotiate the target based on the composite figure.' }
   ],

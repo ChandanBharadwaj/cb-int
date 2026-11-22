@@ -58,7 +58,7 @@ String id = ctx.callActivity("NewId", null, String.class).await();`, lang: 'java
   scenarios: [
     { title: 'Payments charged twice during a slow-downstream incident',
       symptom: 'When the payment provider slowed to 90 s per call, some customers were charged two or three times. The Service Bus metrics show redeliveries.',
-      diagnose: `// App Insights (KQL)
+      diagnoseLang: 'kql', diagnose: `// App Insights (KQL)
 traces
 | where message has "charge" and customDimensions.MessageId != ""
 | summarize n = count() by tostring(customDimensions.MessageId)
@@ -74,7 +74,7 @@ INSERT INTO processed_message(message_id) VALUES (:id) ON CONFLICT DO NOTHING;  
   "extensions": { "serviceBus": { "maxAutoLockRenewalDuration": "00:10:00", "maxConcurrentCalls": 8 } } }`, lang: 'sql' },
     { title: 'p99 latency spikes on a Java HTTP API every few minutes',
       symptom: 'A Java HTTP function on the classic Consumption plan shows p50 of 40 ms but p99 of 6–9 s, clustered after quiet periods and during ramp-ups.',
-      diagnose: `requests
+      diagnoseLang: 'kql', diagnose: `requests
 | where cloud_RoleName == "func-orders"
 | summarize p50 = percentile(duration, 50), p99 = percentile(duration, 99) by bin(timestamp, 5m)
 // correlate with new instance starts:
