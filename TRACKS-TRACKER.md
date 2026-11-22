@@ -15,9 +15,9 @@
 | Spring & Spring Boot (`spring`) | 27 | 9 | 18 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 7 | 15 | 0 |
-| Node.js (`nodejs`) | 21 | 8 | 13 | 0 |
+| Node.js (`nodejs`) | 21 | 0 | 21 | 0 |
 | Azure (`azure`) | 26 | 8 | 18 | 0 |
-| **Total** | **149** | **51** | **98** | **0** |
+| **Total** | **149** | **43** | **106** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -36,7 +36,7 @@
 | 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | pending | |
 | 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | done | 7 written, 25 runnable puzzles; uncertain: ESM nextTick order, return-await ticks, require(esm) version notes, AbortError/TimeoutError names |
 | 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | done | 6 written, 24 runnable puzzles; uncertain: Node 22 default highWaterMark 64 KiB, pipeline destroy order, DataCloneError name, memoryUsage key order, undici channel names |
-| 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | pending | |
+| 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | done | 8 written incl. tricky-node (48 Qs, 30 runnable, questions live in the widget); 28 runnable topic puzzles; uncertain: strip-types flags, agent property names, mock.timers Date, timing-threshold puzzles |
 | 1 | azure-A | Azure | 9 topics: `azure-hierarchy`, `regions-zones`, `entra-managed-identity`, `rbac-policy`, `compute-choice`, `app-service`, `container-apps`, `aks`, `functions` | done | 9 written, 59 scenario puzzles, extras aks-net/aks-wi/functions-durable; uncertain: role GUIDs, App Service/Container Apps defaults, Flex CLI flags, DefaultAzureCredential order |
 | 2 | azure-B | Azure | 9 topics: `storage-accounts`, `azure-sql-postgres`, `cosmos-db`, `redis-cache`, `messaging-choice`, `api-management`, `vnet-private-endpoints`, `key-vault`, `front-door-gateway` | done | 9 written, 64 scenario puzzles, 4 extras (access, consistency, net, choose); uncertain: az CLI flags (migration, redis access policy, dns-resolver, WAF exclusions), KQL column names, Spring Cloud Azure property names; APIM XML shown as yaml |
 | 2 | azure-C | Azure | 8 topics: `monitor-app-insights`, `bicep-terraform`, `devops-pipelines`, `cost-management`, `azure-openai`, `well-architected`, `spring-on-azure`, `tricky-azure` | pending | |
@@ -215,16 +215,16 @@ Verified by: `node`. Code language: `js`.
 | 12 | `v8-gc-leaks` | V8 memory & leaks | heap spaces; GC (Scavenge, Mark-Compact); leak patterns; heap snapshots | X | B | written | |
 | 13 | `profiling` | Profiling Node | --inspect & --cpu-prof; flame graphs; clinic.js; diagnostics_channel | D | B | written | |
 | **M3** | | **Web** | | | | | |
-| 14 | `express-fastify` | Express & Fastify | middleware chain; error middleware; Fastify schemas & performance | D | C | todo | |
-| 15 | `http-internals` | HTTP internals | keep-alive & agents; timeouts; HTTP/2; fetch (undici) | X | C | todo | |
-| 16 | `security` | Node security | injection & prototype pollution; ReDoS; secrets; the permission model | D | C | todo | |
+| 14 | `express-fastify` | Express & Fastify | middleware chain; error middleware; Fastify schemas & performance | D | C | written | |
+| 15 | `http-internals` | HTTP internals | keep-alive & agents; timeouts; HTTP/2; fetch (undici) | X | C | written | |
+| 16 | `security` | Node security | injection & prototype pollution; ReDoS; secrets; the permission model | D | C | written | |
 | **M4** | | **Production** | | | | | |
-| 17 | `graceful-shutdown` | Graceful shutdown & containers | SIGTERM handling; draining connections; PID 1; health checks | D | C | todo | |
-| 18 | `typescript-node` | TypeScript on Node | tsconfig for Node; type stripping (22.6+); ESM & TS | D | C | todo | |
-| 19 | `testing-node` | Testing Node | node:test vs Jest/Vitest; mocking timers; integration tests | D | C | todo | |
-| 20 | `node-vs-java` | Node vs Java for services | concurrency models; when to pick which; interop | D | C | todo | |
+| 17 | `graceful-shutdown` | Graceful shutdown & containers | SIGTERM handling; draining connections; PID 1; health checks | D | C | written | |
+| 18 | `typescript-node` | TypeScript on Node | tsconfig for Node; type stripping (22.6+); ESM & TS | D | C | written | |
+| 19 | `testing-node` | Testing Node | node:test vs Jest/Vitest; mocking timers; integration tests | D | C | written | |
+| 20 | `node-vs-java` | Node vs Java for services | concurrency models; when to pick which; interop | D | C | written | |
 | **M5** | | **Drill** | | | | | |
-| ★ | `tricky-node` | Tricky Node (timed) | 50 mixed puzzles | X | C | todo | |
+| ★ | `tricky-node` | Tricky Node (timed) | 50 mixed puzzles | X | C | written | |
 
 ## Azure (`azure`, 26 topics)
 Verified by: `docs`. Code language: `bash`.
