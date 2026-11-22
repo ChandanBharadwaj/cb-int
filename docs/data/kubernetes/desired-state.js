@@ -49,6 +49,7 @@ IA.register({
   scenarios: [
     { title: 'Replicas drop from 12 to 3 on every deploy',
       symptom: 'Every afternoon deploy causes a latency spike. The HPA graph shows replicas falling to 3 right after the deploy, then climbing back over a few minutes.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get deploy web -o yaml --show-managed-fields | grep -B2 -A6 'f:replicas'
 #   manager: kubectl-client-side-apply   ← CI sets replicas: 3
 #   manager: kube-controller-manager / horizontal-pod-autoscaler
@@ -68,6 +69,7 @@ spec:
   maxReplicas: 20` },
     { title: 'Half the traffic still hits the old version after a migration',
       symptom: 'The team moved <code>web</code> to a new Helm chart. Some requests return old responses, and old pod names show up in access logs.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get pods -l app=web -L app.kubernetes.io/version
 kubectl get pod web-6f4-abc -o jsonpath='{.metadata.ownerReferences}'
 #   (empty) → orphaned`,
@@ -78,6 +80,7 @@ kubectl get pod web-6f4-abc -o jsonpath='{.metadata.ownerReferences}'
   | xargs kubectl delete pod`, lang: 'bash' },
     { title: 'A namespace has been Terminating for three days',
       symptom: '<code>kubectl delete ns feature-x</code> never finishes. The namespace status shows <code>NamespaceFinalizersRemaining</code>.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get ns feature-x -o jsonpath='{.status.conditions}' | jq
 #   "Some content in the namespace has finalizers remaining: databases.example.com/cleanup"
 kubectl get databases.example.com -n feature-x -o jsonpath='{.items[*].metadata.finalizers}'`,

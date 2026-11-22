@@ -51,6 +51,7 @@ RUN tar xf /tmp/jdk.tgz && rm /tmp/jdk.tgz   # adds a "whiteout", the 190 MB sta
   scenarios: [
     { title: 'Pods OOMKilled after a node OS upgrade, with no code change',
       symptom: 'The day the node pool moved to a newer OS image, a JDK 11 service started dying with <code>OOMKilled</code> (exit 137) a few minutes after start. Same image, same limits.',
+      diagnoseLang: 'bash',
       diagnose: `stat -fc %T /sys/fs/cgroup          # cgroup2fs → nodes are now cgroup v2
 kubectl exec deploy/billing -- java -XshowSettings:system -version
 #   Operating System Metrics: ... (no container limits found)
@@ -62,6 +63,7 @@ kubectl exec deploy/billing -- java -XX:+PrintFlagsFinal -version | grep MaxHeap
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"`, lang: 'docker' },
     { title: 'Every deploy drops in-flight requests and takes 30 s per pod',
       symptom: 'Rollouts are slow and each one produces a burst of 502s. Logs never show Spring’s “Commencing graceful shutdown” line.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl exec pod/orders-7d9f -- ps -o pid,args
 #   PID ARGS
 #     1 /bin/sh -c java -jar /app/app.jar
@@ -71,6 +73,7 @@ ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"`, la
       fixCode: `ENTRYPOINT ["java", "-jar", "/app/app.jar"]`, lang: 'docker' },
     { title: 'Scale-out takes minutes because every image is new',
       symptom: 'During a traffic spike, new nodes take over a minute to pull the image before pods can start. Each release pushes ~300 MB.',
+      diagnoseLang: 'bash',
       diagnose: `docker history registry/app:abc123
 #   COPY target/app.jar /app/app.jar   280MB   ← fat jar: deps + code in one layer`,
       cause: 'The fat jar puts dependencies and application classes into one layer. Any code change produces a new 280 MB layer, so no node cache or registry dedup helps.',

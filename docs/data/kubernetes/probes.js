@@ -49,6 +49,7 @@ IA.register({
   scenarios: [
     { title: 'CrashLoopBackOff after a dependency upgrade, with clean logs',
       symptom: 'After upgrading a library, new pods restart every ~90 s. The app log ends mid-startup, with no exception. <code>kubectl describe</code> shows <code>Liveness probe failed: connection refused</code> then <code>Killing</code>.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl describe pod orders-6c7-p9x | grep -E 'Liveness|Killing|Started'
 kubectl logs orders-6c7-p9x --previous | grep 'Started OrdersApplication'
 #   (nothing: it was killed before startup finished)
@@ -71,6 +72,7 @@ readinessProbe:
   failureThreshold: 3` },
     { title: 'A 40-second DB failover became a 6-minute outage',
       symptom: 'The managed Postgres failed over in about 40 s. Every one of 30 <code>payments</code> pods restarted within the same minute, and the service returned errors for six minutes.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get pods -l app=payments   # RESTARTS 1 on every pod, same age
 kubectl exec deploy/payments -- curl -s localhost:8080/actuator/health/liveness
 #   {"status":"UP","components":{"db":{...},"diskSpace":...}}   ← db in liveness!
@@ -90,6 +92,7 @@ grep -r 'group.liveness' src/main/resources/`,
           include: readinessState         # add ",db" only if the pod is useless without it` },
     { title: 'Pods restarted at peak load during a sale',
       symptom: 'At peak traffic, pods restarted one after another. Each restart pushed more load to the survivors, which then restarted too. No OOMKilled; reason <code>Liveness probe failed: … context deadline exceeded</code>.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get events --field-selector reason=Unhealthy | grep -c deadline
 # container_cpu_cfs_throttled_periods_total rising sharply on every pod
 # probe: timeoutSeconds 1, failureThreshold 3`,

@@ -53,6 +53,7 @@ env: [{ name: JAVA_TOOL_OPTIONS, value: "-Xmx1g" }]   # no room for anything els
   scenarios: [
     { title: 'p99 at 800 ms while CPU usage shows 30%',
       symptom: 'An API’s p99 latency jumps from 80 ms to 800 ms after moving to Kubernetes. Grafana shows CPU usage at 0.3 of its 1-CPU limit. Adding replicas helps only a little.',
+      diagnoseLang: 'bash',
       diagnose: `# fraction of periods in which the container was throttled
 sum(rate(container_cpu_cfs_throttled_periods_total{pod=~"api-.*"}[5m]))
   / sum(rate(container_cpu_cfs_periods_total{pod=~"api-.*"}[5m]))      # → 0.62
@@ -68,6 +69,7 @@ env:
   value: "-XX:ActiveProcessorCount=2 -XX:MaxRAMPercentage=75"` },
     { title: 'OOMKilled every few hours, heap graph looks fine',
       symptom: 'A reactive gateway restarts every 3–6 hours with <code>OOMKilled</code>, exit 137. The heap never exceeds 60% of <code>-Xmx</code>, and there is no OutOfMemoryError in the logs.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get pod gw-5f8-k2l -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'
 #   OOMKilled
 kubectl exec gw-5f8-k2l -- jcmd 1 VM.native_memory summary | grep -E 'Total|Java Heap|Thread|Other|Internal'
@@ -86,6 +88,7 @@ resources:
   limits:   { memory: 2Gi }` },
     { title: 'A nightly batch job evicted the API pods',
       symptom: 'At 02:00 several <code>orders</code> pods were evicted: <code>The node was low on resource: memory. Threshold quantity: 100Mi, available: 82Mi. Container app was using 1.9Gi, request is 512Mi</code>.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get events -A --field-selector reason=Evicted
 kubectl describe node node-7 | grep -A3 Conditions      # MemoryPressure True at 02:03
 kubectl get pod -o custom-columns=NAME:.metadata.name,QOS:.status.qosClass -n orders`,

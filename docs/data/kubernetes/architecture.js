@@ -51,6 +51,7 @@ webhooks:
   scenarios: [
     { title: 'Every deploy fails with “failed calling webhook”',
       symptom: 'All <code>kubectl apply</code> calls for Deployments fail cluster-wide: <code>Internal error occurred: failed calling webhook "validate.policy.example.com": … context deadline exceeded</code>. Nothing was changed in the apps.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get validatingwebhookconfigurations
 kubectl get pods -n policy-system          # 0/2 running: evicted during a node drain
 kubectl get validatingwebhookconfiguration policy -o yaml | grep -E 'failurePolicy|timeoutSeconds|namespaceSelector'`,
@@ -67,6 +68,7 @@ kubectl get validatingwebhookconfiguration policy -o yaml | grep -E 'failurePoli
       values: ["kube-system", "policy-system"]` },
     { title: 'New pods sit in Pending with no events at all',
       symptom: 'After a self-managed control-plane upgrade, scaled-up pods stay <code>Pending</code>. <code>kubectl describe pod</code> shows <b>no events</b>, not even <code>FailedScheduling</code>.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get pods -n kube-system -l component=kube-scheduler
 #   kube-scheduler-cp1   0/1   CrashLoopBackOff
 kubectl get lease -n kube-system kube-scheduler -o jsonpath='{.spec.holderIdentity} {.spec.renewTime}'
@@ -78,6 +80,7 @@ sudo vi /etc/kubernetes/manifests/kube-scheduler.yaml   # remove the obsolete fl
 kubectl get pods -A --field-selector=status.phase=Pending   # drains within seconds`, lang: 'bash' },
     { title: 'API server returns 429 and kubectl hangs at 9 a.m.',
       symptom: 'Every morning deploys and <code>kubectl</code> are slow for minutes, some controllers log <code>429 Too Many Requests</code>.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get --raw /metrics | grep apiserver_flowcontrol_rejected_requests_total
 # audit log: thousands of LIST /api/v1/pods from user-agent "report-job/1.0"
 kubectl get flowschemas`,

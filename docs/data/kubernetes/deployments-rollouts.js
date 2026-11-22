@@ -49,6 +49,7 @@ IA.register({
   scenarios: [
     { title: 'A broken release rolled out “successfully” and took down checkout',
       symptom: 'v5.1 rolled out in 90 seconds; CI was green. Within a minute every checkout request returned 500. All pods showed <code>1/1 Running</code>.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get deploy checkout -o jsonpath='{.spec.template.spec.containers[0].readinessProbe}'
 #   (empty)
 kubectl rollout history deploy/checkout
@@ -70,6 +71,7 @@ kubectl logs deploy/checkout | grep -m3 ERROR   # missing DB column → 500 on f
           failureThreshold: 3` },
     { title: 'Rollout stuck at “1 of 6 updated” for ten minutes',
       symptom: '<code>kubectl rollout status</code> prints <code>Waiting for deployment "web" rollout to finish: 1 out of 6 new replicas have been updated...</code> and then times out with ProgressDeadlineExceeded.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get pods -l app=web
 #   web-5f8-k2l   0/1   Pending   ← the one surge pod
 kubectl describe pod web-5f8-k2l | tail -3
@@ -79,6 +81,7 @@ kubectl describe pod web-5f8-k2l | tail -3
       fixCode: `kubectl patch deploy web -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":1}}}}'`, lang: 'bash' },
     { title: 'Rollback made no difference',
       symptom: 'After a release, search results were empty. The team ran <code>kubectl rollout undo</code>; old image, same problem.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl rollout history deploy/search --revision=7 | grep -A3 Environment
 #   envFrom: configmap search-config
 kubectl get cm search-config -o yaml | grep index.name   # changed in the same release`,

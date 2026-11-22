@@ -13,11 +13,11 @@
 |---|---|---|---|---|
 | Java & JVM (`java`) | 28 | 20 | 8 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 18 | 9 | 0 |
-| Kubernetes (`kubernetes`) | 25 | 25 | 0 | 0 |
+| Kubernetes (`kubernetes`) | 25 | 17 | 8 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **108** | **41** | **0** |
+| **Total** | **149** | **100** | **49** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -29,7 +29,7 @@
 | 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | pending | |
 | 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | pending | |
 | 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | pending | |
-| 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | pending | |
+| 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | done | 8 written, 59 scenario puzzles, 4 extras (netpol, spread, nodes, shutdown); uncertain: GA versions (nftables 1.33, PVC retention 1.32, unhealthyPodEvictionPolicy 1.31), ingress-nginx retirement dates |
 | 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | pending | |
 | 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | done | 8 written, 60 runnable puzzles, 6 Pyodide presets each; uncertain: class-body comprehension scope, 3.13 dataclass __eq__, Pydantic lax-mode coercions, runtime_checkable data members |
 | 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | pending | |
@@ -138,16 +138,16 @@ Verified by: `docs`. Code language: `yaml`.
 | 7 | `probes` | Probes | liveness vs readiness vs startup; probe-induced outages; tuning for JVM warm-up | D | A | todo | |
 | 8 | `resources-qos` | Requests, limits & QoS | scheduling on requests; CPU throttling (CFS); OOMKilled; QoS classes & eviction | X | A | todo | |
 | **M2** | | **Networking** | | | | | |
-| 9 | `services` | Services | ClusterIP, NodePort & LoadBalancer; kube-proxy (iptables/IPVS); EndpointSlices; headless services | D | B | todo | |
-| 10 | `ingress-gateway` | Ingress & Gateway API | ingress controllers; TLS termination; Gateway API resources; path routing | D | B | todo | |
-| 11 | `dns-network-policy` | DNS & NetworkPolicy | CoreDNS & ndots; default-allow; writing policies; CNI’s role | X | B | todo | |
+| 9 | `services` | Services | ClusterIP, NodePort & LoadBalancer; kube-proxy (iptables/IPVS); EndpointSlices; headless services | D | B | written | |
+| 10 | `ingress-gateway` | Ingress & Gateway API | ingress controllers; TLS termination; Gateway API resources; path routing | D | B | written | |
+| 11 | `dns-network-policy` | DNS & NetworkPolicy | CoreDNS & ndots; default-allow; writing policies; CNI’s role | X | B | written | |
 | **M3** | | **Config & storage** | | | | | |
-| 12 | `configmaps-secrets` | ConfigMaps & Secrets | env vs volume mounts; update propagation; secrets are base64, not encryption; external secrets | D | B | todo | |
-| 13 | `volumes-storage` | Volumes, PV & PVC | volume types; StorageClass & dynamic provisioning; access modes; reclaim policy | D | B | todo | |
+| 12 | `configmaps-secrets` | ConfigMaps & Secrets | env vs volume mounts; update propagation; secrets are base64, not encryption; external secrets | D | B | written | |
+| 13 | `volumes-storage` | Volumes, PV & PVC | volume types; StorageClass & dynamic provisioning; access modes; reclaim policy | D | B | written | |
 | **M4** | | **Scheduling & scaling** | | | | | |
-| 14 | `scheduling` | Scheduler, affinity & taints | filtering & scoring; node/pod (anti-)affinity; taints & tolerations; topology spread | X | B | todo | |
-| 15 | `autoscaling` | HPA, VPA & Cluster Autoscaler | metrics pipeline; HPA algorithm & stabilization; VPA modes; Karpenter / Cluster Autoscaler; KEDA | X | B | todo | |
-| 16 | `disruptions-pdb` | Disruptions & PDBs | voluntary vs involuntary; PodDisruptionBudgets; node drains; graceful termination & preStop | D | B | todo | |
+| 14 | `scheduling` | Scheduler, affinity & taints | filtering & scoring; node/pod (anti-)affinity; taints & tolerations; topology spread | X | B | written | |
+| 15 | `autoscaling` | HPA, VPA & Cluster Autoscaler | metrics pipeline; HPA algorithm & stabilization; VPA modes; Karpenter / Cluster Autoscaler; KEDA | X | B | written | |
+| 16 | `disruptions-pdb` | Disruptions & PDBs | voluntary vs involuntary; PodDisruptionBudgets; node drains; graceful termination & preStop | D | B | written | |
 | **M5** | | **Security & operations** | | | | | |
 | 17 | `rbac-security` | RBAC & Pod security | Roles & bindings; service accounts & tokens; Pod Security Standards; securityContext | D | C | todo | |
 | 18 | `debugging` | Debugging workloads | CrashLoopBackOff, ImagePullBackOff & Pending; kubectl debug & ephemeral containers; events & logs | D | C | todo | |

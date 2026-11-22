@@ -52,6 +52,7 @@ IA.register({
   scenarios: [
     { title: 'StatefulSet rollout stuck at db-2 for an hour',
       symptom: 'A config change to a 3-node clustered cache rolled <code>cache-2</code> and stopped. <code>cache-2</code> is in CrashLoopBackOff; <code>cache-0</code> and <code>cache-1</code> are still on the old revision.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl rollout status sts/cache
 #   Waiting for 1 pods to be ready...
 kubectl get pods -l app=cache -L controller-revision-hash
@@ -64,6 +65,7 @@ kubectl delete pod cache-2              # forced rollback: recreated from the go
 kubectl patch sts cache -p '{"spec":{"updateStrategy":{"rollingUpdate":{"partition":2}}}}'`, lang: 'bash' },
     { title: 'Customers charged twice by the nightly billing CronJob',
       symptom: 'On the first day of the month a few hundred customers were charged twice. Logs show the billing job running in <b>three</b> overlapping pods.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get jobs -l cronjob=billing --sort-by=.status.startTime
 #   billing-28930560   1/1   47m
 #   billing-28930575   1/1   38m   ← started while the first was running
@@ -90,6 +92,7 @@ spec:
             image: registry/billing:4.2` },
     { title: 'The cleanup CronJob silently stopped running',
       symptom: 'Disk usage climbs. The cleanup CronJob’s <code>LAST SCHEDULE</code> is two days old, right before a long control-plane maintenance.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get cronjob cleanup
 #   SCHEDULE    SUSPEND  ACTIVE  LAST SCHEDULE
 #   * * * * *   False    0       2d

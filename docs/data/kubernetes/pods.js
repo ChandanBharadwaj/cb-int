@@ -53,6 +53,7 @@ terminationGracePeriodSeconds: 45`, why: 'On deletion the kubelet starts the shu
   scenarios: [
     { title: 'The nightly export Job never finishes',
       symptom: 'After a DB proxy sidecar was added to the export Job, the Job shows <code>1/1</code> pods Running for hours. The export itself logged “done” after 6 minutes.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get pod -l job-name=export -o jsonpath='{range .items[0].status.containerStatuses[*]}{.name}{" "}{.state}{"\\n"}{end}'
 # export    {"terminated":{"exitCode":0,"reason":"Completed"}}
 # db-proxy  {"running":{"startedAt":"..."}}`,
@@ -76,6 +77,7 @@ terminationGracePeriodSeconds: 45`, why: 'On deletion the kubelet starts the shu
         image: registry/export:3.2` },
     { title: '502s on every rollout, even with graceful shutdown on',
       symptom: 'Each deploy produces a short burst of 502s at the ingress. Spring logs show graceful shutdown starting and finishing cleanly.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl get events --field-selector involvedObject.name=web-7c9-x2k
 # Killing  Stopping container app
 # ingress logs: upstream 10.1.0.7:8080 connection refused   (≈1 s after Killing)`,
@@ -97,6 +99,7 @@ spring:
     timeout-per-shutdown-phase: 25s` },
     { title: 'Pods crash once or twice at every start, then settle',
       symptom: 'New pods show <code>RESTARTS 1</code> or <code>2</code> after every rollout. The first log lines say <code>Connection refused: localhost:5432</code> from HikariCP.',
+      diagnoseLang: 'bash',
       diagnose: `kubectl logs web-7c9-x2k -c app --previous | head
 # HikariPool-1 - Exception during pool initialization ... Connection refused
 kubectl get pod web-7c9-x2k -o jsonpath='{.status.containerStatuses[*].name}'
