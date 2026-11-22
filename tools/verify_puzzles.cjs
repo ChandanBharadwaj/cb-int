@@ -47,6 +47,16 @@ for (const track of tracks) {
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.js')).sort()) {
     let d;
     try { d = loadTopic(path.join(dir, f)); } catch (e) { results.push({ track, slug: f, where: '(load)', ok: false, error: 'data file failed to load: ' + e.message }); continue; }
+    // drills (tricky-*) keep their questions in the widget, between /*Q-START*/ and /*Q-END*/
+    const wf = path.join(DOCS, 'assets/js/widgets', track, f);
+    if (/^tricky/.test(f) && fs.existsSync(wf)) {
+      const src = fs.readFileSync(wf, 'utf8');
+      const m = src.match(/\/\*Q-START\*\/([\s\S]*?)\/\*Q-END\*\//);
+      if (m) {
+        try { d = Object.assign({}, d, { drill: new Function(m[1].replace(/^\s*(const|let|var)\s+(\w+)\s*=/, 'return ') + '')() }); }
+        catch (e) { results.push({ track, slug: f, where: '(drill)', ok: false, error: 'drill questions failed to load: ' + e.message }); }
+      }
+    }
     for (const { p, where } of puzzlesOf(d)) {
       const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pz-'));
       const file = path.join(tmp, R.file);
