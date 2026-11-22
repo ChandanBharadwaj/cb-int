@@ -36,7 +36,7 @@ IA.register({
     caption: 'Pick a profile and press Play or Step: stack samples from the same request handler pile up into a flame graph. Compare <b>CPU</b>, <b>wall clock</b> and <b>allocation</b> views of one service. <b>safepoint bias</b> shows how a sampler that can only stop threads at safepoints blames the wrong method. Hover a box for its share.'
   },
   gotchas: [
-    { trap: 'Using a CPU profile to explain latency', why: 'CPU sampling only sees threads that are on a CPU. A request waiting 300 ms for a connection pool, a lock or a slow partner shows up as almost nothing.', fix: 'Use a wall-clock profile (<code>asprof -e wall</code>, filtered to request threads) or JFR’s <code>jdk.ThreadPark</code>, <code>jdk.JavaMonitorEnter</code>, <code>jdk.SocketRead</code> events. Then use CPU profiling for the part that really computes.' },
+    { trap: 'Using a CPU profile to explain latency', why: 'CPU sampling only sees threads that are on a CPU. A request waiting 300 ms for a connection pool, a lock or a slow partner shows up as almost nothing.', fix: 'Use a wall-clock profile (<code>asprof -e wall -t</code>, then read the request threads) or JFR’s <code>jdk.ThreadPark</code>, <code>jdk.JavaMonitorEnter</code>, <code>jdk.SocketRead</code> events. Then use CPU profiling for the part that really computes.' },
     { trap: 'Trusting a safepoint-biased sampler', why: 'Profilers based on <code>Thread.getAllStackTraces</code> / JVMTI can only take samples at safepoints. Time spent in a hot counted loop with no safepoint poll gets attributed to wherever the thread reaches the next safepoint, often the caller or the next method.', fix: 'Use async-profiler or JFR method sampling, which sample asynchronously. Add <code>-XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints</code> so inlined frames are attributed precisely.' },
     { trap: 'Reading the x-axis as time', why: 'Flame graphs sort frames alphabetically within each level and merge identical stacks. Two boxes side by side didn’t happen one after another.', fix: 'Read widths, not positions. For “what happened when”, use a timeline view (JMC, or async-profiler’s JFR output in a timeline viewer).' },
     { trap: 'Profiling a cold JVM', why: 'In the first seconds the JIT is still compiling; you profile the interpreter and the compiler threads, not your steady state. Microbenchmarks have the same problem.', fix: 'Warm up under realistic load before recording, record for 30–60 s, and compare with JIT activity (JFR <code>jdk.Compilation</code>). See <a href="jit-compilation.html">JIT compilation</a>.' },
@@ -47,8 +47,8 @@ IA.register({
   scenarios: [
     { title: 'p99 doubled after a logging change; CPU is unchanged',
       symptom: 'After switching log output to a file on network storage, p99 latency doubled. CPU per pod is flat, and the CPU flame graph looks the same as before.',
-      diagnose: `asprof -d 30 -e wall -t --include '*http-nio*' -f wall.html <pid>
-# widest plateau, ~35% of request-thread samples:
+      diagnose: `asprof -d 30 -e wall -t -f wall.html <pid>      # -t: one tower per thread
+# in the http-nio-* request-thread towers, the widest plateau (~35%):
 #   ch.qos.logback.core.OutputStreamAppender.subAppend
 #   → ReentrantLock.lock → LockSupport.park
 # JFR agrees: jdk.ThreadPark events on the appender's lock, avg 40 ms`,
@@ -147,20 +147,19 @@ jcmd <pid> JFR.start name=prof settings=profile duration=60s filename=/tmp/prof.
 # summaries without a GUI (JDK 21+ views)
 jfr summary /tmp/prof.jfr
 jfr view hot-methods /tmp/prof.jfr
-jfr view gc-pauses /tmp/prof.jfr
 jfr print --events jdk.ThreadPark --stack-depth 8 /tmp/prof.jfr | head -60`, note: 'In containers, write to a mounted volume or <code>/tmp</code> and copy out with <code>kubectl cp</code>.' },
     { title: 'async-profiler flame graphs', lang: 'bash', code: `# CPU: what burns cores (add precise inlined frames at JVM start)
 #   -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints
 asprof -d 30 -e cpu -f /tmp/cpu.html <pid>
 
-# wall clock, per thread, only request threads: where latency waits
-asprof -d 30 -e wall -t --include '*http-nio*' -f /tmp/wall.html <pid>
+# wall clock, split per thread (-t): where latency waits; read the request threads
+asprof -d 30 -e wall -t -f /tmp/wall.html <pid>
 
 # allocation: what drives GC (bytes, sampled at TLAB boundaries)
 asprof -d 30 -e alloc -f /tmp/alloc.html <pid>
 
-# lock contention (monitors and j.u.c. locks), at least 1 ms waits
-asprof -d 30 -e lock --lock 1ms -f /tmp/lock.html <pid>
+# lock contention (monitors and j.u.c. locks)
+asprof -d 30 -e lock -f /tmp/lock.html <pid>
 
 # no perf events in this container? use a timer-based CPU sampler
 asprof -d 30 -e itimer -f /tmp/cpu.html <pid>`, note: 'async-profiler 3.x ships the <code>asprof</code> launcher (older versions used <code>profiler.sh</code>). It can also write JFR output (<code>-o jfr</code>) for JMC.' },
@@ -168,6 +167,7 @@ asprof -d 30 -e itimer -f /tmp/cpu.html <pid>`, note: 'async-profiler 3.x ships 
 @Label("Checkout")
 @Category({"Acme", "Orders"})
 @StackTrace(false)
+@Threshold("50 ms")                     // record only slow checkouts
 class CheckoutEvent extends Event {
     @Label("Tenant") String tenant;
     @Label("Items")  int items;
@@ -191,9 +191,6 @@ class CheckoutService {
             ev.commit();                       // records duration; nearly free when disabled
         }
     }
-}
-
-// enable with a threshold, e.g. in a .jfc file or:
-// jcmd <pid> JFR.start settings=profile +acme.Checkout#threshold=50ms ...`, note: 'Slow checkouts now appear on the same timeline as GC pauses, lock waits and socket reads in JMC.' }
+}`, note: 'Slow checkouts now appear on the same timeline as GC pauses, lock waits and socket reads in JMC.' }
   ]
 });
