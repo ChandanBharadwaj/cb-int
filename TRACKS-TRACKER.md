@@ -15,9 +15,9 @@
 | Spring & Spring Boot (`spring`) | 27 | 27 | 0 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 25 | 0 | 0 |
 | Python (`python`) | 22 | 22 | 0 | 0 |
-| Node.js (`nodejs`) | 21 | 21 | 0 | 0 |
+| Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 26 | 0 | 0 |
-| **Total** | **149** | **149** | **0** | **0** |
+| **Total** | **149** | **142** | **7** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -34,7 +34,7 @@
 | 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | pending | |
 | 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | pending | |
 | 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | pending | |
-| 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | pending | |
+| 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | done | 7 written, 25 runnable puzzles; uncertain: ESM nextTick order, return-await ticks, require(esm) version notes, AbortError/TimeoutError names |
 | 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | pending | |
 | 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | pending | |
 | 1 | azure-A | Azure | 9 topics: `azure-hierarchy`, `regions-zones`, `entra-managed-identity`, `rbac-policy`, `compute-choice`, `app-service`, `container-apps`, `aks`, `functions` | pending | |
@@ -199,14 +199,14 @@ Verified by: `node`. Code language: `js`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Runtime** | | | | | |
-| 1 | `node-architecture` | Node architecture | V8 + libuv; the thread pool; bindings; single-threaded myth | F | A | todo | |
-| 2 | `event-loop-phases` | Event-loop phases | timers, poll, check & close; setImmediate vs setTimeout; I/O callbacks | X | A | todo | |
-| 3 | `microtasks-macrotasks` | Microtasks vs macrotasks | promise jobs; process.nextTick priority; starvation; ordering puzzles | X | A | todo | |
-| 4 | `modules-cjs-esm` | CommonJS vs ESM | require vs import; interop; package.json "type"; top-level await | D | A | todo | |
-| 5 | `npm-dependencies` | npm & dependencies | semver & lockfiles; peer deps; supply-chain risk; workspaces | F | A | todo | |
+| 1 | `node-architecture` | Node architecture | V8 + libuv; the thread pool; bindings; single-threaded myth | F | A | written | |
+| 2 | `event-loop-phases` | Event-loop phases | timers, poll, check & close; setImmediate vs setTimeout; I/O callbacks | X | A | written | |
+| 3 | `microtasks-macrotasks` | Microtasks vs macrotasks | promise jobs; process.nextTick priority; starvation; ordering puzzles | X | A | written | |
+| 4 | `modules-cjs-esm` | CommonJS vs ESM | require vs import; interop; package.json "type"; top-level await | D | A | written | |
+| 5 | `npm-dependencies` | npm & dependencies | semver & lockfiles; peer deps; supply-chain risk; workspaces | F | A | written | |
 | **M1** | | **Async** | | | | | |
-| 6 | `callbacks-promises-async` | Callbacks → promises → async/await | promise states; Promise.all/allSettled/race/any; sequential vs parallel awaits | D | A | todo | |
-| 7 | `async-errors` | Async error handling | unhandled rejections; errors in callbacks; AbortController; domains are gone | D | A | todo | |
+| 6 | `callbacks-promises-async` | Callbacks → promises → async/await | promise states; Promise.all/allSettled/race/any; sequential vs parallel awaits | D | A | written | |
+| 7 | `async-errors` | Async error handling | unhandled rejections; errors in callbacks; AbortController; domains are gone | D | A | written | |
 | 8 | `streams-backpressure` | Streams & backpressure | readable/writable/transform; pipeline; highWaterMark; async iteration | X | B | todo | |
 | 9 | `eventemitter` | EventEmitter | listeners & once; error events; memory-leak warnings; patterns | D | B | todo | |
 | **M2** | | **Performance** | | | | | |
