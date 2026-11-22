@@ -14,10 +14,10 @@
 | Java & JVM (`java`) | 28 | 10 | 18 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 0 | 27 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
-| Python (`python`) | 22 | 7 | 15 | 0 |
+| Python (`python`) | 22 | 0 | 22 | 0 |
 | Node.js (`nodejs`) | 21 | 0 | 21 | 0 |
 | Azure (`azure`) | 26 | 8 | 18 | 0 |
-| **Total** | **149** | **34** | **115** | **0** |
+| **Total** | **149** | **27** | **122** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -33,7 +33,7 @@
 | 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | pending | |
 | 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | done | 8 written, 60 runnable puzzles, 6 Pyodide presets each; uncertain: class-body comprehension scope, 3.13 dataclass __eq__, Pydantic lax-mode coercions, runtime_checkable data members |
 | 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | done | 7 written, 36 runnable puzzles, 38 Pyodide presets; uncertain: 3.13/3.14 GC + free-threading details, dict/set resize rules, default pool sizing, Pyodide tempfile + task order |
-| 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | pending | |
+| 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | done | 7 written incl. tricky-python (46 Qs, 33 runnable); 29 runnable topic puzzles, 2 extras (logging flow, Java habits); uncertain: FastAPI yield-teardown timing, uv image tag, Pyodide settrace/cProfile availability |
 | 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | done | 7 written, 25 runnable puzzles; uncertain: ESM nextTick order, return-await ticks, require(esm) version notes, AbortError/TimeoutError names |
 | 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | done | 6 written, 24 runnable puzzles; uncertain: Node 22 default highWaterMark 64 KiB, pipeline destroy order, DataCloneError name, memoryUsage key order, undici channel names |
 | 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | done | 8 written incl. tricky-node (48 Qs, 30 runnable, questions live in the widget); 28 runnable topic puzzles; uncertain: strip-types flags, agent property names, mock.timers Date, timing-threshold puzzles |
@@ -184,14 +184,14 @@ Verified by: `python3`. Code language: `python`.
 | 14 | `asyncio` | asyncio event loop | coroutines & tasks; await semantics; blocking the loop; TaskGroup & cancellation | X | B | written | |
 | 15 | `concurrency-choice` | Choosing a concurrency model | decision guide; mixing sync & async; async frameworks | D | B | written | |
 | **M3** | | **Practice** | | | | | |
-| 16 | `packaging` | Packaging & environments | venv; pip vs uv vs poetry; pyproject.toml; lockfiles & reproducibility | F | C | todo | |
-| 17 | `pytest` | Testing with pytest | fixtures & scopes; parametrize; mocking & monkeypatch; coverage | D | C | todo | |
-| 18 | `performance` | Profiling & performance | cProfile & py-spy; vectorize with NumPy; C extensions & Cython; common slow patterns | D | C | todo | |
-| 19 | `fastapi` | FastAPI services | routing & dependency injection; Pydantic models; async endpoints; production serving (uvicorn/gunicorn) | D | C | todo | |
-| 20 | `errors-logging` | Exceptions & logging | exception hierarchy & chaining; ExceptionGroup; logging config; structured logs | D | C | todo | |
-| 21 | `python-for-java-devs` | Python for Java developers | idiom mapping; duck typing vs interfaces; where Java habits hurt | F | C | todo | |
+| 16 | `packaging` | Packaging & environments | venv; pip vs uv vs poetry; pyproject.toml; lockfiles & reproducibility | F | C | written | |
+| 17 | `pytest` | Testing with pytest | fixtures & scopes; parametrize; mocking & monkeypatch; coverage | D | C | written | |
+| 18 | `performance` | Profiling & performance | cProfile & py-spy; vectorize with NumPy; C extensions & Cython; common slow patterns | D | C | written | |
+| 19 | `fastapi` | FastAPI services | routing & dependency injection; Pydantic models; async endpoints; production serving (uvicorn/gunicorn) | D | C | written | |
+| 20 | `errors-logging` | Exceptions & logging | exception hierarchy & chaining; ExceptionGroup; logging config; structured logs | D | C | written | |
+| 21 | `python-for-java-devs` | Python for Java developers | idiom mapping; duck typing vs interfaces; where Java habits hurt | F | C | written | |
 | **M4** | | **Drill** | | | | | |
-| ★ | `tricky-python` | Tricky Python (timed) | 50 mixed puzzles | X | C | todo | |
+| ★ | `tricky-python` | Tricky Python (timed) | 50 mixed puzzles | X | C | written | |
 
 ## Node.js (`nodejs`, 21 topics)
 Verified by: `node`. Code language: `js`.
