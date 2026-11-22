@@ -11,18 +11,18 @@
 ## Status board
 | Track | Topics | todo | written | done |
 |---|---|---|---|---|
-| Java & JVM (`java`) | 28 | 20 | 8 | 0 |
+| Java & JVM (`java`) | 28 | 10 | 18 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 9 | 18 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **83** | **66** | **0** |
+| **Total** | **149** | **73** | **76** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
 |---|---|---|---|---|---|
-| 1 | java-A | Java & JVM | 10 topics: `references-pass-by-value`, `equals-hashcode`, `immutability-records`, `generics-erasure`, `exceptions`, `strings-interning`, `sealed-pattern-matching`, `lambdas-functional`, `streams-collectors`, `optional` | pending | |
+| 1 | java-A | Java & JVM | 10 topics: `references-pass-by-value`, `equals-hashcode`, `immutability-records`, `generics-erasure`, `exceptions`, `strings-interning`, `sealed-pattern-matching`, `lambdas-functional`, `streams-collectors`, `optional` | done | 10 written, 63 runnable puzzles; uncertain: precise-rethrow retry helper compiles, OpenJDK-specific puzzle outputs (List.of contains null, count skips peek), Hibernate/Jackson version claims |
 | 1 | java-B | Java & JVM | 8 topics: `hashmap-internals`, `choosing-collections`, `concurrent-collections`, `class-loading`, `jvm-memory-areas`, `garbage-collection`, `jit-compilation`, `leaks-oom` | done | 8 written, 26 runnable puzzles, extra choosing-collections-bigo; uncertain: OOM array message, object sizes, JIT thresholds, G1/ZGC log formats |
 | 2 | java-C | Java & JVM | 10 topics: `threads-executors`, `java-memory-model`, `locks-synchronized`, `completablefuture`, `virtual-threads`, `concurrency-bugs`, `java-versions`, `profiling-jfr`, `io-nio`, `tricky-java` | pending | |
 | 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | done | 9 written, 65 concept puzzles, extras for scopes/conditions/aop-order/trace; uncertain: 6.1 @Transactional on tx listeners, Modulith property name, graceful shutdown default 3.4, 6.2 @Fallback/background bootstrap |
@@ -47,16 +47,16 @@ Verified by: `java`. Code language: `java`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Language core** | | | | | |
-| 1 | `references-pass-by-value` | References & pass-by-value | stack vs heap refs; why Java is always pass-by-value; == vs equals; aliasing bugs | F | A | todo | |
-| 2 | `equals-hashcode` | equals & hashCode contract | the contract; mutable keys in HashMap; records’ generated methods; Comparable consistency | D | A | todo | |
-| 3 | `immutability-records` | Immutability & records | final vs immutable; defensive copies; records & compact constructors; List.of vs unmodifiableList | D | A | todo | |
-| 4 | `generics-erasure` | Generics & type erasure | erasure & bridge methods; PECS (? extends / ? super); heap pollution; raw types | X | A | todo | |
-| 5 | `exceptions` | Exceptions done right | checked vs unchecked; try-with-resources & suppressed; finally pitfalls; exception translation | D | A | todo | |
-| 6 | `strings-interning` | Strings, interning & text | string pool & intern(); compact strings; concatenation & StringBuilder; text blocks; Unicode pitfalls | D | A | todo | |
-| 7 | `sealed-pattern-matching` | Sealed types & pattern matching | sealed interfaces; record patterns; switch patterns & exhaustiveness; guarded patterns | D | A | todo | |
-| 8 | `lambdas-functional` | Lambdas & functional interfaces | invokedynamic; effectively final capture; method references; built-in functional interfaces | D | A | todo | |
-| 9 | `streams-collectors` | Streams & collectors | laziness & short-circuit; stateful ops; groupingBy/toMap traps; parallel streams & the common pool | D | A | todo | |
-| 10 | `optional` | Optional | intended use; orElse vs orElseGet; anti-patterns (fields, params); map/flatMap chains | F | A | todo | |
+| 1 | `references-pass-by-value` | References & pass-by-value | stack vs heap refs; why Java is always pass-by-value; == vs equals; aliasing bugs | F | A | written | |
+| 2 | `equals-hashcode` | equals & hashCode contract | the contract; mutable keys in HashMap; records’ generated methods; Comparable consistency | D | A | written | |
+| 3 | `immutability-records` | Immutability & records | final vs immutable; defensive copies; records & compact constructors; List.of vs unmodifiableList | D | A | written | |
+| 4 | `generics-erasure` | Generics & type erasure | erasure & bridge methods; PECS (? extends / ? super); heap pollution; raw types | X | A | written | |
+| 5 | `exceptions` | Exceptions done right | checked vs unchecked; try-with-resources & suppressed; finally pitfalls; exception translation | D | A | written | |
+| 6 | `strings-interning` | Strings, interning & text | string pool & intern(); compact strings; concatenation & StringBuilder; text blocks; Unicode pitfalls | D | A | written | |
+| 7 | `sealed-pattern-matching` | Sealed types & pattern matching | sealed interfaces; record patterns; switch patterns & exhaustiveness; guarded patterns | D | A | written | |
+| 8 | `lambdas-functional` | Lambdas & functional interfaces | invokedynamic; effectively final capture; method references; built-in functional interfaces | D | A | written | |
+| 9 | `streams-collectors` | Streams & collectors | laziness & short-circuit; stateful ops; groupingBy/toMap traps; parallel streams & the common pool | D | A | written | |
+| 10 | `optional` | Optional | intended use; orElse vs orElseGet; anti-patterns (fields, params); map/flatMap chains | F | A | written | |
 | **M1** | | **Collections** | | | | | |
 | 11 | `hashmap-internals` | HashMap internals | buckets & hashing; resize & load factor; treeification; iteration order; ConcurrentModificationException | X | B | written | |
 | 12 | `choosing-collections` | Choosing collections | ArrayList vs LinkedList; ArrayDeque; TreeMap/NavigableMap; EnumMap/Set; big-O table | F | B | written | |
