@@ -91,7 +91,7 @@ SecurityContextHolder strategy: MODE_THREADLOCAL (default)`,
       cause: 'The audit method read the user from <code>SecurityContextHolder</code> and the trace id from MDC, both ThreadLocals of the request thread. On the executor thread they were empty.',
       fix: 'Capture the user and trace id as arguments at the call site. As a safety net, decorate the executor so security and observation context propagate.',
       fixCode: `@Bean(name = "auditExecutor")
-Executor auditExecutor(ThreadPoolTaskExecutorBuilder builder) {   // Boot 3.3+ builder
+Executor auditExecutor(ThreadPoolTaskExecutorBuilder builder) {   // Boot 3.2+ builder
   ThreadPoolTaskExecutor pool = builder.corePoolSize(4).maxPoolSize(4).queueCapacity(10_000)
       .threadNamePrefix("audit-").taskDecorator(new ContextPropagatingTaskDecorator())   // Spring 6.1+
       .build();
@@ -122,7 +122,7 @@ hikaricp.connections.active   → 20 (maximum-pool-size)
         concurrency-limit: 200        # caps @Async tasks on the virtual-thread executor`, lang: 'yaml' }
   ],
   puzzles: [
-    { kind: 'predict', q: 'What is printed (Boot 3.x defaults, called from a controller)?', code: `@Service class A { @Autowired B b;
+    { kind: 'predict', q: 'What is printed (Boot 3.x defaults plus <code>@EnableAsync</code> on a configuration class, called from a controller)?', code: `@Service class A { @Autowired B b;
   public void run() { System.out.println("A " + Thread.currentThread().getName()); b.work(); } }
 @Service class B {
   @Async public void work() { System.out.println("B " + Thread.currentThread().getName()); } }`, options: ['A http-nio-8080-exec-1 / B http-nio-8080-exec-1', 'A task-1 / B task-1', 'A http-nio-8080-exec-1 / B task-1', 'Nothing: @Async needs a return value'], answer: 2, explain: 'With <code>@EnableAsync</code>, the call through B’s proxy is submitted to Boot’s <code>applicationTaskExecutor</code>, whose threads are named <code>task-N</code>. (Without <code>@EnableAsync</code>, both lines would show the request thread.)' },

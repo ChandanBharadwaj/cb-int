@@ -8,7 +8,7 @@ IA.register({
     model: '<b>Edge</b>: Front Door + WAF → <b>compute</b>: Container Apps (or App Service/AKS) in a VNet → <b>data</b> over private endpoints: Postgres Flexible Server, Redis, Service Bus, Blob → <b>identity</b>: one user-assigned managed identity per app with data-plane RBAC → <b>config</b>: App Configuration + Key Vault → <b>telemetry</b>: Java agent → Application Insights/Log Analytics.',
     hook: '“Design a Spring Boot order service on Azure.” Draw the request path, then say “identity-first”: the app has a managed identity, and every connection (JDBC, Service Bus, Blob, Key Vault, ACR pull) uses Entra tokens, so there is no secret to leak or rotate. Then cover scaling against database connections, probes, and tracing.',
     facts: [
-      { v: '5.x', l: 'Spring Cloud Azure line for Spring Boot 3.x (4.x was for Boot 2.x). Check the compatibility matrix for your exact Boot version' },
+      { v: '5.x / 6.x', l: 'Spring Cloud Azure lines for Spring Boot 3.x (6.x targets Boot 3.5; 7.x is for Boot 4, 4.x was for Boot 2.x). Check the compatibility matrix for your exact Boot version' },
       { v: '0 passwords', l: 'with passwordless starters: JDBC for Postgres gets an Entra token as the password; Service Bus, Storage and Key Vault use the same credential chain' },
       { v: 'retiring', l: 'Azure Spring Apps is being retired. Microsoft recommends Azure Container Apps, AKS or App Service as migration targets' }
     ]

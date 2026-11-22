@@ -86,7 +86,7 @@ IA.widget('memory-gc', (root, ctx) => {
       snap(8, 'The collector runs finalizers (<code>__del__</code>, weakref callbacks), then clears the references inside the unreachable objects. That breaks the cycle, both counts drop to 0, and ordinary refcounting frees them.', { zero: unr, hotGen: 0 });
     }
     st.g[1] = st.g[1].concat(st.g[0]); st.g[0] = [];
-    snap(8, 'Survivors K and M are <b>promoted to generation 1</b>, which is scanned 10× less often; gen 2 another 10× less. Most objects die young, so the collector spends its time on new ones. Default thresholds in 3.12/3.13: <code>(700, 10, 10)</code>.', { hotGen: 1 });
+    snap(8, 'Survivors K and M are <b>promoted to generation 1</b>, which is scanned 10× less often; gen 2 another 10× less. Most objects die young, so the collector spends its time on new ones. Default thresholds in 3.13: <code>(2000, 10, 10)</code> (3.12: <code>(700, 10, 10)</code>).', { hotGen: 1 });
     return S;
   }
 
@@ -166,7 +166,7 @@ IA.widget('memory-gc', (root, ctx) => {
       ['gen 0', 'gen 1', 'gen 2'].forEach((lab, i) => {
         const x = 22 + i * 206, y = 284;
         stage.append(svg('rect', { class: 'gen' + (cur.hotGen === i ? ' hot' : ''), x, y, width: 196, height: 46, rx: 8 }),
-          svg('text', { x: x + 10, y: y + 18, 'font-size': 12, 'font-weight': 700, fill: 'var(--text-2)', text: lab + (i === 0 ? '  (threshold 700)' : '  (every 10 of gen ' + (i - 1) + ')') }),
+          svg('text', { x: x + 10, y: y + 18, 'font-size': 12, 'font-weight': 700, fill: 'var(--text-2)', text: lab + (i === 0 ? '  (threshold 2000)' : '  (every 10 of gen ' + (i - 1) + ')') }),
           svg('text', { x: x + 10, y: y + 37, 'font-family': 'var(--mono)', 'font-size': 13, fill: 'var(--text)', text: cur.g[i].length ? cur.g[i].join(' ') : '—' }));
       });
     } else {
