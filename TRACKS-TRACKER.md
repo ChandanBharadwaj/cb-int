@@ -15,9 +15,9 @@
 | Spring & Spring Boot (`spring`) | 27 | 9 | 18 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
-| Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
+| Node.js (`nodejs`) | 21 | 8 | 13 | 0 |
 | Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **73** | **76** | **0** |
+| **Total** | **149** | **67** | **82** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -35,7 +35,7 @@
 | 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | pending | |
 | 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | pending | |
 | 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | done | 7 written, 25 runnable puzzles; uncertain: ESM nextTick order, return-await ticks, require(esm) version notes, AbortError/TimeoutError names |
-| 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | pending | |
+| 2 | nodejs-B | Node.js | 6 topics: `streams-backpressure`, `eventemitter`, `blocking-event-loop`, `worker-threads-cluster`, `v8-gc-leaks`, `profiling` | done | 6 written, 24 runnable puzzles; uncertain: Node 22 default highWaterMark 64 KiB, pipeline destroy order, DataCloneError name, memoryUsage key order, undici channel names |
 | 2 | nodejs-C | Node.js | 8 topics: `express-fastify`, `http-internals`, `security`, `graceful-shutdown`, `typescript-node`, `testing-node`, `node-vs-java`, `tricky-node` | pending | |
 | 1 | azure-A | Azure | 9 topics: `azure-hierarchy`, `regions-zones`, `entra-managed-identity`, `rbac-policy`, `compute-choice`, `app-service`, `container-apps`, `aks`, `functions` | done | 9 written, 59 scenario puzzles, extras aks-net/aks-wi/functions-durable; uncertain: role GUIDs, App Service/Container Apps defaults, Flex CLI flags, DefaultAzureCredential order |
 | 2 | azure-B | Azure | 9 topics: `storage-accounts`, `azure-sql-postgres`, `cosmos-db`, `redis-cache`, `messaging-choice`, `api-management`, `vnet-private-endpoints`, `key-vault`, `front-door-gateway` | pending | |
@@ -207,13 +207,13 @@ Verified by: `node`. Code language: `js`.
 | **M1** | | **Async** | | | | | |
 | 6 | `callbacks-promises-async` | Callbacks → promises → async/await | promise states; Promise.all/allSettled/race/any; sequential vs parallel awaits | D | A | written | |
 | 7 | `async-errors` | Async error handling | unhandled rejections; errors in callbacks; AbortController; domains are gone | D | A | written | |
-| 8 | `streams-backpressure` | Streams & backpressure | readable/writable/transform; pipeline; highWaterMark; async iteration | X | B | todo | |
-| 9 | `eventemitter` | EventEmitter | listeners & once; error events; memory-leak warnings; patterns | D | B | todo | |
+| 8 | `streams-backpressure` | Streams & backpressure | readable/writable/transform; pipeline; highWaterMark; async iteration | X | B | written | |
+| 9 | `eventemitter` | EventEmitter | listeners & once; error events; memory-leak warnings; patterns | D | B | written | |
 | **M2** | | **Performance** | | | | | |
-| 10 | `blocking-event-loop` | Blocking the event loop | CPU work; sync APIs; JSON on big payloads; measuring event-loop lag | X | B | todo | |
-| 11 | `worker-threads-cluster` | Worker threads & cluster | worker_threads & SharedArrayBuffer; cluster & PM2; when to scale out instead | D | B | todo | |
-| 12 | `v8-gc-leaks` | V8 memory & leaks | heap spaces; GC (Scavenge, Mark-Compact); leak patterns; heap snapshots | X | B | todo | |
-| 13 | `profiling` | Profiling Node | --inspect & --cpu-prof; flame graphs; clinic.js; diagnostics_channel | D | B | todo | |
+| 10 | `blocking-event-loop` | Blocking the event loop | CPU work; sync APIs; JSON on big payloads; measuring event-loop lag | X | B | written | |
+| 11 | `worker-threads-cluster` | Worker threads & cluster | worker_threads & SharedArrayBuffer; cluster & PM2; when to scale out instead | D | B | written | |
+| 12 | `v8-gc-leaks` | V8 memory & leaks | heap spaces; GC (Scavenge, Mark-Compact); leak patterns; heap snapshots | X | B | written | |
+| 13 | `profiling` | Profiling Node | --inspect & --cpu-prof; flame graphs; clinic.js; diagnostics_channel | D | B | written | |
 | **M3** | | **Web** | | | | | |
 | 14 | `express-fastify` | Express & Fastify | middleware chain; error middleware; Fastify schemas & performance | D | C | todo | |
 | 15 | `http-internals` | HTTP internals | keep-alive & agents; timeouts; HTTP/2; fetch (undici) | X | C | todo | |

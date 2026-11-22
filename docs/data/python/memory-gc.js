@@ -217,6 +217,7 @@ class LRU(OrderedDict):
 SESSIONS: LRU = LRU(maxsize=10_000)` },
     { title: 'Pre-forked workers use 8× the memory of the master',
       symptom: 'A gunicorn app with <code>--preload</code> loads a 1.5 GB model and reference data, then forks 8 workers. Right after start total RSS is ~2 GB; an hour later each worker has its own ~1.5 GB.',
+      diagnoseLang: 'bash',
       diagnose: `# per process: shared vs private pages
 grep -E 'Shared|Private' /proc/<pid>/smaps_rollup`,
       cause: 'Fork shares pages copy-on-write. But merely <i>reading</i> a Python object writes its refcount, and every cyclic collection writes GC header fields on every tracked object it scans, so shared pages get dirtied and copied into each worker. (3.12’s immortal objects avoid this only for objects that are immortal.)',
