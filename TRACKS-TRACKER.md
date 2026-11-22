@@ -8,16 +8,23 @@
 - **Phase 3 (validation, at the end):** page checks (no errors, every section, no overflow at 390px), and puzzle verification (Java/Python/Node snippets executed; Kubernetes/Azure/Spring reviewed against the docs). Status `written → done`, and the catalog topic gets `status: 'done'`.
 - Status values: `todo` · `written` · `done` · `needs-fix`.
 
+## Validation summary (Phase 3)
+- **Pages:** all 195 Atlas topic pages pass `tools/check_topic.cjs` (no console errors, every section, no horizontal scroll at 390px). 69 pages first overflowed on phones because of long inline tokens; a shared CSS wrap rule fixed them.
+- **Runnable puzzles:** all 418 `run: true` puzzles and drill questions print their `expect` when executed (`tools/verify_puzzles.cjs`: java 153, python 158, nodejs 107). One answer was wrong (PEP 695 TypeVar repr) and is fixed.
+- **Playgrounds:** 125 Python presets ran cleanly on CPython. 15 JS presets ran in the browser sandbox; this found and fixed a sandbox bug that cut off busy code.
+- **Docs review:** 4 Opus reviewers checked every flagged claim, every concept/scenario puzzle (~730) and all 292 drill questions (runnable ones executed, the rest reviewed). Fixes: Kubernetes 10 (mostly newer GA versions), Spring 11, Azure 8, Java/Python/Node 6. Claims they could check only from memory are listed in their reports in the agent log below.
+- **Site:** 571 pages crawled with no broken links; old `sql-atlas/` URLs redirect to `atlas/`.
+
 ## Status board
 | Track | Topics | todo | written | done |
 |---|---|---|---|---|
-| Java & JVM (`java`) | 28 | 0 | 28 | 0 |
-| Spring & Spring Boot (`spring`) | 27 | 0 | 27 | 0 |
-| Kubernetes (`kubernetes`) | 25 | 0 | 25 | 0 |
-| Python (`python`) | 22 | 0 | 22 | 0 |
-| Node.js (`nodejs`) | 21 | 0 | 21 | 0 |
-| Azure (`azure`) | 26 | 0 | 26 | 0 |
-| **Total** | **149** | **0** | **149** | **0** |
+| Java & JVM (`java`) | 28 | 0 | 0 | 28 |
+| Spring & Spring Boot (`spring`) | 27 | 0 | 0 | 27 |
+| Kubernetes (`kubernetes`) | 25 | 0 | 0 | 25 |
+| Python (`python`) | 22 | 0 | 0 | 22 |
+| Node.js (`nodejs`) | 21 | 0 | 0 | 21 |
+| Azure (`azure`) | 26 | 0 | 0 | 26 |
+| **Total** | **149** | **0** | **0** | **149** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -47,39 +54,39 @@ Verified by: `java`. Code language: `java`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Language core** | | | | | |
-| 1 | `references-pass-by-value` | References & pass-by-value | stack vs heap refs; why Java is always pass-by-value; == vs equals; aliasing bugs | F | A | written | |
-| 2 | `equals-hashcode` | equals & hashCode contract | the contract; mutable keys in HashMap; records’ generated methods; Comparable consistency | D | A | written | |
-| 3 | `immutability-records` | Immutability & records | final vs immutable; defensive copies; records & compact constructors; List.of vs unmodifiableList | D | A | written | |
-| 4 | `generics-erasure` | Generics & type erasure | erasure & bridge methods; PECS (? extends / ? super); heap pollution; raw types | X | A | written | |
-| 5 | `exceptions` | Exceptions done right | checked vs unchecked; try-with-resources & suppressed; finally pitfalls; exception translation | D | A | written | |
-| 6 | `strings-interning` | Strings, interning & text | string pool & intern(); compact strings; concatenation & StringBuilder; text blocks; Unicode pitfalls | D | A | written | |
-| 7 | `sealed-pattern-matching` | Sealed types & pattern matching | sealed interfaces; record patterns; switch patterns & exhaustiveness; guarded patterns | D | A | written | |
-| 8 | `lambdas-functional` | Lambdas & functional interfaces | invokedynamic; effectively final capture; method references; built-in functional interfaces | D | A | written | |
-| 9 | `streams-collectors` | Streams & collectors | laziness & short-circuit; stateful ops; groupingBy/toMap traps; parallel streams & the common pool | D | A | written | |
-| 10 | `optional` | Optional | intended use; orElse vs orElseGet; anti-patterns (fields, params); map/flatMap chains | F | A | written | |
+| 1 | `references-pass-by-value` | References & pass-by-value | stack vs heap refs; why Java is always pass-by-value; == vs equals; aliasing bugs | F | A | done | run (java 21) + review |
+| 2 | `equals-hashcode` | equals & hashCode contract | the contract; mutable keys in HashMap; records’ generated methods; Comparable consistency | D | A | done | run (java 21) + review |
+| 3 | `immutability-records` | Immutability & records | final vs immutable; defensive copies; records & compact constructors; List.of vs unmodifiableList | D | A | done | run (java 21) + review |
+| 4 | `generics-erasure` | Generics & type erasure | erasure & bridge methods; PECS (? extends / ? super); heap pollution; raw types | X | A | done | run (java 21) + review |
+| 5 | `exceptions` | Exceptions done right | checked vs unchecked; try-with-resources & suppressed; finally pitfalls; exception translation | D | A | done | run (java 21) + review |
+| 6 | `strings-interning` | Strings, interning & text | string pool & intern(); compact strings; concatenation & StringBuilder; text blocks; Unicode pitfalls | D | A | done | run (java 21) + review |
+| 7 | `sealed-pattern-matching` | Sealed types & pattern matching | sealed interfaces; record patterns; switch patterns & exhaustiveness; guarded patterns | D | A | done | run (java 21) + review |
+| 8 | `lambdas-functional` | Lambdas & functional interfaces | invokedynamic; effectively final capture; method references; built-in functional interfaces | D | A | done | run (java 21) + review |
+| 9 | `streams-collectors` | Streams & collectors | laziness & short-circuit; stateful ops; groupingBy/toMap traps; parallel streams & the common pool | D | A | done | run (java 21) + review |
+| 10 | `optional` | Optional | intended use; orElse vs orElseGet; anti-patterns (fields, params); map/flatMap chains | F | A | done | run (java 21) + review |
 | **M1** | | **Collections** | | | | | |
-| 11 | `hashmap-internals` | HashMap internals | buckets & hashing; resize & load factor; treeification; iteration order; ConcurrentModificationException | X | B | written | |
-| 12 | `choosing-collections` | Choosing collections | ArrayList vs LinkedList; ArrayDeque; TreeMap/NavigableMap; EnumMap/Set; big-O table | F | B | written | |
-| 13 | `concurrent-collections` | Concurrent collections | ConcurrentHashMap (compute, size); CopyOnWrite; BlockingQueues; ConcurrentSkipList | X | B | written | |
+| 11 | `hashmap-internals` | HashMap internals | buckets & hashing; resize & load factor; treeification; iteration order; ConcurrentModificationException | X | B | done | run (java 21) + review |
+| 12 | `choosing-collections` | Choosing collections | ArrayList vs LinkedList; ArrayDeque; TreeMap/NavigableMap; EnumMap/Set; big-O table | F | B | done | run (java 21) + review |
+| 13 | `concurrent-collections` | Concurrent collections | ConcurrentHashMap (compute, size); CopyOnWrite; BlockingQueues; ConcurrentSkipList | X | B | done | run (java 21) + review |
 | **M2** | | **JVM internals** | | | | | |
-| 14 | `class-loading` | Class loading | delegation model; linking & init order; static init deadlock; ClassCastException across loaders; metaspace leaks | X | B | written | |
-| 15 | `jvm-memory-areas` | JVM memory areas | heap generations; stack & frames; metaspace; direct memory; object header & compressed oops | X | B | written | |
-| 16 | `garbage-collection` | Garbage collection | reachability & GC roots; G1 regions & pauses; ZGC/Shenandoah; choosing & tuning; reading GC logs | X | B | written | |
-| 17 | `jit-compilation` | JIT compilation | interpreter → C1 → C2 tiers; inlining & escape analysis; deoptimization; warm-up & microbenchmark traps (JMH) | X | B | written | |
-| 18 | `leaks-oom` | Memory leaks & OOM | OOM kinds; leak patterns (static maps, ThreadLocal, listeners); heap dumps & MAT; container memory limits | X | B | written | |
+| 14 | `class-loading` | Class loading | delegation model; linking & init order; static init deadlock; ClassCastException across loaders; metaspace leaks | X | B | done | run (java 21) + review |
+| 15 | `jvm-memory-areas` | JVM memory areas | heap generations; stack & frames; metaspace; direct memory; object header & compressed oops | X | B | done | run (java 21) + review |
+| 16 | `garbage-collection` | Garbage collection | reachability & GC roots; G1 regions & pauses; ZGC/Shenandoah; choosing & tuning; reading GC logs | X | B | done | run (java 21) + review |
+| 17 | `jit-compilation` | JIT compilation | interpreter → C1 → C2 tiers; inlining & escape analysis; deoptimization; warm-up & microbenchmark traps (JMH) | X | B | done | run (java 21) + review |
+| 18 | `leaks-oom` | Memory leaks & OOM | OOM kinds; leak patterns (static maps, ThreadLocal, listeners); heap dumps & MAT; container memory limits | X | B | done | run (java 21) + review |
 | **M3** | | **Concurrency** | | | | | |
-| 19 | `threads-executors` | Threads & executors | thread lifecycle; ThreadPoolExecutor params & rejection; sizing pools; shutdown | D | C | written | |
-| 20 | `java-memory-model` | Java Memory Model | happens-before; volatile; safe publication; double-checked locking; final-field semantics | X | C | written | |
-| 21 | `locks-synchronized` | Locks & synchronized | monitors; ReentrantLock & Conditions; ReadWriteLock & StampedLock; fairness | X | C | written | |
-| 22 | `completablefuture` | CompletableFuture | thenApply vs thenCompose; async executors; exception handling; allOf/anyOf; timeouts | D | C | written | |
-| 23 | `virtual-threads` | Virtual threads (Java 21) | carrier threads & mounting; pinning (synchronized, native); structured concurrency; when not to use them | X | C | written | |
-| 24 | `concurrency-bugs` | Concurrency bugs | race conditions; deadlock & livelock; thread dumps; lost updates; atomics & LongAdder | X | C | written | |
+| 19 | `threads-executors` | Threads & executors | thread lifecycle; ThreadPoolExecutor params & rejection; sizing pools; shutdown | D | C | done | run (java 21) + review |
+| 20 | `java-memory-model` | Java Memory Model | happens-before; volatile; safe publication; double-checked locking; final-field semantics | X | C | done | run (java 21) + review |
+| 21 | `locks-synchronized` | Locks & synchronized | monitors; ReentrantLock & Conditions; ReadWriteLock & StampedLock; fairness | X | C | done | run (java 21) + review |
+| 22 | `completablefuture` | CompletableFuture | thenApply vs thenCompose; async executors; exception handling; allOf/anyOf; timeouts | D | C | done | run (java 21) + review |
+| 23 | `virtual-threads` | Virtual threads (Java 21) | carrier threads & mounting; pinning (synchronized, native); structured concurrency; when not to use them | X | C | done | run (java 21) + review |
+| 24 | `concurrency-bugs` | Concurrency bugs | race conditions; deadlock & livelock; thread dumps; lost updates; atomics & LongAdder | X | C | done | run (java 21) + review |
 | **M4** | | **Modern Java & production** | | | | | |
-| 25 | `java-versions` | Java 8 → 21 tour | LTS timeline; key features per version; migration traps (modules, removed APIs) | F | C | written | |
-| 26 | `profiling-jfr` | Profiling & JFR | JFR & JMC; async-profiler flame graphs; CPU vs alloc profiling; safepoint bias | X | C | written | |
-| 27 | `io-nio` | I/O & NIO | blocking vs non-blocking; buffers & channels; memory-mapped files; selectors | D | C | written | |
+| 25 | `java-versions` | Java 8 → 21 tour | LTS timeline; key features per version; migration traps (modules, removed APIs) | F | C | done | run (java 21) + review |
+| 26 | `profiling-jfr` | Profiling & JFR | JFR & JMC; async-profiler flame graphs; CPU vs alloc profiling; safepoint bias | X | C | done | run (java 21) + review |
+| 27 | `io-nio` | I/O & NIO | blocking vs non-blocking; buffers & channels; memory-mapped files; selectors | D | C | done | run (java 21) + review |
 | **M5** | | **Drill** | | | | | |
-| ★ | `tricky-java` | Tricky Java (timed) | 50 mixed puzzles across the track | X | C | written | |
+| ★ | `tricky-java` | Tricky Java (timed) | 50 mixed puzzles across the track | X | C | done | run (java 21) + review |
 
 ## Spring & Spring Boot (`spring`, 27 topics)
 Verified by: `docs`. Code language: `java`.
@@ -87,40 +94,40 @@ Verified by: `docs`. Code language: `java`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Spring core** | | | | | |
-| 1 | `ioc-di` | IoC & dependency injection | ApplicationContext; constructor vs field injection; @Qualifier/@Primary; circular deps | F | A | written | |
-| 2 | `bean-lifecycle-scopes` | Bean lifecycle & scopes | instantiate → populate → init → destroy; BeanPostProcessor; scopes & scoped proxies; prototype-in-singleton trap | D | A | written | |
-| 3 | `configuration-profiles` | @Configuration & profiles | full vs lite mode (CGLIB); @Bean methods; @Profile & @Conditional; import ordering | D | A | written | |
-| 4 | `aop-proxies` | AOP & proxies | JDK vs CGLIB proxies; the self-invocation trap; pointcuts & advice order; final methods | X | A | written | |
-| 5 | `spring-events` | Application events | publish & listen; @TransactionalEventListener phases; async events; ordering | D | A | written | |
+| 1 | `ioc-di` | IoC & dependency injection | ApplicationContext; constructor vs field injection; @Qualifier/@Primary; circular deps | F | A | done | docs review (Spring source/release notes) |
+| 2 | `bean-lifecycle-scopes` | Bean lifecycle & scopes | instantiate → populate → init → destroy; BeanPostProcessor; scopes & scoped proxies; prototype-in-singleton trap | D | A | done | docs review (Spring source/release notes) |
+| 3 | `configuration-profiles` | @Configuration & profiles | full vs lite mode (CGLIB); @Bean methods; @Profile & @Conditional; import ordering | D | A | done | docs review (Spring source/release notes) |
+| 4 | `aop-proxies` | AOP & proxies | JDK vs CGLIB proxies; the self-invocation trap; pointcuts & advice order; final methods | X | A | done | docs review (Spring source/release notes) |
+| 5 | `spring-events` | Application events | publish & listen; @TransactionalEventListener phases; async events; ordering | D | A | done | docs review (Spring source/release notes) |
 | **M1** | | **Spring Boot** | | | | | |
-| 6 | `auto-configuration` | Auto-configuration | AutoConfiguration.imports; @ConditionalOn*; condition evaluation report; writing your own | X | A | written | |
-| 7 | `starters-dependencies` | Starters & dependency management | BOMs & parent POM; version overrides; dependency conflicts; Gradle vs Maven | F | A | written | |
-| 8 | `externalized-config` | Externalized configuration | property-source order; @ConfigurationProperties & validation; profiles; secrets | D | A | written | |
-| 9 | `actuator-observability` | Actuator & observability | health groups & probes; Micrometer metrics; tracing (OTel); securing endpoints | D | A | written | |
-| 10 | `boot-testing` | Testing in Boot | test slices; @MockitoBean; Testcontainers & @ServiceConnection; context caching | D | B | written | |
+| 6 | `auto-configuration` | Auto-configuration | AutoConfiguration.imports; @ConditionalOn*; condition evaluation report; writing your own | X | A | done | docs review (Spring source/release notes) |
+| 7 | `starters-dependencies` | Starters & dependency management | BOMs & parent POM; version overrides; dependency conflicts; Gradle vs Maven | F | A | done | docs review (Spring source/release notes) |
+| 8 | `externalized-config` | Externalized configuration | property-source order; @ConfigurationProperties & validation; profiles; secrets | D | A | done | docs review (Spring source/release notes) |
+| 9 | `actuator-observability` | Actuator & observability | health groups & probes; Micrometer metrics; tracing (OTel); securing endpoints | D | A | done | docs review (Spring source/release notes) |
+| 10 | `boot-testing` | Testing in Boot | test slices; @MockitoBean; Testcontainers & @ServiceConnection; context caching | D | B | done | docs review (Spring source/release notes) |
 | **M2** | | **Web** | | | | | |
-| 11 | `mvc-request-flow` | Spring MVC request flow | DispatcherServlet; handler mapping & adapters; argument resolvers; message converters; interceptors vs filters | X | B | written | |
-| 12 | `errors-validation` | Errors & validation | @ControllerAdvice; ProblemDetail (RFC 9457); Bean Validation groups; validation in services | D | B | written | |
-| 13 | `webflux-reactive` | WebFlux & reactive | Mono/Flux; Netty event loop; backpressure; blocking-call traps; when to choose MVC | X | B | written | |
-| 14 | `http-clients` | HTTP clients | RestClient vs WebClient vs RestTemplate; timeouts; connection pools; HTTP interfaces | D | B | written | |
+| 11 | `mvc-request-flow` | Spring MVC request flow | DispatcherServlet; handler mapping & adapters; argument resolvers; message converters; interceptors vs filters | X | B | done | docs review (Spring source/release notes) |
+| 12 | `errors-validation` | Errors & validation | @ControllerAdvice; ProblemDetail (RFC 9457); Bean Validation groups; validation in services | D | B | done | docs review (Spring source/release notes) |
+| 13 | `webflux-reactive` | WebFlux & reactive | Mono/Flux; Netty event loop; backpressure; blocking-call traps; when to choose MVC | X | B | done | docs review (Spring source/release notes) |
+| 14 | `http-clients` | HTTP clients | RestClient vs WebClient vs RestTemplate; timeouts; connection pools; HTTP interfaces | D | B | done | docs review (Spring source/release notes) |
 | **M3** | | **Data** | | | | | |
-| 15 | `transactions-propagation` | @Transactional deep dive | propagation & isolation; rollback rules; proxy pitfalls; readOnly; transaction boundaries | X | B | written | |
-| 16 | `jpa-n-plus-1` | JPA fetching & N+1 | lazy vs eager; N+1 detection; fetch joins & entity graphs; LazyInitializationException & OSIV | X | B | written | |
-| 17 | `spring-data` | Spring Data repositories | derived queries; projections; paging & slicing; auditing; custom repos | D | B | written | |
-| 18 | `hikari-pooling` | HikariCP & connection pools | pool sizing; timeouts; leak detection; pool exhaustion incidents | D | B | written | |
+| 15 | `transactions-propagation` | @Transactional deep dive | propagation & isolation; rollback rules; proxy pitfalls; readOnly; transaction boundaries | X | B | done | docs review (Spring source/release notes) |
+| 16 | `jpa-n-plus-1` | JPA fetching & N+1 | lazy vs eager; N+1 detection; fetch joins & entity graphs; LazyInitializationException & OSIV | X | B | done | docs review (Spring source/release notes) |
+| 17 | `spring-data` | Spring Data repositories | derived queries; projections; paging & slicing; auditing; custom repos | D | B | done | docs review (Spring source/release notes) |
+| 18 | `hikari-pooling` | HikariCP & connection pools | pool sizing; timeouts; leak detection; pool exhaustion incidents | D | B | done | docs review (Spring source/release notes) |
 | **M4** | | **Security** | | | | | |
-| 19 | `security-filter-chain` | Security filter chain | SecurityFilterChain beans; authentication flow; method security; CSRF & CORS | X | C | written | |
-| 20 | `oauth2-jwt` | OAuth2, OIDC & JWT | resource server; JWT validation & JWKS; client credentials; token relay | D | C | written | |
+| 19 | `security-filter-chain` | Security filter chain | SecurityFilterChain beans; authentication flow; method security; CSRF & CORS | X | C | done | docs review (Spring source/release notes) |
+| 20 | `oauth2-jwt` | OAuth2, OIDC & JWT | resource server; JWT validation & JWKS; client credentials; token relay | D | C | done | docs review (Spring source/release notes) |
 | **M5** | | **Distributed & async** | | | | | |
-| 21 | `kafka-messaging` | Kafka with Spring | listener containers; offsets & ack modes; retries & DLT; idempotency & outbox | X | C | written | |
-| 22 | `resilience` | Resilience patterns | Resilience4j circuit breaker, retry, bulkhead & time limiter; retry storms | D | C | written | |
-| 23 | `caching` | Caching abstraction | @Cacheable semantics & keys; Caffeine vs Redis; stampede & TTLs; self-invocation again | D | C | written | |
-| 24 | `async-scheduling` | @Async & scheduling | executors; @Scheduled & ShedLock; virtual threads in Boot 3.2+; context propagation | D | C | written | |
+| 21 | `kafka-messaging` | Kafka with Spring | listener containers; offsets & ack modes; retries & DLT; idempotency & outbox | X | C | done | docs review (Spring source/release notes) |
+| 22 | `resilience` | Resilience patterns | Resilience4j circuit breaker, retry, bulkhead & time limiter; retry storms | D | C | done | docs review (Spring source/release notes) |
+| 23 | `caching` | Caching abstraction | @Cacheable semantics & keys; Caffeine vs Redis; stampede & TTLs; self-invocation again | D | C | done | docs review (Spring source/release notes) |
+| 24 | `async-scheduling` | @Async & scheduling | executors; @Scheduled & ShedLock; virtual threads in Boot 3.2+; context propagation | D | C | done | docs review (Spring source/release notes) |
 | **M6** | | **Production** | | | | | |
-| 25 | `aot-native` | AOT & native image | GraalVM native; reachability metadata; startup vs throughput; CRaC | X | C | written | |
-| 26 | `startup-performance` | Startup & runtime performance | lazy init; class-data sharing; graceful shutdown; memory sizing in containers | D | C | written | |
+| 25 | `aot-native` | AOT & native image | GraalVM native; reachability metadata; startup vs throughput; CRaC | X | C | done | docs review (Spring source/release notes) |
+| 26 | `startup-performance` | Startup & runtime performance | lazy init; class-data sharing; graceful shutdown; memory sizing in containers | D | C | done | docs review (Spring source/release notes) |
 | **M7** | | **Drill** | | | | | |
-| ★ | `tricky-spring` | Tricky Spring (timed) | 50 mixed puzzles across the track | X | C | written | |
+| ★ | `tricky-spring` | Tricky Spring (timed) | 50 mixed puzzles across the track | X | C | done | docs review (Spring source/release notes) |
 
 ## Kubernetes (`kubernetes`, 25 topics)
 Verified by: `docs`. Code language: `yaml`.
@@ -128,37 +135,37 @@ Verified by: `docs`. Code language: `yaml`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Foundations** | | | | | |
-| 1 | `containers-vs-vms` | Containers vs VMs | namespaces & cgroups; image layers; OCI; why orchestration | F | A | written | |
-| 2 | `architecture` | Cluster architecture | API server, etcd, scheduler & controller manager; kubelet & kube-proxy; request path of kubectl apply | D | A | written | |
-| 3 | `pods` | Pods | multi-container patterns (sidecar, init); pod lifecycle & phases; restart policy; native sidecars (1.29+) | F | A | written | |
-| 4 | `desired-state` | Desired state & reconciliation | declarative vs imperative; controllers & control loops; owner references & garbage collection; labels & selectors | D | A | written | |
+| 1 | `containers-vs-vms` | Containers vs VMs | namespaces & cgroups; image layers; OCI; why orchestration | F | A | done | docs review (kubernetes.io/KEPs) |
+| 2 | `architecture` | Cluster architecture | API server, etcd, scheduler & controller manager; kubelet & kube-proxy; request path of kubectl apply | D | A | done | docs review (kubernetes.io/KEPs) |
+| 3 | `pods` | Pods | multi-container patterns (sidecar, init); pod lifecycle & phases; restart policy; native sidecars (1.29+) | F | A | done | docs review (kubernetes.io/KEPs) |
+| 4 | `desired-state` | Desired state & reconciliation | declarative vs imperative; controllers & control loops; owner references & garbage collection; labels & selectors | D | A | done | docs review (kubernetes.io/KEPs) |
 | **M1** | | **Workloads** | | | | | |
-| 5 | `deployments-rollouts` | Deployments & rollouts | ReplicaSets; rolling update (maxSurge/maxUnavailable); rollback; blue-green & canary | D | A | written | |
-| 6 | `statefulsets-jobs` | StatefulSet, DaemonSet & Jobs | stable identity & ordered rollout; DaemonSets; Jobs & CronJobs; backoff & concurrency | D | A | written | |
-| 7 | `probes` | Probes | liveness vs readiness vs startup; probe-induced outages; tuning for JVM warm-up | D | A | written | |
-| 8 | `resources-qos` | Requests, limits & QoS | scheduling on requests; CPU throttling (CFS); OOMKilled; QoS classes & eviction | X | A | written | |
+| 5 | `deployments-rollouts` | Deployments & rollouts | ReplicaSets; rolling update (maxSurge/maxUnavailable); rollback; blue-green & canary | D | A | done | docs review (kubernetes.io/KEPs) |
+| 6 | `statefulsets-jobs` | StatefulSet, DaemonSet & Jobs | stable identity & ordered rollout; DaemonSets; Jobs & CronJobs; backoff & concurrency | D | A | done | docs review (kubernetes.io/KEPs) |
+| 7 | `probes` | Probes | liveness vs readiness vs startup; probe-induced outages; tuning for JVM warm-up | D | A | done | docs review (kubernetes.io/KEPs) |
+| 8 | `resources-qos` | Requests, limits & QoS | scheduling on requests; CPU throttling (CFS); OOMKilled; QoS classes & eviction | X | A | done | docs review (kubernetes.io/KEPs) |
 | **M2** | | **Networking** | | | | | |
-| 9 | `services` | Services | ClusterIP, NodePort & LoadBalancer; kube-proxy (iptables/IPVS); EndpointSlices; headless services | D | B | written | |
-| 10 | `ingress-gateway` | Ingress & Gateway API | ingress controllers; TLS termination; Gateway API resources; path routing | D | B | written | |
-| 11 | `dns-network-policy` | DNS & NetworkPolicy | CoreDNS & ndots; default-allow; writing policies; CNI’s role | X | B | written | |
+| 9 | `services` | Services | ClusterIP, NodePort & LoadBalancer; kube-proxy (iptables/IPVS); EndpointSlices; headless services | D | B | done | docs review (kubernetes.io/KEPs) |
+| 10 | `ingress-gateway` | Ingress & Gateway API | ingress controllers; TLS termination; Gateway API resources; path routing | D | B | done | docs review (kubernetes.io/KEPs) |
+| 11 | `dns-network-policy` | DNS & NetworkPolicy | CoreDNS & ndots; default-allow; writing policies; CNI’s role | X | B | done | docs review (kubernetes.io/KEPs) |
 | **M3** | | **Config & storage** | | | | | |
-| 12 | `configmaps-secrets` | ConfigMaps & Secrets | env vs volume mounts; update propagation; secrets are base64, not encryption; external secrets | D | B | written | |
-| 13 | `volumes-storage` | Volumes, PV & PVC | volume types; StorageClass & dynamic provisioning; access modes; reclaim policy | D | B | written | |
+| 12 | `configmaps-secrets` | ConfigMaps & Secrets | env vs volume mounts; update propagation; secrets are base64, not encryption; external secrets | D | B | done | docs review (kubernetes.io/KEPs) |
+| 13 | `volumes-storage` | Volumes, PV & PVC | volume types; StorageClass & dynamic provisioning; access modes; reclaim policy | D | B | done | docs review (kubernetes.io/KEPs) |
 | **M4** | | **Scheduling & scaling** | | | | | |
-| 14 | `scheduling` | Scheduler, affinity & taints | filtering & scoring; node/pod (anti-)affinity; taints & tolerations; topology spread | X | B | written | |
-| 15 | `autoscaling` | HPA, VPA & Cluster Autoscaler | metrics pipeline; HPA algorithm & stabilization; VPA modes; Karpenter / Cluster Autoscaler; KEDA | X | B | written | |
-| 16 | `disruptions-pdb` | Disruptions & PDBs | voluntary vs involuntary; PodDisruptionBudgets; node drains; graceful termination & preStop | D | B | written | |
+| 14 | `scheduling` | Scheduler, affinity & taints | filtering & scoring; node/pod (anti-)affinity; taints & tolerations; topology spread | X | B | done | docs review (kubernetes.io/KEPs) |
+| 15 | `autoscaling` | HPA, VPA & Cluster Autoscaler | metrics pipeline; HPA algorithm & stabilization; VPA modes; Karpenter / Cluster Autoscaler; KEDA | X | B | done | docs review (kubernetes.io/KEPs) |
+| 16 | `disruptions-pdb` | Disruptions & PDBs | voluntary vs involuntary; PodDisruptionBudgets; node drains; graceful termination & preStop | D | B | done | docs review (kubernetes.io/KEPs) |
 | **M5** | | **Security & operations** | | | | | |
-| 17 | `rbac-security` | RBAC & Pod security | Roles & bindings; service accounts & tokens; Pod Security Standards; securityContext | D | C | written | |
-| 18 | `debugging` | Debugging workloads | CrashLoopBackOff, ImagePullBackOff & Pending; kubectl debug & ephemeral containers; events & logs | D | C | written | |
-| 19 | `observability` | Observability | metrics-server & Prometheus; logging architectures; tracing; golden signals | D | C | written | |
-| 20 | `helm-kustomize-gitops` | Helm, Kustomize & GitOps | charts & values; overlays; Argo CD / Flux; drift | D | C | written | |
-| 21 | `operators-crds` | Operators & CRDs | custom resources; the operator pattern; admission webhooks; finalizers | X | C | written | |
-| 22 | `jvm-on-k8s` | Java/Spring on Kubernetes | container-aware JVM (MaxRAMPercentage); probes with Actuator; graceful shutdown; image building (Jib, buildpacks) | X | C | written | |
-| 23 | `multi-tenancy-cost` | Namespaces, quotas & cost | ResourceQuota & LimitRange; multi-tenancy models; right-sizing | D | C | written | |
-| 24 | `cluster-upgrades` | Upgrades & cluster ops | version skew; node upgrades; etcd backup; API deprecations | X | C | written | |
+| 17 | `rbac-security` | RBAC & Pod security | Roles & bindings; service accounts & tokens; Pod Security Standards; securityContext | D | C | done | docs review (kubernetes.io/KEPs) |
+| 18 | `debugging` | Debugging workloads | CrashLoopBackOff, ImagePullBackOff & Pending; kubectl debug & ephemeral containers; events & logs | D | C | done | docs review (kubernetes.io/KEPs) |
+| 19 | `observability` | Observability | metrics-server & Prometheus; logging architectures; tracing; golden signals | D | C | done | docs review (kubernetes.io/KEPs) |
+| 20 | `helm-kustomize-gitops` | Helm, Kustomize & GitOps | charts & values; overlays; Argo CD / Flux; drift | D | C | done | docs review (kubernetes.io/KEPs) |
+| 21 | `operators-crds` | Operators & CRDs | custom resources; the operator pattern; admission webhooks; finalizers | X | C | done | docs review (kubernetes.io/KEPs) |
+| 22 | `jvm-on-k8s` | Java/Spring on Kubernetes | container-aware JVM (MaxRAMPercentage); probes with Actuator; graceful shutdown; image building (Jib, buildpacks) | X | C | done | docs review (kubernetes.io/KEPs) |
+| 23 | `multi-tenancy-cost` | Namespaces, quotas & cost | ResourceQuota & LimitRange; multi-tenancy models; right-sizing | D | C | done | docs review (kubernetes.io/KEPs) |
+| 24 | `cluster-upgrades` | Upgrades & cluster ops | version skew; node upgrades; etcd backup; API deprecations | X | C | done | docs review (kubernetes.io/KEPs) |
 | **M6** | | **Drill** | | | | | |
-| ★ | `tricky-k8s` | Tricky Kubernetes (timed) | 50 mixed scenario puzzles | X | C | written | |
+| ★ | `tricky-k8s` | Tricky Kubernetes (timed) | 50 mixed scenario puzzles | X | C | done | docs review (kubernetes.io/KEPs) |
 
 ## Python (`python`, 22 topics)
 Verified by: `python3`. Code language: `python`.
@@ -166,32 +173,32 @@ Verified by: `python3`. Code language: `python`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Language core** | | | | | |
-| 1 | `data-model` | Everything is an object | names vs objects; identity vs equality; mutability; small-int & string caching | F | A | written | |
-| 2 | `scoping-closures` | Scope, closures & defaults | LEGB; nonlocal/global; late-binding closures; mutable default arguments | D | A | written | |
-| 3 | `dunder-methods` | Dunder methods & protocols | __repr__/__eq__/__hash__; operator overloading; container protocols; __slots__ | D | A | written | |
-| 4 | `iterators-generators` | Iterators & generators | iteration protocol; generators & yield from; laziness; itertools | D | A | written | |
-| 5 | `decorators` | Decorators | functions as objects; functools.wraps; parameterized decorators; class decorators | D | A | written | |
-| 6 | `context-managers` | Context managers | with protocol; contextlib; exceptions in __exit__; ExitStack | D | A | written | |
-| 7 | `typing` | Type hints | generics & Protocols; TypedDict; mypy/pyright; runtime vs static | D | A | written | |
-| 8 | `dataclasses-pydantic` | Dataclasses & Pydantic | field defaults; frozen & slots; Pydantic v2 validation; when to use which | D | A | written | |
+| 1 | `data-model` | Everything is an object | names vs objects; identity vs equality; mutability; small-int & string caching | F | A | done | run (python3) + review |
+| 2 | `scoping-closures` | Scope, closures & defaults | LEGB; nonlocal/global; late-binding closures; mutable default arguments | D | A | done | run (python3) + review |
+| 3 | `dunder-methods` | Dunder methods & protocols | __repr__/__eq__/__hash__; operator overloading; container protocols; __slots__ | D | A | done | run (python3) + review |
+| 4 | `iterators-generators` | Iterators & generators | iteration protocol; generators & yield from; laziness; itertools | D | A | done | run (python3) + review |
+| 5 | `decorators` | Decorators | functions as objects; functools.wraps; parameterized decorators; class decorators | D | A | done | run (python3) + review |
+| 6 | `context-managers` | Context managers | with protocol; contextlib; exceptions in __exit__; ExitStack | D | A | done | run (python3) + review |
+| 7 | `typing` | Type hints | generics & Protocols; TypedDict; mypy/pyright; runtime vs static | D | A | done | run (python3) + review |
+| 8 | `dataclasses-pydantic` | Dataclasses & Pydantic | field defaults; frozen & slots; Pydantic v2 validation; when to use which | D | A | done | run (python3) + review |
 | **M1** | | **Internals** | | | | | |
-| 9 | `memory-gc` | Memory & garbage collection | reference counting; cyclic GC & generations; weakref; memory leaks | X | B | written | |
-| 10 | `gil` | The GIL & free-threading | what the GIL protects; CPU- vs I/O-bound; PEP 703 free-threaded 3.13 | X | B | written | |
-| 11 | `dict-internals` | Dict & set internals | hash tables; insertion order; key requirements; performance traps | X | B | written | |
-| 12 | `imports` | Import system | modules & packages; sys.path; circular imports; __main__ | D | B | written | |
+| 9 | `memory-gc` | Memory & garbage collection | reference counting; cyclic GC & generations; weakref; memory leaks | X | B | done | run (python3) + review |
+| 10 | `gil` | The GIL & free-threading | what the GIL protects; CPU- vs I/O-bound; PEP 703 free-threaded 3.13 | X | B | done | run (python3) + review |
+| 11 | `dict-internals` | Dict & set internals | hash tables; insertion order; key requirements; performance traps | X | B | done | run (python3) + review |
+| 12 | `imports` | Import system | modules & packages; sys.path; circular imports; __main__ | D | B | done | run (python3) + review |
 | **M2** | | **Concurrency** | | | | | |
-| 13 | `threading-multiprocessing` | Threads vs processes | threading; multiprocessing & pickling; concurrent.futures; shared state | D | B | written | |
-| 14 | `asyncio` | asyncio event loop | coroutines & tasks; await semantics; blocking the loop; TaskGroup & cancellation | X | B | written | |
-| 15 | `concurrency-choice` | Choosing a concurrency model | decision guide; mixing sync & async; async frameworks | D | B | written | |
+| 13 | `threading-multiprocessing` | Threads vs processes | threading; multiprocessing & pickling; concurrent.futures; shared state | D | B | done | run (python3) + review |
+| 14 | `asyncio` | asyncio event loop | coroutines & tasks; await semantics; blocking the loop; TaskGroup & cancellation | X | B | done | run (python3) + review |
+| 15 | `concurrency-choice` | Choosing a concurrency model | decision guide; mixing sync & async; async frameworks | D | B | done | run (python3) + review |
 | **M3** | | **Practice** | | | | | |
-| 16 | `packaging` | Packaging & environments | venv; pip vs uv vs poetry; pyproject.toml; lockfiles & reproducibility | F | C | written | |
-| 17 | `pytest` | Testing with pytest | fixtures & scopes; parametrize; mocking & monkeypatch; coverage | D | C | written | |
-| 18 | `performance` | Profiling & performance | cProfile & py-spy; vectorize with NumPy; C extensions & Cython; common slow patterns | D | C | written | |
-| 19 | `fastapi` | FastAPI services | routing & dependency injection; Pydantic models; async endpoints; production serving (uvicorn/gunicorn) | D | C | written | |
-| 20 | `errors-logging` | Exceptions & logging | exception hierarchy & chaining; ExceptionGroup; logging config; structured logs | D | C | written | |
-| 21 | `python-for-java-devs` | Python for Java developers | idiom mapping; duck typing vs interfaces; where Java habits hurt | F | C | written | |
+| 16 | `packaging` | Packaging & environments | venv; pip vs uv vs poetry; pyproject.toml; lockfiles & reproducibility | F | C | done | run (python3) + review |
+| 17 | `pytest` | Testing with pytest | fixtures & scopes; parametrize; mocking & monkeypatch; coverage | D | C | done | run (python3) + review |
+| 18 | `performance` | Profiling & performance | cProfile & py-spy; vectorize with NumPy; C extensions & Cython; common slow patterns | D | C | done | run (python3) + review |
+| 19 | `fastapi` | FastAPI services | routing & dependency injection; Pydantic models; async endpoints; production serving (uvicorn/gunicorn) | D | C | done | run (python3) + review |
+| 20 | `errors-logging` | Exceptions & logging | exception hierarchy & chaining; ExceptionGroup; logging config; structured logs | D | C | done | run (python3) + review |
+| 21 | `python-for-java-devs` | Python for Java developers | idiom mapping; duck typing vs interfaces; where Java habits hurt | F | C | done | run (python3) + review |
 | **M4** | | **Drill** | | | | | |
-| ★ | `tricky-python` | Tricky Python (timed) | 50 mixed puzzles | X | C | written | |
+| ★ | `tricky-python` | Tricky Python (timed) | 50 mixed puzzles | X | C | done | run (python3) + review |
 
 ## Node.js (`nodejs`, 21 topics)
 Verified by: `node`. Code language: `js`.
@@ -199,32 +206,32 @@ Verified by: `node`. Code language: `js`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Runtime** | | | | | |
-| 1 | `node-architecture` | Node architecture | V8 + libuv; the thread pool; bindings; single-threaded myth | F | A | written | |
-| 2 | `event-loop-phases` | Event-loop phases | timers, poll, check & close; setImmediate vs setTimeout; I/O callbacks | X | A | written | |
-| 3 | `microtasks-macrotasks` | Microtasks vs macrotasks | promise jobs; process.nextTick priority; starvation; ordering puzzles | X | A | written | |
-| 4 | `modules-cjs-esm` | CommonJS vs ESM | require vs import; interop; package.json "type"; top-level await | D | A | written | |
-| 5 | `npm-dependencies` | npm & dependencies | semver & lockfiles; peer deps; supply-chain risk; workspaces | F | A | written | |
+| 1 | `node-architecture` | Node architecture | V8 + libuv; the thread pool; bindings; single-threaded myth | F | A | done | run (node 22) + review |
+| 2 | `event-loop-phases` | Event-loop phases | timers, poll, check & close; setImmediate vs setTimeout; I/O callbacks | X | A | done | run (node 22) + review |
+| 3 | `microtasks-macrotasks` | Microtasks vs macrotasks | promise jobs; process.nextTick priority; starvation; ordering puzzles | X | A | done | run (node 22) + review |
+| 4 | `modules-cjs-esm` | CommonJS vs ESM | require vs import; interop; package.json "type"; top-level await | D | A | done | run (node 22) + review |
+| 5 | `npm-dependencies` | npm & dependencies | semver & lockfiles; peer deps; supply-chain risk; workspaces | F | A | done | run (node 22) + review |
 | **M1** | | **Async** | | | | | |
-| 6 | `callbacks-promises-async` | Callbacks → promises → async/await | promise states; Promise.all/allSettled/race/any; sequential vs parallel awaits | D | A | written | |
-| 7 | `async-errors` | Async error handling | unhandled rejections; errors in callbacks; AbortController; domains are gone | D | A | written | |
-| 8 | `streams-backpressure` | Streams & backpressure | readable/writable/transform; pipeline; highWaterMark; async iteration | X | B | written | |
-| 9 | `eventemitter` | EventEmitter | listeners & once; error events; memory-leak warnings; patterns | D | B | written | |
+| 6 | `callbacks-promises-async` | Callbacks → promises → async/await | promise states; Promise.all/allSettled/race/any; sequential vs parallel awaits | D | A | done | run (node 22) + review |
+| 7 | `async-errors` | Async error handling | unhandled rejections; errors in callbacks; AbortController; domains are gone | D | A | done | run (node 22) + review |
+| 8 | `streams-backpressure` | Streams & backpressure | readable/writable/transform; pipeline; highWaterMark; async iteration | X | B | done | run (node 22) + review |
+| 9 | `eventemitter` | EventEmitter | listeners & once; error events; memory-leak warnings; patterns | D | B | done | run (node 22) + review |
 | **M2** | | **Performance** | | | | | |
-| 10 | `blocking-event-loop` | Blocking the event loop | CPU work; sync APIs; JSON on big payloads; measuring event-loop lag | X | B | written | |
-| 11 | `worker-threads-cluster` | Worker threads & cluster | worker_threads & SharedArrayBuffer; cluster & PM2; when to scale out instead | D | B | written | |
-| 12 | `v8-gc-leaks` | V8 memory & leaks | heap spaces; GC (Scavenge, Mark-Compact); leak patterns; heap snapshots | X | B | written | |
-| 13 | `profiling` | Profiling Node | --inspect & --cpu-prof; flame graphs; clinic.js; diagnostics_channel | D | B | written | |
+| 10 | `blocking-event-loop` | Blocking the event loop | CPU work; sync APIs; JSON on big payloads; measuring event-loop lag | X | B | done | run (node 22) + review |
+| 11 | `worker-threads-cluster` | Worker threads & cluster | worker_threads & SharedArrayBuffer; cluster & PM2; when to scale out instead | D | B | done | run (node 22) + review |
+| 12 | `v8-gc-leaks` | V8 memory & leaks | heap spaces; GC (Scavenge, Mark-Compact); leak patterns; heap snapshots | X | B | done | run (node 22) + review |
+| 13 | `profiling` | Profiling Node | --inspect & --cpu-prof; flame graphs; clinic.js; diagnostics_channel | D | B | done | run (node 22) + review |
 | **M3** | | **Web** | | | | | |
-| 14 | `express-fastify` | Express & Fastify | middleware chain; error middleware; Fastify schemas & performance | D | C | written | |
-| 15 | `http-internals` | HTTP internals | keep-alive & agents; timeouts; HTTP/2; fetch (undici) | X | C | written | |
-| 16 | `security` | Node security | injection & prototype pollution; ReDoS; secrets; the permission model | D | C | written | |
+| 14 | `express-fastify` | Express & Fastify | middleware chain; error middleware; Fastify schemas & performance | D | C | done | run (node 22) + review |
+| 15 | `http-internals` | HTTP internals | keep-alive & agents; timeouts; HTTP/2; fetch (undici) | X | C | done | run (node 22) + review |
+| 16 | `security` | Node security | injection & prototype pollution; ReDoS; secrets; the permission model | D | C | done | run (node 22) + review |
 | **M4** | | **Production** | | | | | |
-| 17 | `graceful-shutdown` | Graceful shutdown & containers | SIGTERM handling; draining connections; PID 1; health checks | D | C | written | |
-| 18 | `typescript-node` | TypeScript on Node | tsconfig for Node; type stripping (22.6+); ESM & TS | D | C | written | |
-| 19 | `testing-node` | Testing Node | node:test vs Jest/Vitest; mocking timers; integration tests | D | C | written | |
-| 20 | `node-vs-java` | Node vs Java for services | concurrency models; when to pick which; interop | D | C | written | |
+| 17 | `graceful-shutdown` | Graceful shutdown & containers | SIGTERM handling; draining connections; PID 1; health checks | D | C | done | run (node 22) + review |
+| 18 | `typescript-node` | TypeScript on Node | tsconfig for Node; type stripping (22.6+); ESM & TS | D | C | done | run (node 22) + review |
+| 19 | `testing-node` | Testing Node | node:test vs Jest/Vitest; mocking timers; integration tests | D | C | done | run (node 22) + review |
+| 20 | `node-vs-java` | Node vs Java for services | concurrency models; when to pick which; interop | D | C | done | run (node 22) + review |
 | **M5** | | **Drill** | | | | | |
-| ★ | `tricky-node` | Tricky Node (timed) | 50 mixed puzzles | X | C | written | |
+| ★ | `tricky-node` | Tricky Node (timed) | 50 mixed puzzles | X | C | done | run (node 22) + review |
 
 ## Azure (`azure`, 26 topics)
 Verified by: `docs`. Code language: `bash`.
@@ -232,35 +239,35 @@ Verified by: `docs`. Code language: `bash`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Foundations** | | | | | |
-| 1 | `azure-hierarchy` | Tenants to resources | Entra tenant; management groups; subscriptions; resource groups & ARM | F | A | written | |
-| 2 | `regions-zones` | Regions & availability zones | region pairs; zonal vs zone-redundant; SLAs & composite SLAs | F | A | written | |
-| 3 | `entra-managed-identity` | Entra ID & managed identities | app registrations vs service principals; system vs user-assigned MI; DefaultAzureCredential | D | A | written | |
-| 4 | `rbac-policy` | RBAC & Azure Policy | role assignments & scopes; custom roles; Policy & initiatives; landing zones | D | A | written | |
+| 1 | `azure-hierarchy` | Tenants to resources | Entra tenant; management groups; subscriptions; resource groups & ARM | F | A | done | docs review (Microsoft Learn) |
+| 2 | `regions-zones` | Regions & availability zones | region pairs; zonal vs zone-redundant; SLAs & composite SLAs | F | A | done | docs review (Microsoft Learn) |
+| 3 | `entra-managed-identity` | Entra ID & managed identities | app registrations vs service principals; system vs user-assigned MI; DefaultAzureCredential | D | A | done | docs review (Microsoft Learn) |
+| 4 | `rbac-policy` | RBAC & Azure Policy | role assignments & scopes; custom roles; Policy & initiatives; landing zones | D | A | done | docs review (Microsoft Learn) |
 | **M1** | | **Compute** | | | | | |
-| 5 | `compute-choice` | Choosing compute | VMs vs App Service vs Container Apps vs AKS vs Functions decision guide | D | A | written | |
-| 6 | `app-service` | App Service | plans & scaling; deployment slots; Java/Spring deploys; always-on & health checks | D | A | written | |
-| 7 | `container-apps` | Container Apps | environments; revisions & traffic split; KEDA scaling; Dapr | D | A | written | |
-| 8 | `aks` | AKS | node pools; networking (kubenet, CNI overlay); workload identity; upgrades | X | A | written | |
-| 9 | `functions` | Azure Functions | triggers & bindings; plans (Consumption, Flex, Premium); cold starts; Durable Functions | D | A | written | |
+| 5 | `compute-choice` | Choosing compute | VMs vs App Service vs Container Apps vs AKS vs Functions decision guide | D | A | done | docs review (Microsoft Learn) |
+| 6 | `app-service` | App Service | plans & scaling; deployment slots; Java/Spring deploys; always-on & health checks | D | A | done | docs review (Microsoft Learn) |
+| 7 | `container-apps` | Container Apps | environments; revisions & traffic split; KEDA scaling; Dapr | D | A | done | docs review (Microsoft Learn) |
+| 8 | `aks` | AKS | node pools; networking (kubenet, CNI overlay); workload identity; upgrades | X | A | done | docs review (Microsoft Learn) |
+| 9 | `functions` | Azure Functions | triggers & bindings; plans (Consumption, Flex, Premium); cold starts; Durable Functions | D | A | done | docs review (Microsoft Learn) |
 | **M2** | | **Data** | | | | | |
-| 10 | `storage-accounts` | Storage accounts | Blob tiers; redundancy (LRS→GZRS); SAS vs MI access; lifecycle rules | D | B | written | |
-| 11 | `azure-sql-postgres` | Azure SQL & Postgres Flexible Server | tiers; HA & read replicas; connection pooling (PgBouncer); backups & PITR | D | B | written | |
-| 12 | `cosmos-db` | Cosmos DB | partition keys; RUs; the five consistency levels; change feed | X | B | written | |
-| 13 | `redis-cache` | Azure Cache for Redis | tiers; eviction; clustering; cache-aside with Spring | D | B | written | |
+| 10 | `storage-accounts` | Storage accounts | Blob tiers; redundancy (LRS→GZRS); SAS vs MI access; lifecycle rules | D | B | done | docs review (Microsoft Learn) |
+| 11 | `azure-sql-postgres` | Azure SQL & Postgres Flexible Server | tiers; HA & read replicas; connection pooling (PgBouncer); backups & PITR | D | B | done | docs review (Microsoft Learn) |
+| 12 | `cosmos-db` | Cosmos DB | partition keys; RUs; the five consistency levels; change feed | X | B | done | docs review (Microsoft Learn) |
+| 13 | `redis-cache` | Azure Cache for Redis | tiers; eviction; clustering; cache-aside with Spring | D | B | done | docs review (Microsoft Learn) |
 | **M3** | | **Integration** | | | | | |
-| 14 | `messaging-choice` | Service Bus vs Event Hubs vs Event Grid | queues & topics; sessions & DLQ; partitions & consumer groups; event routing | X | B | written | |
-| 15 | `api-management` | API Management | policies; products & subscriptions; rate limiting; versioning | D | B | written | |
+| 14 | `messaging-choice` | Service Bus vs Event Hubs vs Event Grid | queues & topics; sessions & DLQ; partitions & consumer groups; event routing | X | B | done | docs review (Microsoft Learn) |
+| 15 | `api-management` | API Management | policies; products & subscriptions; rate limiting; versioning | D | B | done | docs review (Microsoft Learn) |
 | **M4** | | **Networking & security** | | | | | |
-| 16 | `vnet-private-endpoints` | VNets & private endpoints | subnets & NSGs; private endpoint vs service endpoint; private DNS zones; hub-spoke | X | B | written | |
-| 17 | `key-vault` | Key Vault | secrets, keys & certs; RBAC vs access policies; Spring Cloud Azure integration; rotation | D | B | written | |
-| 18 | `front-door-gateway` | Front Door & Application Gateway | global vs regional; WAF; routing rules; choosing a load balancer | D | B | written | |
+| 16 | `vnet-private-endpoints` | VNets & private endpoints | subnets & NSGs; private endpoint vs service endpoint; private DNS zones; hub-spoke | X | B | done | docs review (Microsoft Learn) |
+| 17 | `key-vault` | Key Vault | secrets, keys & certs; RBAC vs access policies; Spring Cloud Azure integration; rotation | D | B | done | docs review (Microsoft Learn) |
+| 18 | `front-door-gateway` | Front Door & Application Gateway | global vs regional; WAF; routing rules; choosing a load balancer | D | B | done | docs review (Microsoft Learn) |
 | **M5** | | **Operations & architecture** | | | | | |
-| 19 | `monitor-app-insights` | Monitor & Application Insights | Log Analytics & KQL; App Insights Java agent; alerts; distributed tracing | D | C | written | |
-| 20 | `bicep-terraform` | Bicep & Terraform | ARM vs Bicep; modules; Terraform azurerm; what-if & drift | D | C | written | |
-| 21 | `devops-pipelines` | CI/CD pipelines | Azure DevOps vs GitHub Actions; OIDC federation; environments & approvals | D | C | written | |
-| 22 | `cost-management` | Cost management | pricing models (reserved, savings plans, spot); budgets; common cost leaks | D | C | written | |
-| 23 | `azure-openai` | Azure OpenAI & AI Foundry | deployments & quotas (TPM); content filters; RAG with AI Search; Spring AI | D | C | written | |
-| 24 | `well-architected` | Well-Architected & reliability | the five pillars; reliability patterns; disaster recovery (RTO/RPO) | D | C | written | |
-| 25 | `spring-on-azure` | Spring apps on Azure end to end | reference architecture; identity-first config; observability; migration options | X | C | written | |
+| 19 | `monitor-app-insights` | Monitor & Application Insights | Log Analytics & KQL; App Insights Java agent; alerts; distributed tracing | D | C | done | docs review (Microsoft Learn) |
+| 20 | `bicep-terraform` | Bicep & Terraform | ARM vs Bicep; modules; Terraform azurerm; what-if & drift | D | C | done | docs review (Microsoft Learn) |
+| 21 | `devops-pipelines` | CI/CD pipelines | Azure DevOps vs GitHub Actions; OIDC federation; environments & approvals | D | C | done | docs review (Microsoft Learn) |
+| 22 | `cost-management` | Cost management | pricing models (reserved, savings plans, spot); budgets; common cost leaks | D | C | done | docs review (Microsoft Learn) |
+| 23 | `azure-openai` | Azure OpenAI & AI Foundry | deployments & quotas (TPM); content filters; RAG with AI Search; Spring AI | D | C | done | docs review (Microsoft Learn) |
+| 24 | `well-architected` | Well-Architected & reliability | the five pillars; reliability patterns; disaster recovery (RTO/RPO) | D | C | done | docs review (Microsoft Learn) |
+| 25 | `spring-on-azure` | Spring apps on Azure end to end | reference architecture; identity-first config; observability; migration options | X | C | done | docs review (Microsoft Learn) |
 | **M6** | | **Drill** | | | | | |
-| ★ | `tricky-azure` | Tricky Azure (timed) | 50 mixed scenario puzzles | X | C | written | |
+| ★ | `tricky-azure` | Tricky Azure (timed) | 50 mixed scenario puzzles | X | C | done | docs review (Microsoft Learn) |
