@@ -12,12 +12,12 @@
 | Track | Topics | todo | written | done |
 |---|---|---|---|---|
 | Java & JVM (`java`) | 28 | 10 | 18 | 0 |
-| Spring & Spring Boot (`spring`) | 27 | 9 | 18 | 0 |
+| Spring & Spring Boot (`spring`) | 27 | 0 | 27 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 7 | 15 | 0 |
 | Node.js (`nodejs`) | 21 | 0 | 21 | 0 |
 | Azure (`azure`) | 26 | 8 | 18 | 0 |
-| **Total** | **149** | **43** | **106** | **0** |
+| **Total** | **149** | **34** | **115** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -27,7 +27,7 @@
 | 2 | java-C | Java & JVM | 10 topics: `threads-executors`, `java-memory-model`, `locks-synchronized`, `completablefuture`, `virtual-threads`, `concurrency-bugs`, `java-versions`, `profiling-jfr`, `io-nio`, `tricky-java` | pending | |
 | 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | done | 9 written, 65 concept puzzles, extras for scopes/conditions/aop-order/trace; uncertain: 6.1 @Transactional on tx listeners, Modulith property name, graceful shutdown default 3.4, 6.2 @Fallback/background bootstrap |
 | 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | done | 9 written, 61 concept puzzles, 5 extras (testing intro, groups, backpressure, OSIV, derived queries); uncertain: RestTemplate deprecation wording, Reactor Netty pool defaults, 6.2 rollbackOn, pgjdbc readOnly mode, Hibernate batch SQL |
-| 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | pending | |
+| 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | done | 9 written incl. tricky-spring (50 Qs); 55 concept puzzles, 6 extras (outbox, storm, shedlock, memory, startup); uncertain: Security 6 chain-order startup failure version, Boot 3.x property minors, readiness after ApplicationReadyEvent |
 | 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | done | 8 written, 59 scenario puzzles, extras rollout-strategies/qos-eviction; uncertain: native sidecar GA 1.33, CronJob 100-missed rule, eviction order, JDK cgroup backports |
 | 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | done | 8 written, 59 scenario puzzles, 4 extras (netpol, spread, nodes, shutdown); uncertain: GA versions (nftables 1.33, PVC retention 1.32, unhealthyPodEvictionPolicy 1.31), ingress-nginx retirement dates |
 | 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | pending | |
@@ -109,18 +109,18 @@ Verified by: `docs`. Code language: `java`.
 | 17 | `spring-data` | Spring Data repositories | derived queries; projections; paging & slicing; auditing; custom repos | D | B | written | |
 | 18 | `hikari-pooling` | HikariCP & connection pools | pool sizing; timeouts; leak detection; pool exhaustion incidents | D | B | written | |
 | **M4** | | **Security** | | | | | |
-| 19 | `security-filter-chain` | Security filter chain | SecurityFilterChain beans; authentication flow; method security; CSRF & CORS | X | C | todo | |
-| 20 | `oauth2-jwt` | OAuth2, OIDC & JWT | resource server; JWT validation & JWKS; client credentials; token relay | D | C | todo | |
+| 19 | `security-filter-chain` | Security filter chain | SecurityFilterChain beans; authentication flow; method security; CSRF & CORS | X | C | written | |
+| 20 | `oauth2-jwt` | OAuth2, OIDC & JWT | resource server; JWT validation & JWKS; client credentials; token relay | D | C | written | |
 | **M5** | | **Distributed & async** | | | | | |
-| 21 | `kafka-messaging` | Kafka with Spring | listener containers; offsets & ack modes; retries & DLT; idempotency & outbox | X | C | todo | |
-| 22 | `resilience` | Resilience patterns | Resilience4j circuit breaker, retry, bulkhead & time limiter; retry storms | D | C | todo | |
-| 23 | `caching` | Caching abstraction | @Cacheable semantics & keys; Caffeine vs Redis; stampede & TTLs; self-invocation again | D | C | todo | |
-| 24 | `async-scheduling` | @Async & scheduling | executors; @Scheduled & ShedLock; virtual threads in Boot 3.2+; context propagation | D | C | todo | |
+| 21 | `kafka-messaging` | Kafka with Spring | listener containers; offsets & ack modes; retries & DLT; idempotency & outbox | X | C | written | |
+| 22 | `resilience` | Resilience patterns | Resilience4j circuit breaker, retry, bulkhead & time limiter; retry storms | D | C | written | |
+| 23 | `caching` | Caching abstraction | @Cacheable semantics & keys; Caffeine vs Redis; stampede & TTLs; self-invocation again | D | C | written | |
+| 24 | `async-scheduling` | @Async & scheduling | executors; @Scheduled & ShedLock; virtual threads in Boot 3.2+; context propagation | D | C | written | |
 | **M6** | | **Production** | | | | | |
-| 25 | `aot-native` | AOT & native image | GraalVM native; reachability metadata; startup vs throughput; CRaC | X | C | todo | |
-| 26 | `startup-performance` | Startup & runtime performance | lazy init; class-data sharing; graceful shutdown; memory sizing in containers | D | C | todo | |
+| 25 | `aot-native` | AOT & native image | GraalVM native; reachability metadata; startup vs throughput; CRaC | X | C | written | |
+| 26 | `startup-performance` | Startup & runtime performance | lazy init; class-data sharing; graceful shutdown; memory sizing in containers | D | C | written | |
 | **M7** | | **Drill** | | | | | |
-| ★ | `tricky-spring` | Tricky Spring (timed) | 50 mixed puzzles across the track | X | C | todo | |
+| ★ | `tricky-spring` | Tricky Spring (timed) | 50 mixed puzzles across the track | X | C | written | |
 
 ## Kubernetes (`kubernetes`, 25 topics)
 Verified by: `docs`. Code language: `yaml`.

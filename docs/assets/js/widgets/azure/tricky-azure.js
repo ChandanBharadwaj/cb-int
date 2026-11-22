@@ -200,7 +200,7 @@ jobs:
   }
   function reset() {
     gen++; stopTimer(); started = false; answered = false; i = 0; score = 0; misses = [];
-    const pool = Q.filter((q) => mod === 'All' || tmod(q) === mod); deck = shuffle(pool).slice(0, count);
+    const pool = Q.filter((q) => mod === 'All' || tmod(q) === mod); deck = shuffle(pool).slice(0, count).map((q) => { const p = shuffle(q.o.map((_, k) => k)); return { ...q, o: p.map((k) => q.o[k]), a: p.indexOf(q.a) }; });
     bPlay.textContent = '▶ Start'; bStep.textContent = 'Skip ›'; bStep.disabled = true; card.innerHTML = '';
     card.append(el('p', { html: `<b>${deck.length}</b> question${deck.length === 1 ? '' : 's'} (${mod === 'All' ? 'all modules' : mod}), <b>${secs} s</b> each. Decide as you would in an interview: no portal, no docs.`, style: { margin: 0 } }));
     renderStats(); say('Choose a module, how many questions and the time limit, then press Start.');

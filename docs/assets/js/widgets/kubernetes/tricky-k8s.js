@@ -162,7 +162,9 @@ IA.widget('tricky-k8s', (root, ctx) => {
   function reset() {
     gen++; stopTimer(); started = false; answered = false; i = 0; score = 0; misses = [];
     const M = MODS.find(([m]) => m === mod)[1];
-    const pool = Q.filter((q) => !M || M.includes(q.t)); deck = shuffle(pool).slice(0, count);
+    const pool = Q.filter((q) => !M || M.includes(q.t));
+    // shuffle the questions, and the options within each question (the answer moves with its option)
+    deck = shuffle(pool).slice(0, count).map((q) => { const idx = shuffle(q.o.map((_, n) => n)); return Object.assign({}, q, { o: idx.map((n) => q.o[n]), a: idx.indexOf(q.a) }); });
     bPlay.textContent = '▶ Start'; bStep.textContent = 'Skip ›'; bStep.disabled = true; card.innerHTML = '';
     card.append(el('p', { html: `<b>${deck.length}</b> question${deck.length === 1 ? '' : 's'} (${mod === 'All' ? 'all modules' : mod}), <b>${secs} s</b> each. No cluster needed: reason it out, as in an interview.`, style: { margin: 0 } }));
     renderStats(); say('Choose a module, how many questions and the time limit, then press Start.');
