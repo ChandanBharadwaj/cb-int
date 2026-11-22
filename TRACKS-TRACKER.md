@@ -13,11 +13,11 @@
 |---|---|---|---|---|
 | Java & JVM (`java`) | 28 | 20 | 8 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 18 | 9 | 0 |
-| Kubernetes (`kubernetes`) | 25 | 17 | 8 | 0 |
+| Kubernetes (`kubernetes`) | 25 | 9 | 16 | 0 |
 | Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 17 | 9 | 0 |
-| **Total** | **149** | **100** | **49** | **0** |
+| **Total** | **149** | **92** | **57** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -28,7 +28,7 @@
 | 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | done | 9 written, 65 concept puzzles, extras for scopes/conditions/aop-order/trace; uncertain: 6.1 @Transactional on tx listeners, Modulith property name, graceful shutdown default 3.4, 6.2 @Fallback/background bootstrap |
 | 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | pending | |
 | 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | pending | |
-| 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | pending | |
+| 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | done | 8 written, 59 scenario puzzles, extras rollout-strategies/qos-eviction; uncertain: native sidecar GA 1.33, CronJob 100-missed rule, eviction order, JDK cgroup backports |
 | 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | done | 8 written, 59 scenario puzzles, 4 extras (netpol, spread, nodes, shutdown); uncertain: GA versions (nftables 1.33, PVC retention 1.32, unhealthyPodEvictionPolicy 1.31), ingress-nginx retirement dates |
 | 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | pending | |
 | 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | done | 8 written, 60 runnable puzzles, 6 Pyodide presets each; uncertain: class-body comprehension scope, 3.13 dataclass __eq__, Pydantic lax-mode coercions, runtime_checkable data members |
@@ -128,15 +128,15 @@ Verified by: `docs`. Code language: `yaml`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Foundations** | | | | | |
-| 1 | `containers-vs-vms` | Containers vs VMs | namespaces & cgroups; image layers; OCI; why orchestration | F | A | todo | |
-| 2 | `architecture` | Cluster architecture | API server, etcd, scheduler & controller manager; kubelet & kube-proxy; request path of kubectl apply | D | A | todo | |
-| 3 | `pods` | Pods | multi-container patterns (sidecar, init); pod lifecycle & phases; restart policy; native sidecars (1.29+) | F | A | todo | |
-| 4 | `desired-state` | Desired state & reconciliation | declarative vs imperative; controllers & control loops; owner references & garbage collection; labels & selectors | D | A | todo | |
+| 1 | `containers-vs-vms` | Containers vs VMs | namespaces & cgroups; image layers; OCI; why orchestration | F | A | written | |
+| 2 | `architecture` | Cluster architecture | API server, etcd, scheduler & controller manager; kubelet & kube-proxy; request path of kubectl apply | D | A | written | |
+| 3 | `pods` | Pods | multi-container patterns (sidecar, init); pod lifecycle & phases; restart policy; native sidecars (1.29+) | F | A | written | |
+| 4 | `desired-state` | Desired state & reconciliation | declarative vs imperative; controllers & control loops; owner references & garbage collection; labels & selectors | D | A | written | |
 | **M1** | | **Workloads** | | | | | |
-| 5 | `deployments-rollouts` | Deployments & rollouts | ReplicaSets; rolling update (maxSurge/maxUnavailable); rollback; blue-green & canary | D | A | todo | |
-| 6 | `statefulsets-jobs` | StatefulSet, DaemonSet & Jobs | stable identity & ordered rollout; DaemonSets; Jobs & CronJobs; backoff & concurrency | D | A | todo | |
-| 7 | `probes` | Probes | liveness vs readiness vs startup; probe-induced outages; tuning for JVM warm-up | D | A | todo | |
-| 8 | `resources-qos` | Requests, limits & QoS | scheduling on requests; CPU throttling (CFS); OOMKilled; QoS classes & eviction | X | A | todo | |
+| 5 | `deployments-rollouts` | Deployments & rollouts | ReplicaSets; rolling update (maxSurge/maxUnavailable); rollback; blue-green & canary | D | A | written | |
+| 6 | `statefulsets-jobs` | StatefulSet, DaemonSet & Jobs | stable identity & ordered rollout; DaemonSets; Jobs & CronJobs; backoff & concurrency | D | A | written | |
+| 7 | `probes` | Probes | liveness vs readiness vs startup; probe-induced outages; tuning for JVM warm-up | D | A | written | |
+| 8 | `resources-qos` | Requests, limits & QoS | scheduling on requests; CPU throttling (CFS); OOMKilled; QoS classes & eviction | X | A | written | |
 | **M2** | | **Networking** | | | | | |
 | 9 | `services` | Services | ClusterIP, NodePort & LoadBalancer; kube-proxy (iptables/IPVS); EndpointSlices; headless services | D | B | written | |
 | 10 | `ingress-gateway` | Ingress & Gateway API | ingress controllers; TLS termination; Gateway API resources; path routing | D | B | written | |
