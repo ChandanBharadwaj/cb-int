@@ -797,3 +797,8 @@ a.tn-t:hover { background: var(--surface-2); text-decoration: none; }
 .pg-console { margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--code-bg, #0f1320); color: #e6e9f2; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; }
 .pg-console .pc-err { color: #ff8a8a; }
 .pg-console .pc-warn { color: #ffd166; }
+
+/* long tokens (property names, FQCNs, URLs in inline code) wrap instead of widening the page on phones */
+main.wrap { overflow-wrap: anywhere; }
+main.wrap pre, main.wrap table, main.wrap svg text { overflow-wrap: normal; }
+.tldr > *, .stats > *, .fm-cards > *, .intro-top > *, .ib-steps > *, .rw-flow > *, .pz-opts > * { min-width: 0; }

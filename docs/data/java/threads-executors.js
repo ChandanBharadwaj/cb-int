@@ -97,7 +97,7 @@ spring:
     execution:
       shutdown:
         await-termination: true
-        await-termination-period: 20s`, lang: 'yaml' },
+        await-termination-period: 20s`, fixLang: 'yaml' },
     { title: 'Service freezes only at peak traffic',
       symptom: 'Under peak load the service stops responding completely. CPU drops to almost zero. A restart fixes it until the next peak.',
       diagnose: `jcmd <pid> Thread.print

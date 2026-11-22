@@ -11,20 +11,20 @@
 ## Status board
 | Track | Topics | todo | written | done |
 |---|---|---|---|---|
-| Java & JVM (`java`) | 28 | 10 | 18 | 0 |
+| Java & JVM (`java`) | 28 | 0 | 28 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 0 | 27 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 0 | 25 | 0 |
 | Python (`python`) | 22 | 0 | 22 | 0 |
 | Node.js (`nodejs`) | 21 | 0 | 21 | 0 |
 | Azure (`azure`) | 26 | 0 | 26 | 0 |
-| **Total** | **149** | **10** | **139** | **0** |
+| **Total** | **149** | **0** | **149** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
 |---|---|---|---|---|---|
 | 1 | java-A | Java & JVM | 10 topics: `references-pass-by-value`, `equals-hashcode`, `immutability-records`, `generics-erasure`, `exceptions`, `strings-interning`, `sealed-pattern-matching`, `lambdas-functional`, `streams-collectors`, `optional` | done | 10 written, 63 runnable puzzles; uncertain: precise-rethrow retry helper compiles, OpenJDK-specific puzzle outputs (List.of contains null, count skips peek), Hibernate/Jackson version claims |
 | 1 | java-B | Java & JVM | 8 topics: `hashmap-internals`, `choosing-collections`, `concurrent-collections`, `class-loading`, `jvm-memory-areas`, `garbage-collection`, `jit-compilation`, `leaks-oom` | done | 8 written, 26 runnable puzzles, extra choosing-collections-bigo; uncertain: OOM array message, object sizes, JIT thresholds, G1/ZGC log formats |
-| 2 | java-C | Java & JVM | 10 topics: `threads-executors`, `java-memory-model`, `locks-synchronized`, `completablefuture`, `virtual-threads`, `concurrency-bugs`, `java-versions`, `profiling-jfr`, `io-nio`, `tricky-java` | pending | |
+| 2 | java-C | Java & JVM | 10 topics: `threads-executors`, `java-memory-model`, `locks-synchronized`, `completablefuture`, `virtual-threads`, `concurrency-bugs`, `java-versions`, `profiling-jfr`, `io-nio`, `tricky-java` | done | 10 written incl. tricky-java (48 Qs, 30 runnable); 34 runnable topic puzzles; uncertain: JFR custom-event puzzle, helpful-NPE static field text, JDK 25 scoped values/structured concurrency status |
 | 1 | spring-A | Spring & Spring Boot | 9 topics: `ioc-di`, `bean-lifecycle-scopes`, `configuration-profiles`, `aop-proxies`, `spring-events`, `auto-configuration`, `starters-dependencies`, `externalized-config`, `actuator-observability` | done | 9 written, 65 concept puzzles, extras for scopes/conditions/aop-order/trace; uncertain: 6.1 @Transactional on tx listeners, Modulith property name, graceful shutdown default 3.4, 6.2 @Fallback/background bootstrap |
 | 1 | spring-B | Spring & Spring Boot | 9 topics: `boot-testing`, `mvc-request-flow`, `errors-validation`, `webflux-reactive`, `http-clients`, `transactions-propagation`, `jpa-n-plus-1`, `spring-data`, `hikari-pooling` | done | 9 written, 61 concept puzzles, 5 extras (testing intro, groups, backpressure, OSIV, derived queries); uncertain: RestTemplate deprecation wording, Reactor Netty pool defaults, 6.2 rollbackOn, pgjdbc readOnly mode, Hibernate batch SQL |
 | 2 | spring-C | Spring & Spring Boot | 9 topics: `security-filter-chain`, `oauth2-jwt`, `kafka-messaging`, `resilience`, `caching`, `async-scheduling`, `aot-native`, `startup-performance`, `tricky-spring` | done | 9 written incl. tricky-spring (50 Qs); 55 concept puzzles, 6 extras (outbox, storm, shedlock, memory, startup); uncertain: Security 6 chain-order startup failure version, Boot 3.x property minors, readiness after ApplicationReadyEvent |
@@ -68,18 +68,18 @@ Verified by: `java`. Code language: `java`.
 | 17 | `jit-compilation` | JIT compilation | interpreter → C1 → C2 tiers; inlining & escape analysis; deoptimization; warm-up & microbenchmark traps (JMH) | X | B | written | |
 | 18 | `leaks-oom` | Memory leaks & OOM | OOM kinds; leak patterns (static maps, ThreadLocal, listeners); heap dumps & MAT; container memory limits | X | B | written | |
 | **M3** | | **Concurrency** | | | | | |
-| 19 | `threads-executors` | Threads & executors | thread lifecycle; ThreadPoolExecutor params & rejection; sizing pools; shutdown | D | C | todo | |
-| 20 | `java-memory-model` | Java Memory Model | happens-before; volatile; safe publication; double-checked locking; final-field semantics | X | C | todo | |
-| 21 | `locks-synchronized` | Locks & synchronized | monitors; ReentrantLock & Conditions; ReadWriteLock & StampedLock; fairness | X | C | todo | |
-| 22 | `completablefuture` | CompletableFuture | thenApply vs thenCompose; async executors; exception handling; allOf/anyOf; timeouts | D | C | todo | |
-| 23 | `virtual-threads` | Virtual threads (Java 21) | carrier threads & mounting; pinning (synchronized, native); structured concurrency; when not to use them | X | C | todo | |
-| 24 | `concurrency-bugs` | Concurrency bugs | race conditions; deadlock & livelock; thread dumps; lost updates; atomics & LongAdder | X | C | todo | |
+| 19 | `threads-executors` | Threads & executors | thread lifecycle; ThreadPoolExecutor params & rejection; sizing pools; shutdown | D | C | written | |
+| 20 | `java-memory-model` | Java Memory Model | happens-before; volatile; safe publication; double-checked locking; final-field semantics | X | C | written | |
+| 21 | `locks-synchronized` | Locks & synchronized | monitors; ReentrantLock & Conditions; ReadWriteLock & StampedLock; fairness | X | C | written | |
+| 22 | `completablefuture` | CompletableFuture | thenApply vs thenCompose; async executors; exception handling; allOf/anyOf; timeouts | D | C | written | |
+| 23 | `virtual-threads` | Virtual threads (Java 21) | carrier threads & mounting; pinning (synchronized, native); structured concurrency; when not to use them | X | C | written | |
+| 24 | `concurrency-bugs` | Concurrency bugs | race conditions; deadlock & livelock; thread dumps; lost updates; atomics & LongAdder | X | C | written | |
 | **M4** | | **Modern Java & production** | | | | | |
-| 25 | `java-versions` | Java 8 → 21 tour | LTS timeline; key features per version; migration traps (modules, removed APIs) | F | C | todo | |
-| 26 | `profiling-jfr` | Profiling & JFR | JFR & JMC; async-profiler flame graphs; CPU vs alloc profiling; safepoint bias | X | C | todo | |
-| 27 | `io-nio` | I/O & NIO | blocking vs non-blocking; buffers & channels; memory-mapped files; selectors | D | C | todo | |
+| 25 | `java-versions` | Java 8 → 21 tour | LTS timeline; key features per version; migration traps (modules, removed APIs) | F | C | written | |
+| 26 | `profiling-jfr` | Profiling & JFR | JFR & JMC; async-profiler flame graphs; CPU vs alloc profiling; safepoint bias | X | C | written | |
+| 27 | `io-nio` | I/O & NIO | blocking vs non-blocking; buffers & channels; memory-mapped files; selectors | D | C | written | |
 | **M5** | | **Drill** | | | | | |
-| ★ | `tricky-java` | Tricky Java (timed) | 50 mixed puzzles across the track | X | C | todo | |
+| ★ | `tricky-java` | Tricky Java (timed) | 50 mixed puzzles across the track | X | C | written | |
 
 ## Spring & Spring Boot (`spring`, 27 topics)
 Verified by: `docs`. Code language: `java`.

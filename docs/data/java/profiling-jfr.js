@@ -58,7 +58,7 @@ IA.register({
   <queueSize>8192</queueSize>
   <neverBlock>true</neverBlock>          <!-- drop rather than stall request threads -->
   <appender-ref ref="FILE"/>
-</appender>`, lang: 'text' },
+</appender>`, fixLang: 'text', diagnoseLang: 'bash' },
     { title: 'GC uses 25% of CPU after a feature launch',
       symptom: 'Young GCs went from 2 to 30 per second. Someone suggests a bigger heap.',
       diagnose: `asprof -d 30 -e alloc -f alloc.html <pid>
