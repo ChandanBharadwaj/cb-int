@@ -14,10 +14,10 @@
 | Java & JVM (`java`) | 28 | 28 | 0 | 0 |
 | Spring & Spring Boot (`spring`) | 27 | 27 | 0 | 0 |
 | Kubernetes (`kubernetes`) | 25 | 25 | 0 | 0 |
-| Python (`python`) | 22 | 22 | 0 | 0 |
+| Python (`python`) | 22 | 14 | 8 | 0 |
 | Node.js (`nodejs`) | 21 | 14 | 7 | 0 |
 | Azure (`azure`) | 26 | 26 | 0 | 0 |
-| **Total** | **149** | **142** | **7** | **0** |
+| **Total** | **149** | **134** | **15** | **0** |
 
 ## Agent log
 | Wave | Agent | Track | Slugs | Status | Report |
@@ -31,7 +31,7 @@
 | 1 | kubernetes-A | Kubernetes | 8 topics: `containers-vs-vms`, `architecture`, `pods`, `desired-state`, `deployments-rollouts`, `statefulsets-jobs`, `probes`, `resources-qos` | pending | |
 | 1 | kubernetes-B | Kubernetes | 8 topics: `services`, `ingress-gateway`, `dns-network-policy`, `configmaps-secrets`, `volumes-storage`, `scheduling`, `autoscaling`, `disruptions-pdb` | pending | |
 | 2 | kubernetes-C | Kubernetes | 9 topics: `rbac-security`, `debugging`, `observability`, `helm-kustomize-gitops`, `operators-crds`, `jvm-on-k8s`, `multi-tenancy-cost`, `cluster-upgrades`, `tricky-k8s` | pending | |
-| 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | pending | |
+| 1 | python-A | Python | 8 topics: `data-model`, `scoping-closures`, `dunder-methods`, `iterators-generators`, `decorators`, `context-managers`, `typing`, `dataclasses-pydantic` | done | 8 written, 60 runnable puzzles, 6 Pyodide presets each; uncertain: class-body comprehension scope, 3.13 dataclass __eq__, Pydantic lax-mode coercions, runtime_checkable data members |
 | 2 | python-B | Python | 7 topics: `memory-gc`, `gil`, `dict-internals`, `imports`, `threading-multiprocessing`, `asyncio`, `concurrency-choice` | pending | |
 | 2 | python-C | Python | 7 topics: `packaging`, `pytest`, `performance`, `fastapi`, `errors-logging`, `python-for-java-devs`, `tricky-python` | pending | |
 | 1 | nodejs-A | Node.js | 7 topics: `node-architecture`, `event-loop-phases`, `microtasks-macrotasks`, `modules-cjs-esm`, `npm-dependencies`, `callbacks-promises-async`, `async-errors` | done | 7 written, 25 runnable puzzles; uncertain: ESM nextTick order, return-await ticks, require(esm) version notes, AbortError/TimeoutError names |
@@ -166,14 +166,14 @@ Verified by: `python3`. Code language: `python`.
 | # | slug | Topic | Subtopics | Depth | Agent | Status | Verified |
 |---|---|---|---|---|---|---|---|
 | **M0** | | **Language core** | | | | | |
-| 1 | `data-model` | Everything is an object | names vs objects; identity vs equality; mutability; small-int & string caching | F | A | todo | |
-| 2 | `scoping-closures` | Scope, closures & defaults | LEGB; nonlocal/global; late-binding closures; mutable default arguments | D | A | todo | |
-| 3 | `dunder-methods` | Dunder methods & protocols | __repr__/__eq__/__hash__; operator overloading; container protocols; __slots__ | D | A | todo | |
-| 4 | `iterators-generators` | Iterators & generators | iteration protocol; generators & yield from; laziness; itertools | D | A | todo | |
-| 5 | `decorators` | Decorators | functions as objects; functools.wraps; parameterized decorators; class decorators | D | A | todo | |
-| 6 | `context-managers` | Context managers | with protocol; contextlib; exceptions in __exit__; ExitStack | D | A | todo | |
-| 7 | `typing` | Type hints | generics & Protocols; TypedDict; mypy/pyright; runtime vs static | D | A | todo | |
-| 8 | `dataclasses-pydantic` | Dataclasses & Pydantic | field defaults; frozen & slots; Pydantic v2 validation; when to use which | D | A | todo | |
+| 1 | `data-model` | Everything is an object | names vs objects; identity vs equality; mutability; small-int & string caching | F | A | written | |
+| 2 | `scoping-closures` | Scope, closures & defaults | LEGB; nonlocal/global; late-binding closures; mutable default arguments | D | A | written | |
+| 3 | `dunder-methods` | Dunder methods & protocols | __repr__/__eq__/__hash__; operator overloading; container protocols; __slots__ | D | A | written | |
+| 4 | `iterators-generators` | Iterators & generators | iteration protocol; generators & yield from; laziness; itertools | D | A | written | |
+| 5 | `decorators` | Decorators | functions as objects; functools.wraps; parameterized decorators; class decorators | D | A | written | |
+| 6 | `context-managers` | Context managers | with protocol; contextlib; exceptions in __exit__; ExitStack | D | A | written | |
+| 7 | `typing` | Type hints | generics & Protocols; TypedDict; mypy/pyright; runtime vs static | D | A | written | |
+| 8 | `dataclasses-pydantic` | Dataclasses & Pydantic | field defaults; frozen & slots; Pydantic v2 validation; when to use which | D | A | written | |
 | **M1** | | **Internals** | | | | | |
 | 9 | `memory-gc` | Memory & garbage collection | reference counting; cyclic GC & generations; weakref; memory leaks | X | B | todo | |
 | 10 | `gil` | The GIL & free-threading | what the GIL protects; CPU- vs I/O-bound; PEP 703 free-threaded 3.13 | X | B | todo | |
