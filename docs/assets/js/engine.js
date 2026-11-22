@@ -177,12 +177,18 @@
     yaml: 'true false null',
     js: 'const let var function return if else for while new class extends import from export default async await true false null undefined this',
     go: 'func package import return if else for range go chan select defer type struct interface map var const nil true false',
-    bash: 'if then fi for do done echo export'
+    bash: 'if then fi for do done echo export',
+    bicep: 'param var resource module output targetScope existing for if in true false null',
+    docker: 'FROM RUN COPY ADD CMD ENTRYPOINT ENV ARG WORKDIR EXPOSE USER LABEL VOLUME HEALTHCHECK AS',
+    kql: 'where project summarize by extend join on take top order asc desc count sum avg ago bin let render and or not contains has',
+    text: ''
   };
+  const LANG_ALIAS = { ts: 'js', typescript: 'js', javascript: 'js', json: 'js', node: 'js', py: 'python', yml: 'yaml', sh: 'bash', shell: 'bash', dockerfile: 'docker', kotlin: 'java' };
   function highlight(code, lang) {
-    const kw = new Set((KW[lang] || KW.java).split(' '));
+    lang = LANG_ALIAS[lang] || lang;
+    const kw = new Set((KW[lang] != null ? KW[lang] : KW.java).split(' '));
     const ci = lang === 'sql';
-    const cm = lang === 'python' || lang === 'yaml' || lang === 'bash' ? '#[^\\n]*' : lang === 'sql' || lang === 'lua' ? '--[^\\n]*' : '\\/\\/[^\\n]*';
+    const cm = lang === 'python' || lang === 'yaml' || lang === 'bash' || lang === 'docker' ? '#[^\\n]*' : lang === 'sql' || lang === 'lua' ? '--[^\\n]*' : lang === 'text' ? '(?!)' : '\\/\\/[^\\n]*';
     const re = new RegExp(`(\\/\\*[\\s\\S]*?\\*\\/|${cm})|("(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*')|(\\b\\d+(?:\\.\\d+)?[LlFf]?\\b)|(@[A-Za-z_]\\w*)|([A-Za-z_]\\w*)`, 'g');
     let out = ''; let last = 0; let m;
     while ((m = re.exec(code))) {
@@ -213,8 +219,9 @@
       el('h2', { text: title }), sub ? el('div', { class: 'section-sub', html: sub }) : null));
     return s;
   }
+  let defaultLang = 'sql';   // set per page from the track (catalog `lang`)
   function codeBox(code, lang, title) {
-    const pre = el('pre'); pre.innerHTML = highlight(code.replace(/^\n/, ''), lang || 'sql');
+    const pre = el('pre'); pre.innerHTML = highlight(code.replace(/^\n/, ''), lang || defaultLang);
     return el('div', { class: 'codebox' }, title ? el('div', { class: 'ch' }, el('span', { text: title })) : null, pre);
   }
   IA.codeBox = codeBox;
@@ -249,7 +256,66 @@
       el('div', { class: 'tiny', text: res.rows.length + ' row' + (res.rows.length === 1 ? '' : 's') }));
   }
   IA.resultGrid = resultGrid;
+  /* ---------- Python playground (Pyodide = CPython in WASM, loaded lazily) ---------- */
+  const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  let pyPromise = null;
+  function getPy() {
+    if (!pyPromise) {
+      pyPromise = new Promise((ok, fail) => {
+        const sc = document.createElement('script'); sc.src = PYODIDE + 'pyodide.js';
+        sc.onload = () => window.loadPyodide({ indexURL: PYODIDE }).then(ok, fail);
+        sc.onerror = () => fail(new Error('Could not load Python (pyodide).'));
+        document.head.append(sc);
+      }).catch((e) => { pyPromise = null; throw e; });
+    }
+    return pyPromise;
+  }
+  async function runPython(code) {
+    const py = await getPy();
+    const lines = [];
+    py.setStdout({ batched: (t) => lines.push({ t, k: 'out' }) });
+    py.setStderr({ batched: (t) => lines.push({ t, k: 'err' }) });
+    // fresh globals per run so presets don't leak into each other
+    const ns = py.globals.get('dict')();
+    try { await py.runPythonAsync(code, { globals: ns }); }
+    catch (e) { lines.push({ t: String(e.message || e).trim().split('\n').slice(-6).join('\n'), k: 'err' }); }
+    finally { ns.destroy(); }
+    return lines;
+  }
+
+  /* ---------- JS playground (sandboxed Web Worker; browser JS engine, no Node APIs) ---------- */
+  const WORKER_SRC = `
+    const send = (k, a) => postMessage({ k, t: a.map((x) => { try { return typeof x === 'string' ? x : x instanceof Error ? (x.name + ': ' + x.message) : JSON.stringify(x, null, 0) ?? String(x); } catch (e) { return String(x); } }).join(' ') });
+    console.log = (...a) => send('out', a); console.info = console.log; console.debug = console.log;
+    console.warn = (...a) => send('warn', a); console.error = (...a) => send('err', a);
+    self.onunhandledrejection = (e) => send('err', ['Uncaught (in promise) ' + (e.reason && e.reason.message ? e.reason.name + ': ' + e.reason.message : String(e.reason))]);
+    self.onerror = (m) => { send('err', ['Uncaught ' + m]); };
+    onmessage = async (m) => {
+      try { await (new (Object.getPrototypeOf(async function () {}).constructor)(m.data))(); }
+      catch (e) { send('err', ['Uncaught ' + (e && e.name ? e.name + ': ' + e.message : String(e))]); }
+      postMessage({ k: 'done' });
+    };`;
+  function runJs(code) {
+    return new Promise((ok) => {
+      const url = URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' }));
+      const w = new Worker(url); const lines = []; let idle = null;
+      const finish = (why) => { clearTimeout(hard); clearTimeout(idle); w.terminate(); URL.revokeObjectURL(url); if (why) lines.push({ t: why, k: 'warn' }); ok(lines); };
+      const hard = setTimeout(() => finish('Stopped after 5 s.'), 5000);
+      const settle = () => { clearTimeout(idle); idle = setTimeout(() => finish(), 600); };  // let timers fire, then stop
+      w.onmessage = (m) => { if (m.data.k === 'done') settle(); else { lines.push(m.data); if (idle) settle(); } };
+      w.onerror = (e) => { lines.push({ t: e.message, k: 'err' }); e.preventDefault(); };
+      w.postMessage(code);
+    });
+  }
+  function consoleOut(lines, ms) {
+    const box = el('pre', { class: 'pg-console' });
+    if (!lines.length) box.append(el('span', { class: 'tiny', text: '(no output)' }));
+    lines.forEach((l) => box.append(el('span', { class: 'pc-' + l.k, text: l.t + '\n' })));
+    return el('div', null, box, el('div', { class: 'tiny', text: ms + ' ms' }));
+  }
+
   function playground(host, P) {
+    if (P.kind === 'python' || P.kind === 'js') return codePlayground(host, P);
     const card = el('div', { class: 'card pg' });
     const ta = el('textarea', { class: 'pg-ed', spellcheck: 'false', 'aria-label': 'SQL editor' });
     const out = el('div', { class: 'pg-out' }, el('div', { class: 'tiny', text: 'Press Run (Ctrl+Enter). The first run loads Postgres in your browser (~3 MB).' }));
@@ -287,6 +353,36 @@
     ta.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); go(); } });
     reset.addEventListener('click', async () => { dbPromise = null; out.innerHTML = ''; out.append(el('div', { class: 'tiny', text: 'Database will be recreated on next run.' })); });
   }
+  function codePlayground(host, P) {
+    const py = P.kind === 'python';
+    const card = el('div', { class: 'card pg' });
+    const ta = el('textarea', { class: 'pg-ed', spellcheck: 'false', 'aria-label': py ? 'Python editor' : 'JavaScript editor' });
+    const out = el('div', { class: 'pg-out' }, el('div', { class: 'tiny', text: py ? 'Press Run (Ctrl+Enter). The first run loads Python in your browser (~10 MB, cached after that).' : 'Press Run (Ctrl+Enter). Runs in a sandboxed worker using your browser’s JS engine (V8 in Chrome). Node-only APIs such as process.nextTick, setImmediate and require are not available here.' }));
+    const run = el('button', { class: 'btn primary', text: '▶ Run' });
+    const presets = el('div', { class: 'seg' });
+    const note = el('div', { class: 'pg-note tiny' });
+    const pick = (p) => { ta.value = (p.code || p.sql || '').trim(); note.innerHTML = p.note || ''; };
+    (P.presets || []).forEach((p, i) => {
+      const b = el('button', { text: p.label });
+      b.addEventListener('click', () => { [...presets.children].forEach((x) => x.classList.toggle('on', x === b)); pick(p); });
+      presets.append(b);
+      if (i === 0) { b.classList.add('on'); pick(p); }
+    });
+    card.append(presets, ta, note, el('div', { class: 'w-controls', style: { marginTop: '8px' } }, run), out);
+    host.append(card);
+    async function go() {
+      run.disabled = true; out.innerHTML = ''; out.append(el('div', { class: 'tiny', text: py ? 'Running… (loading Python the first time)' : 'Running…' }));
+      const t0 = performance.now();
+      try {
+        const lines = py ? await runPython((P.setup ? P.setup + '\n' : '') + ta.value) : await runJs(ta.value);
+        out.innerHTML = ''; out.append(consoleOut(lines, (performance.now() - t0).toFixed(0)));
+      } catch (e) { out.innerHTML = ''; out.append(el('div', { class: 'pg-err', text: (e && e.message) || String(e) })); }
+      run.disabled = false;
+    }
+    run.addEventListener('click', go);
+    ta.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); go(); } });
+  }
+  IA.runJs = runJs; IA.runPython = runPython;
 
   /* ---------- puzzles: predict / pick, scored ---------- */
   function puzzles(host, list, slug) {
@@ -299,7 +395,7 @@
     list.forEach((p, i) => {
       const c = el('div', { class: 'card pz reveal' });
       c.append(el('div', { class: 'pz-h' }, el('span', { class: 'qn', text: 'P' + (i + 1) }), el('span', { class: 'pill', text: p.kind || 'predict' }), el('span', { html: p.q })));
-      if (p.code) c.append(codeBox(p.code, p.lang || 'sql'));
+      if (p.code) c.append(codeBox(p.code, p.lang));
       const exp = el('div', { class: 'pz-exp', hidden: true, html: '<b>Why:</b> ' + p.explain });
       const opts = el('div', { class: 'pz-opts' });
       let done = false;
@@ -364,6 +460,14 @@
     const all = flatTopics(track);
     const pos = all.findIndex((t) => t.slug === D.slug);
     const meta = all[pos] || {};
+    defaultLang = D.lang || track.lang || 'sql';
+    const L = defaultLang;
+    const TX = Object.assign({
+      gotchaSub: 'The traps that separate “knows SQL” from “has been paged for SQL”.',
+      codeTitle: 'In your stack', codeLabel: 'Java / Spring', codeSub: 'Where this shows up in JPA, JDBC and Spring.',
+      footer: 'Interview Atlas · Postgres 16+ semantics unless noted.'
+    }, track.text || {});
+    const PG_TITLE = { sql: 'Try it: real Postgres in your browser', python: 'Try it: real Python in your browser', js: 'Try it: JavaScript in your browser' };
     document.title = `${D.title} · ${track.name || ''} · Interview Atlas`;
     const vk = 'ia-visited-' + D.track; const visited = store.get(vk, []);
     if (!visited.includes(D.slug)) { visited.push(D.slug); store.set(vk, visited); }
@@ -409,7 +513,7 @@
         el('div', null, el('div', { class: 'kicker', text: 'Think of it like…' }), el('h3', { html: I.analogy.title }), el('p', { html: I.analogy.text }))));
       s.append(top);
       if (I.steps) s.append(el('div', { class: 'ib-steps reveal' }, I.steps.map((x, i) => el('div', { class: 'card ib-step' },
-        el('div', { class: 'ib-n', text: String(i + 1) }), el('h4', { html: x.t }), el('p', { html: x.d }), x.code ? codeBox(x.code, 'sql') : null))));
+        el('div', { class: 'ib-n', text: String(i + 1) }), el('h4', { html: x.t }), el('p', { html: x.d }), x.code ? codeBox(x.code, x.lang || L) : null))));
       if (I.widget && IA.widgets[I.widget]) { const body = el('div', { class: 'card widget-card reveal', style: { marginTop: '14px' } }); const wb = el('div', { class: 'widget-body' }); body.append(wb); s.append(body);
         try { IA.widgets[I.widget](wb, { el, svg, esc, reduced, sleep, clamp, codeBox }); } catch (e) { console.error(e); } }
       if (I.terms) s.append(el('div', { class: 'card reveal ib-terms', style: { marginTop: '14px' } }, el('div', { class: 'kicker', text: 'Words you will see' }),
@@ -432,12 +536,12 @@
       try { IA.widgets[x.id](body, { el, svg, esc, reduced, css: cssVar, sleep, clamp, codeBox, getDb, resultGrid }); } catch (e) { console.error(e); }
     });
 
-    if (D.playground) playground(add('playground', 'Try it: real Postgres in your browser', 'Playground', 'Pick a preset, edit and run. Nothing leaves your browser.'), D.playground);
+    if (D.playground) playground(add('playground', PG_TITLE[D.playground.kind || 'sql'] || 'Try it', 'Playground', 'Pick a preset, edit and run. Nothing leaves your browser.'), D.playground);
 
     if (D.gotchas && D.gotchas.length) {
-      const s = add('gotchas', 'Nuances & gotchas', 'Gotchas', 'The traps that separate “knows SQL” from “has been paged for SQL”.');
+      const s = add('gotchas', 'Nuances & gotchas', 'Gotchas', TX.gotchaSub);
       s.append(el('div', { class: 'fm-cards reveal' }, D.gotchas.map((g) => el('div', { class: 'fm gt' },
-        el('h4', { html: '⚠ ' + g.trap }), g.code ? codeBox(g.code, 'sql') : null,
+        el('h4', { html: '⚠ ' + g.trap }), g.code ? codeBox(g.code, g.lang || L) : null,
         el('dl', null, el('dt', { text: 'Why' }), el('dd', { html: g.why }), el('dt', { text: 'Fix' }), el('dd', { html: g.fix }))))));
     }
 
@@ -447,8 +551,8 @@
         el('h3', { html: c.title }),
         el('div', { class: 'rw-flow' },
           el('div', { class: 'rw-step s-err' }, el('div', { class: 'kicker', text: '① Symptom' }), el('p', { html: c.symptom })),
-          el('div', { class: 'rw-step s-warn' }, el('div', { class: 'kicker', text: '② Diagnose' }), c.diagnose ? codeBox(c.diagnose, 'sql') : null, c.cause ? el('p', { html: c.cause }) : null),
-          el('div', { class: 'rw-step s-ok' }, el('div', { class: 'kicker', text: '③ Fix' }), el('p', { html: c.fix }), c.fixCode ? codeBox(c.fixCode, 'sql') : null)))));
+          el('div', { class: 'rw-step s-warn' }, el('div', { class: 'kicker', text: '② Diagnose' }), c.diagnose ? codeBox(c.diagnose, c.diagnoseLang || c.lang || L) : null, c.cause ? el('p', { html: c.cause }) : null),
+          el('div', { class: 'rw-step s-ok' }, el('div', { class: 'kicker', text: '③ Fix' }), el('p', { html: c.fix }), c.fixCode ? codeBox(c.fixCode, c.fixLang || c.lang || L) : null)))));
     }
 
     if (D.puzzles && D.puzzles.length) puzzles(add('puzzles', 'Tricky puzzles', 'Puzzles', 'Commit to an answer before you click. Scored.'), D.puzzles, D.slug);
@@ -469,7 +573,7 @@
     }
 
     if (D.code && D.code.length) {
-      const s = add('code', 'In your stack', 'Java / Spring', 'Where this shows up in JPA, JDBC and Spring.');
+      const s = add('code', TX.codeTitle, TX.codeLabel, TX.codeSub);
       const tabs = el('div', { class: 'code-tabs' }); const box = el('div');
       const show = (i) => { [...tabs.children].forEach((t, j) => t.classList.toggle('active', i === j)); const c = D.code[i]; box.innerHTML = ''; box.append(codeBox(c.code, c.lang, c.title + ' · ' + c.lang)); if (c.note) box.append(el('div', { class: 'tiny', html: c.note, style: { marginTop: '6px' } })); };
       D.code.forEach((c, i) => { const t = el('button', { class: 'tab', text: c.title }); t.addEventListener('click', () => show(i)); tabs.append(t); });
@@ -479,7 +583,7 @@
     main.append(el('div', { class: 'pager' },
       prev ? el('a', { href: prev.slug + '.html' }, el('div', { class: 'dir', text: '← Previous' }), prev.title) : el('span'),
       next ? el('a', { class: 'next', href: next.slug + '.html' }, el('div', { class: 'dir', text: 'Next →' }), next.title) : null));
-    main.append(el('footer', { class: 'foot', html: 'Interview Atlas · Postgres 16+ semantics unless noted.' }));
+    main.append(el('footer', { class: 'foot', html: TX.footer }));
 
     const links = {}; const tocLinks = {};
     secs.forEach(([id, label]) => { const a = el('a', { href: '#' + id, text: label }); links[id] = a; navInner.append(a); const t = el('a', { href: '#' + id, text: label }); tocLinks[id] = t; onPage.append(t); });

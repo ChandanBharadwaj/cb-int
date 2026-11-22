@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<title>Kubernetes · Interview Atlas</title>
+<meta name="description" content="Pods to operators: workloads, networking, storage, scheduling, autoscaling and running the JVM on Kubernetes. K8s 1.30+.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=JSON.parse(localStorage.getItem("ia-theme")||"\"light\"");if(t!=="auto")document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+</head>
+<body>
+<div id="top"></div>
+<main class="wrap">
+  <section class="ix-hero">
+    <div class="eyebrow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"><span class="pill accent" id="count"></span>
+      <span class="pill depth-F">F fundamentals</span><span class="pill depth-D">D deep</span><span class="pill depth-X">X internals + edge cases</span></div>
+    <h1>Kubernetes, <span class='grad'>from Pod to production.</span></h1>
+    <p>Work through the modules in order, or jump in anywhere. Topics shown faded aren't built yet.</p>
+    <div class="ix-tools"><label class="search" for="q"><span aria-hidden="true">⌕</span><input id="q" type="search" placeholder="Search: probes, OOMKilled, HPA…" autocomplete="off"></label></div>
+  </section>
+  <div id="mods"></div>
+  <footer class="foot">Interview Atlas · Kubernetes 1.30+ unless noted.</footer>
+</main>
+<script src="../assets/js/catalog.js"></script>
+<script src="../assets/js/engine.js"></script>
+<script>
+(function () {
+  const { el, store } = IA.h;
+  const T = IA_CATALOG.tracks.find((t) => t.id === 'kubernetes');
+  document.getElementById('top').append(IA.topbar('../', [{ t: 'Home', href: '../index.html' }, { t: T.name }]));
+  const visited = new Set(store.get('ia-visited-kubernetes', []));
+  const all = IA.flatTopics(T);
+  document.getElementById('count').textContent = all.filter((x) => x.status === 'done').length + ' / ' + all.length + ' topics live';
+  const host = document.getElementById('mods'); const cards = [];
+  T.modules.forEach((m) => {
+    const grid = el('div', { class: 'ix-grid' });
+    const sec = el('section', { class: 'ix-domain reveal', id: m.id }, el('div', { class: 'ix-domain-head' }, el('div', { class: 'di', text: m.id }), el('div', null, el('h2', { text: m.name }), el('p', { text: m.topics.length + ' topics' }))), grid);
+    m.topics.forEach((t) => {
+      const live = t.status === 'done';
+      const c = el(live ? 'a' : 'div', { class: 'sys-card' + (live ? '' : ' soon'), href: live ? t.slug + '.html' : null },
+        el('div', { class: 'corner' }, el('span', { class: 'dp depth-' + t.depth, text: t.depth }), visited.has(t.slug) ? el('span', { class: 'seen', text: '✓' }) : null),
+        el('span', { class: 'num', text: t.n }), el('h3', { text: t.title }), live ? null : el('div', { class: 'ex', text: 'coming soon' }));
+      grid.append(c); cards.push([c, (t.title + ' ' + t.slug + ' ' + m.name).toLowerCase(), sec]);
+    });
+    host.append(sec);
+  });
+  document.getElementById('q').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    cards.forEach(([c, s]) => { c.hidden = q && !s.includes(q); });
+    host.querySelectorAll('.ix-domain').forEach((s) => { s.hidden = ![...s.querySelectorAll('.sys-card')].some((c) => !c.hidden); });
+  });
+  IA.revealAll(document.body);
+})();
+</script>
+</body>
+</html>

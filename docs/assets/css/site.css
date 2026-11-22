@@ -792,3 +792,8 @@ a.tn-t:hover { background: var(--surface-2); text-decoration: none; }
 .mini-tables tr.hl td { background: var(--accent-soft); }
 .mini-tables .key { color: var(--accent); font-weight: 700; }
 .mini-arrow { align-self: center; font-size: 22px; color: var(--text-3); }
+
+/* code playground console (python / js) */
+.pg-console { margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--code-bg, #0f1320); color: #e6e9f2; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; }
+.pg-console .pc-err { color: #ff8a8a; }
+.pg-console .pc-warn { color: #ffd166; }

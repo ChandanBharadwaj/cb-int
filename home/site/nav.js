@@ -7,9 +7,11 @@
   var ROOT = new URL('../', SCRIPT.src).href;            // site root (…/cb-int/)
   var INDEX_URL = new URL('search-index.json', SCRIPT.src).href;
   var TRACKS = {
-    'sql-atlas': 'SQL & Postgres', 'cb-ml': 'AI/ML & GenAI', 'cb-ml-transformers': 'Transformers',
-    'cb-sys-design': 'System Design', 'dsa-interview': 'DSA'
+    'atlas-sql': 'SQL & Postgres', 'atlas-java': 'Java', 'atlas-spring': 'Spring', 'atlas-python': 'Python',
+    'atlas-nodejs': 'Node.js', 'atlas-kubernetes': 'Kubernetes', 'atlas-azure': 'Azure',
+    'cb-ml': 'AI/ML & GenAI', 'cb-ml-transformers': 'Transformers', 'cb-sys-design': 'System Design', 'dsa-interview': 'DSA'
   };
+  var LABEL = Object.assign({ atlas: 'Interview Atlas' }, TRACKS);
   var here = location.href.split('#')[0].split('?')[0];
   var onHome = here === ROOT || here === ROOT + 'index.html';
   var rel = here.indexOf(ROOT) === 0 ? here.slice(ROOT.length) : '';
@@ -163,7 +165,7 @@ mark{background:var(--mark);color:var(--markink);border-radius:3px;padding:0 1px
       // jump to the section: its id if it has one, otherwise a text fragment (#:~:text=)
       var href = ROOT + p.u + (h ? (h[1] ? '#' + encodeURIComponent(h[1]) : '#:~:text=' + encodeURIComponent(h[0]).replace(/-/g, '%2D')) : '');
       return '<a class="r' + (i === 0 ? ' sel' : '') + '" role="option" href="' + esc(href) + '">' +
-        '<div class="rt"><span class="tt">' + hilite(p.t, r.toks) + '</span><span class="tk">' + esc(TRACKS[p.k] || p.k) + '</span></div>' +
+        '<div class="rt"><span class="tt">' + hilite(p.t, r.toks) + '</span><span class="tk">' + esc(LABEL[p.k] || p.k) + '</span></div>' +
         (h ? '<div class="hd">› ' + hilite(h[0], r.toks) + '</div>' : '') +
         '<div class="sn">' + hilite(snippet(p, r.toks), r.toks) + '</div></a>';
     }).join('') + (r.total > r.list.length ? '<div class="msg">Showing the top ' + r.list.length + ' of ' + r.total + '. Add a word to narrow it down.</div>' : '');

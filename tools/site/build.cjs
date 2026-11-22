@@ -16,7 +16,7 @@ const TEXT_CAP = 30000;   // characters of body text indexed per page
 
 // [source in repo, destination under OUT, track key]
 const TRACKS = [
-  ['docs', 'sql-atlas'],
+  ['docs', 'atlas'],          // Interview Atlas: SQL, Java, Spring, Kubernetes, Python, Node.js, Azure
   ['cb-ml', 'cb-ml'],
   ['cb-ml-transformers', 'cb-ml-transformers'],
   ['cb-sys-design/docs', 'cb-sys-design'],
@@ -89,6 +89,32 @@ function extract() {
   return { title: clean(h1 && h1.textContent) || clean(document.title), headings, text: clean(clone.textContent) };
 }
 
+// Search filter key: each Atlas track gets its own (atlas-java, atlas-sql, …); other sites use their folder.
+function trackKey(rel) {
+  const p = rel.split('/');
+  if (p[0] === 'atlas') return p.length > 2 ? 'atlas-' + p[1] : 'atlas';
+  return p[0];
+}
+
+// The Atlas used to be served at sql-atlas/. Keep every old URL working (hash and query included).
+function redirectStubs() {
+  const atlas = path.join(OUT, 'atlas');
+  let n = 0;
+  for (const f of htmlFiles(atlas)) {
+    const rel = path.relative(atlas, f).split(path.sep).join('/');
+    const stub = path.join(OUT, 'sql-atlas', rel);
+    const up = '../'.repeat(rel.split('/').length);
+    const target = up + 'atlas/' + rel;
+    fs.mkdirSync(path.dirname(stub), { recursive: true });
+    fs.writeFileSync(stub, '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex" data-cb-redirect>' +
+      '<title>Moved</title><link rel="canonical" href="' + target + '"><meta http-equiv="refresh" content="0; url=' + target + '">' +
+      '<script>location.replace(' + JSON.stringify(target) + ' + location.search + location.hash)</script></head>' +
+      '<body><p>This page moved to <a href="' + target + '">' + target + '</a>.</p></body></html>');
+    n++;
+  }
+  console.log('Wrote ' + n + ' sql-atlas/ redirect stubs');
+}
+
 async function buildIndex() {
   const { chromium } = require('playwright');
   const srv = await serve(OUT);
@@ -108,7 +134,7 @@ async function buildIndex() {
         await pg.goto(base + rel, { waitUntil: 'load', timeout: 45000 });
         await pg.waitForTimeout(250);
         const r = await pg.evaluate(extract);
-        pages.push({ u: rel.replace(/(^|\/)index\.html$/, '$1'), t: r.title, k: rel.split('/')[0], h: r.headings, x: r.text.slice(0, TEXT_CAP) });
+        pages.push({ u: rel.replace(/(^|\/)index\.html$/, '$1'), t: r.title, k: trackKey(rel), h: r.headings, x: r.text.slice(0, TEXT_CAP) });
       } catch (e) { failed.push(rel + ': ' + e.message.split('\n')[0]); }
     }
     await pg.close();
@@ -130,7 +156,7 @@ function inject() {
     const rel = path.relative(OUT, f).split(path.sep).join('/');
     if (rel === 'index.html' || rel.endsWith('404.html')) continue;   // landing loads it itself; 404s are standalone
     let html = fs.readFileSync(f, 'utf8');
-    if (html.includes('data-cb-global')) continue;
+    if (html.includes('data-cb-global') || html.includes('data-cb-redirect')) continue;
     const src = path.relative(path.dirname(f), nav).split(path.sep).join('/');
     const tag = '<script src="' + src + '" defer data-cb-global></script>';
     const i = html.toLowerCase().lastIndexOf('</body>');
@@ -143,6 +169,7 @@ function inject() {
 (async () => {
   assemble();
   await buildIndex();
+  redirectStubs();
   inject();
   console.log('Site ready in ' + path.relative(REPO, OUT) + '/');
 })().catch((e) => { console.error(e); process.exit(1); });

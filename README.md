@@ -7,7 +7,7 @@ One repo and one GitHub Pages site for every track. Each track keeps its origina
 | Track | Folder in this repo | URL | Formerly |
 |---|---|---|---|
 | Landing page | `home/` | `/cb-int/` | (new) |
-| SQL & Postgres Atlas | `docs/` | `/cb-int/sql-atlas/` | cb-int |
+| Interview Atlas: SQL & Postgres, Java & JVM, Spring & Spring Boot, Kubernetes, Python, Node.js, Azure | `docs/` (one folder per track) | `/cb-int/atlas/<track>/` (old `/cb-int/sql-atlas/…` links redirect) | cb-int |
 | Modern AI/ML & GenAI | `cb-ml/` | `/cb-int/cb-ml/` | cb-ml |
 | The Missing Middle (Transformers) | `cb-ml-transformers/` | `/cb-int/cb-ml-transformers/` | cb-ml-transformers |
 | System Design Atlas | `cb-sys-design/` (site in `cb-sys-design/docs/`) | `/cb-int/cb-sys-design/` | cb-sys-design |
@@ -42,4 +42,4 @@ cd _site && python3 -m http.server 8000
 The widget and search live in `home/site/nav.js`, and the landing page is `home/index.html`.
 You can also serve a single track straight from its own folder. For the SQL Atlas, `cd docs && python3 -m http.server 8000` works as before.
 
-SQL Atlas: see `TRACKER.md` for progress and `tools/AUTHORING.md` for the page schema.
+Interview Atlas: `TRACKER.md` (SQL) and `TRACKS-TRACKER.md` (Java, Spring, Kubernetes, Python, Node.js, Azure) track progress. `tools/AUTHORING.md` is the page schema, `tools/AGENT_BRIEF.md` the brief for content agents, and `python3 tools/gen_shells.py` regenerates the HTML shells and track pages.
