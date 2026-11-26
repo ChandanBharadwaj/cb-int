@@ -93,6 +93,7 @@ try:
 except TypeError as e:
     print("TypeError:", e)`, note: '<code>dumps</code>/<code>loads</code> work on strings; <code>dump</code>/<code>load</code> on files.' },
       { label: 'CSV (+ io.StringIO)', code: `import csv, io
+from pathlib import Path
 
 rows = [{"name": "Asha", "age": 31}, {"name": "Ben, Jr.", "age": 28}]
 
@@ -101,7 +102,7 @@ with open("people.csv", "w", newline="", encoding="utf-8") as f:
     w.writeheader()
     w.writerows(rows)
 
-print(open("people.csv", encoding="utf-8").read())   # note the quoted comma
+print(Path("people.csv").read_text(encoding="utf-8"))   # note the quoted comma
 
 with open("people.csv", newline="", encoding="utf-8") as f:
     people = list(csv.DictReader(f))
