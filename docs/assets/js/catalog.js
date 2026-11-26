@@ -195,10 +195,23 @@ window.IA_CATALOG = {
     },
     {
       id: 'python', name: 'Python', icon: '🐍', status: 'live', lang: 'python',
-      blurb: 'The data model, closures, generators and decorators through the GIL, asyncio, packaging and FastAPI. Runs real Python in your browser.',
-      index: { hero: 'Python, <span class=\'grad\'>idioms to internals.</span>', search: 'Search: GIL, asyncio, decorators…', desc: 'The data model, closures, generators and decorators through the GIL, asyncio, packaging and FastAPI. Runs real Python in your browser.' },
+      blurb: 'From your first script and basic types to the data model, closures, generators and decorators through the GIL, asyncio, packaging and FastAPI. Runs real Python in your browser.',
+      index: { hero: 'Python, <span class=\'grad\'>from zero to internals.</span>', search: 'Search: GIL, asyncio, decorators…', desc: 'The data model, closures, generators and decorators through the GIL, asyncio, packaging and FastAPI. Runs real Python in your browser.' },
       text: { gotchaSub: 'The traps that separate “writes Python” from “knows why Python did that”.', codeTitle: 'In your stack', codeLabel: 'Python', codeSub: 'Production-style Python, plus the Java equivalent where it helps.', footer: 'Interview Atlas · CPython 3.12+ unless noted.', metaDesc: 'Animated visual, a real Python playground in your browser, gotchas, real-world incidents, puzzles and interview questions.' },
       modules: [
+        { id: 'B', name: 'Basics (start here)', topics: [
+          { n: 'B1', slug: 'py-setup-first-program', title: 'Running Python', sub: 'installing; REPL vs script; print; comments; indentation as syntax', depth: 'F', status: 'todo' },
+          { n: 'B2', slug: 'variables-types', title: 'Variables & basic types', sub: 'int/float/bool/str/None; dynamic typing; type(); casting', depth: 'F', status: 'todo' },
+          { n: 'B3', slug: 'operators-expressions', title: 'Operators & expressions', sub: 'arithmetic (//, %, **); comparison chaining; and/or/not; truthiness', depth: 'F', status: 'todo' },
+          { n: 'B4', slug: 'strings', title: 'Strings', sub: 'slicing; f-strings; common methods; immutability; split/join', depth: 'F', status: 'todo' },
+          { n: 'B5', slug: 'control-flow', title: 'if / for / while', sub: 'range; break/continue; for…else; match (3.10+)', depth: 'F', status: 'todo' },
+          { n: 'B6', slug: 'lists-tuples', title: 'Lists & tuples', sub: 'indexing & slicing; append/extend; sort vs sorted; unpacking', depth: 'F', status: 'todo' },
+          { n: 'B7', slug: 'dicts-sets', title: 'Dicts & sets', sub: 'CRUD & .get; iteration; defaultdict/Counter; set operations', depth: 'F', status: 'todo' },
+          { n: 'B8', slug: 'functions-basics', title: 'Functions', sub: 'def/return; default & keyword args; *args/**kwargs; lambda', depth: 'F', status: 'todo' },
+          { n: 'B9', slug: 'comprehensions', title: 'Comprehensions', sub: 'list/dict/set comprehensions; filters; nesting; when not to', depth: 'F', status: 'todo' },
+          { n: 'B10', slug: 'classes-basics', title: 'Classes & OOP basics', sub: '__init__ & self; methods; inheritance & super(); vs Java classes', depth: 'F', status: 'todo' },
+          { n: 'B11', slug: 'exceptions-basics', title: 'Errors & exceptions', sub: 'try/except/else/finally; raise; custom exceptions', depth: 'F', status: 'todo' },
+          { n: 'B12', slug: 'files-modules-stdlib', title: 'Files, modules & stdlib', sub: 'open/with; json & csv; import; pip & venv; pathlib', depth: 'F', status: 'todo' }]},
         { id: 'M0', name: 'Language core', topics: [
           { n: '1', slug: 'data-model', title: 'Everything is an object', sub: 'names vs objects; identity vs equality; mutability; small-int & string caching', depth: 'F', status: 'done' },
           { n: '2', slug: 'scoping-closures', title: 'Scope, closures & defaults', sub: 'LEGB; nonlocal/global; late-binding closures; mutable default arguments', depth: 'D', status: 'done' },
@@ -302,6 +315,38 @@ window.IA_CATALOG = {
           { n: '25', slug: 'spring-on-azure', title: 'Spring apps on Azure end to end', sub: 'reference architecture; identity-first config; observability; migration options', depth: 'X', status: 'done' }]},
         { id: 'M6', name: 'Drill', topics: [
           { n: '★', slug: 'tricky-azure', title: 'Tricky Azure (timed)', sub: '50 mixed scenario puzzles', depth: 'X', status: 'done' }]}
+      ]
+    },
+    {
+      id: 'spark', name: 'Spark & PySpark', icon: '⚡', status: 'live', lang: 'python',
+      blurb: 'From what Spark is and your first DataFrame to shuffles, join strategies, AQE, Structured Streaming and Delta Lake.',
+      index: { hero: 'Spark & PySpark, <span class=\'grad\'>from zero to tuning.</span>', search: 'Search: shuffle, broadcast join, AQE…', desc: 'From what Spark is and your first DataFrame to shuffles, join strategies, AQE, Structured Streaming and Delta Lake.' },
+      text: { gotchaSub: 'The traps that turn a 5-minute job into a 5-hour one.', codeTitle: 'In your stack', codeLabel: 'PySpark', codeSub: 'Production-style PySpark, plus the Java/Scala view where it helps.', footer: 'Interview Atlas · Spark 3.5+/4.x unless noted.', metaDesc: 'Animated visuals, gotchas, real-world incidents, puzzles and interview questions for Spark and PySpark.' },
+      modules: [
+        { id: 'M0', name: 'Basics (start here)', topics: [
+          { n: '1', slug: 'why-spark', title: 'Why Spark?', sub: 'big data; MapReduce to Spark; cluster vs laptop', depth: 'F', status: 'todo' },
+          { n: '2', slug: 'spark-architecture', title: 'Spark architecture', sub: 'driver; executors; cluster manager; SparkSession', depth: 'F', status: 'todo' },
+          { n: '3', slug: 'rdd-basics', title: 'RDD basics', sub: 'RDDs; transformations vs actions; laziness', depth: 'F', status: 'todo' },
+          { n: '4', slug: 'dataframes-basics', title: 'DataFrame basics', sub: 'create & read; schema; select/filter/withColumn; show', depth: 'F', status: 'todo' },
+          { n: '5', slug: 'pyspark-setup', title: 'Setting up PySpark', sub: 'pip install pyspark; Java requirement; notebooks & Databricks', depth: 'F', status: 'todo' }]},
+        { id: 'M1', name: 'Working with data', topics: [
+          { n: '6', slug: 'reading-writing', title: 'Reading & writing data', sub: 'CSV/JSON/Parquet; schemas; save modes; partitionBy', depth: 'F', status: 'todo' },
+          { n: '7', slug: 'transformations-aggregations', title: 'Transformations & aggregations', sub: 'groupBy/agg; joins; window functions', depth: 'D', status: 'todo' },
+          { n: '8', slug: 'spark-sql', title: 'Spark SQL', sub: 'temp views; SQL vs DataFrame API; catalog', depth: 'D', status: 'todo' },
+          { n: '9', slug: 'udfs', title: 'UDFs', sub: 'Python UDF cost; pandas UDFs; built-ins first', depth: 'D', status: 'todo' },
+          { n: '10', slug: 'nulls-types-dates', title: 'Nulls, types & dates', sub: 'null semantics; casting; timestamps & time zones', depth: 'D', status: 'todo' }]},
+        { id: 'M2', name: 'Internals & performance', topics: [
+          { n: '11', slug: 'lazy-eval-dag', title: 'Lazy evaluation & the DAG', sub: 'jobs, stages, tasks; Catalyst; explain()', depth: 'D', status: 'todo' },
+          { n: '12', slug: 'partitions-shuffle', title: 'Partitions & shuffle', sub: 'partitioning; repartition vs coalesce; shuffle cost', depth: 'X', status: 'todo' },
+          { n: '13', slug: 'join-strategies', title: 'Join strategies', sub: 'broadcast; sort-merge; skew handling', depth: 'X', status: 'todo' },
+          { n: '14', slug: 'caching-persistence', title: 'Caching & persistence', sub: 'cache vs persist; storage levels; when to unpersist', depth: 'D', status: 'todo' },
+          { n: '15', slug: 'memory-tuning-aqe', title: 'Memory, tuning & AQE', sub: 'executor memory; AQE; spill; config knobs', depth: 'X', status: 'todo' }]},
+        { id: 'M3', name: 'Production', topics: [
+          { n: '16', slug: 'structured-streaming', title: 'Structured Streaming', sub: 'micro-batch; watermarks; checkpoints; output modes', depth: 'X', status: 'todo' },
+          { n: '17', slug: 'delta-lake-lakehouse', title: 'Delta Lake & the lakehouse', sub: 'ACID tables; time travel; MERGE; OPTIMIZE', depth: 'D', status: 'todo' },
+          { n: '18', slug: 'spark-for-java-devs', title: 'Spark for Java developers', sub: 'Scala/Java API vs PySpark; Py4J; JVM tuning habits', depth: 'D', status: 'todo' }]},
+        { id: 'M4', name: 'Drill', topics: [
+          { n: '★', slug: 'tricky-spark', title: 'Tricky Spark (timed)', sub: '40 mixed puzzles', depth: 'X', status: 'todo' }]}
       ]
     },
     { id: 'ai-agents', name: 'AI agents (Python)', icon: '✦', status: 'soon', blurb: 'Coming later.', modules: [] }
