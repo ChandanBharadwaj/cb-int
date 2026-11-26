@@ -62,7 +62,7 @@ IA.register({
       diagnose: 'The job runs as a service principal. A cleanup removed broad grants on the <code>ml</code> schema.',
       cause: 'The principal lost <code>EXECUTE</code> on the model (and/or USE SCHEMA).',
       fix: 'Grant explicitly to the job’s principal and manage grants as code.',
-      fixCode: `GRANT USE CATALOG ON CATALOG main TO \`sp-scoring\`;\nGRANT USE SCHEMA ON SCHEMA main.ml TO \`sp-scoring\`;\nGRANT EXECUTE ON FUNCTION main.ml.churn TO \`sp-scoring\`;   -- models use EXECUTE; check syntax for your workspace`, lang: 'sql' }
+      fixCode: `GRANT USE CATALOG ON CATALOG main TO \`sp-scoring\`;\nGRANT USE SCHEMA ON SCHEMA main.ml TO \`sp-scoring\`;\n-- plus EXECUTE on the model main.ml.churn: grant it in Catalog Explorer or with\n-- the GRANT syntax for models documented for your workspace (models are UC securables)`, lang: 'sql' }
   ],
   puzzles: [
     { kind: 'concept', q: 'You want batch scoring to always use the current production model without code changes. Which URI?', options: ['<code>models:/main.ml.churn/3</code>', '<code>models:/main.ml.churn@champion</code>', '<code>runs:/&lt;run_id&gt;/model</code>', '<code>models:/churn/Production</code>'], answer: 1, explain: 'An alias URI resolves at load time. Version and run URIs are fixed; <code>/Production</code> is the legacy stage syntax, not used by UC.' },
