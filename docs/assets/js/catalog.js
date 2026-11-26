@@ -75,14 +75,14 @@ window.IA_CATALOG = {
       text: { gotchaSub: 'The traps that separate “writes Java” from “debugs Java in production”.', codeTitle: 'In production', codeLabel: 'Production code', codeSub: 'Code you can lift into a real service.', footer: 'Interview Atlas · Java 21 LTS semantics unless noted.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
-          { n: 'B1', slug: 'java-setup-first-program', title: 'Running Java', sub: 'JDK vs JRE; javac & java; public static void main; JShell; single-file java Main.java', depth: 'F', status: 'todo' },
-          { n: 'B2', slug: 'java-types-variables', title: 'Variables & primitive types', sub: 'int/long/double/boolean/char; wrappers & autoboxing; var; casting & overflow', depth: 'F', status: 'todo' },
-          { n: 'B3', slug: 'java-operators-control-flow', title: 'Operators & control flow', sub: 'arithmetic & integer division; if/else; switch expressions; for/while/do & enhanced for', depth: 'F', status: 'todo' },
-          { n: 'B4', slug: 'java-arrays-strings-basics', title: 'Arrays & strings basics', sub: 'array creation & indexing; String methods; StringBuilder; text blocks', depth: 'F', status: 'todo' },
-          { n: 'B5', slug: 'java-methods', title: 'Methods', sub: 'parameters & return; overloading; static vs instance; varargs', depth: 'F', status: 'todo' },
-          { n: 'B6', slug: 'java-classes-objects', title: 'Classes & objects', sub: 'fields & constructors; this; static members; access modifiers; packages & imports', depth: 'F', status: 'todo' },
-          { n: 'B7', slug: 'java-inheritance-interfaces', title: 'Inheritance & interfaces', sub: 'extends & super; overriding; abstract classes; interfaces & default methods; polymorphism', depth: 'F', status: 'todo' },
-          { n: 'B8', slug: 'java-collections-basics', title: 'Collections basics', sub: 'List/Set/Map; ArrayList & HashMap; iterating; List.of & immutability', depth: 'F', status: 'todo' }]},
+          { n: 'B1', slug: 'java-setup-first-program', title: 'Running Java', sub: 'JDK vs JRE; javac & java; public static void main; JShell; single-file java Main.java', depth: 'F', status: 'done' },
+          { n: 'B2', slug: 'java-types-variables', title: 'Variables & primitive types', sub: 'int/long/double/boolean/char; wrappers & autoboxing; var; casting & overflow', depth: 'F', status: 'done' },
+          { n: 'B3', slug: 'java-operators-control-flow', title: 'Operators & control flow', sub: 'arithmetic & integer division; if/else; switch expressions; for/while/do & enhanced for', depth: 'F', status: 'done' },
+          { n: 'B4', slug: 'java-arrays-strings-basics', title: 'Arrays & strings basics', sub: 'array creation & indexing; String methods; StringBuilder; text blocks', depth: 'F', status: 'done' },
+          { n: 'B5', slug: 'java-methods', title: 'Methods', sub: 'parameters & return; overloading; static vs instance; varargs', depth: 'F', status: 'done' },
+          { n: 'B6', slug: 'java-classes-objects', title: 'Classes & objects', sub: 'fields & constructors; this; static members; access modifiers; packages & imports', depth: 'F', status: 'done' },
+          { n: 'B7', slug: 'java-inheritance-interfaces', title: 'Inheritance & interfaces', sub: 'extends & super; overriding; abstract classes; interfaces & default methods; polymorphism', depth: 'F', status: 'done' },
+          { n: 'B8', slug: 'java-collections-basics', title: 'Collections basics', sub: 'List/Set/Map; ArrayList & HashMap; iterating; List.of & immutability', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Language core', topics: [
           { n: '1', slug: 'references-pass-by-value', title: 'References & pass-by-value', sub: 'stack vs heap refs; why Java is always pass-by-value; == vs equals; aliasing bugs', depth: 'F', status: 'done' },
           { n: '2', slug: 'equals-hashcode', title: 'equals & hashCode contract', sub: 'the contract; mutable keys in HashMap; records’ generated methods; Comparable consistency', depth: 'D', status: 'done' },
@@ -126,12 +126,12 @@ window.IA_CATALOG = {
       text: { gotchaSub: 'The traps that separate “uses Spring” from “knows what Spring is doing for you”.', codeTitle: 'In your stack', codeLabel: 'Spring Boot', codeSub: 'Configuration and code for a Spring Boot 3.x service.', footer: 'Interview Atlas · Spring Boot 3.x / Spring Framework 6.x unless noted.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
-          { n: 'B1', slug: 'spring-what-is-spring', title: 'What Spring & Boot are', sub: 'Spring vs Spring Boot; starters; auto-configuration in one sentence; the ecosystem', depth: 'F', status: 'todo' },
-          { n: 'B2', slug: 'spring-first-app', title: 'Your first Boot app', sub: 'start.spring.io; Maven/Gradle; @SpringBootApplication; embedded Tomcat; run & package', depth: 'F', status: 'todo' },
-          { n: 'B3', slug: 'spring-layers', title: 'Controller, service, repository', sub: 'layered architecture; @Component stereotypes; constructor injection; package layout', depth: 'F', status: 'todo' },
-          { n: 'B4', slug: 'spring-rest-basics', title: 'REST controller basics', sub: '@RestController; @GetMapping/@PostMapping; path & query params; JSON with Jackson; status codes', depth: 'F', status: 'todo' },
-          { n: 'B5', slug: 'spring-config-basics', title: 'Configuration basics', sub: 'application.properties/yml; @Value; @ConfigurationProperties; profiles intro', depth: 'F', status: 'todo' },
-          { n: 'B6', slug: 'spring-data-jpa-basics', title: 'Data JPA basics', sub: '@Entity & @Id; JpaRepository; derived queries; H2 vs Postgres; ddl-auto', depth: 'F', status: 'todo' }]},
+          { n: 'B1', slug: 'spring-what-is-spring', title: 'What Spring & Boot are', sub: 'Spring vs Spring Boot; starters; auto-configuration in one sentence; the ecosystem', depth: 'F', status: 'done' },
+          { n: 'B2', slug: 'spring-first-app', title: 'Your first Boot app', sub: 'start.spring.io; Maven/Gradle; @SpringBootApplication; embedded Tomcat; run & package', depth: 'F', status: 'done' },
+          { n: 'B3', slug: 'spring-layers', title: 'Controller, service, repository', sub: 'layered architecture; @Component stereotypes; constructor injection; package layout', depth: 'F', status: 'done' },
+          { n: 'B4', slug: 'spring-rest-basics', title: 'REST controller basics', sub: '@RestController; @GetMapping/@PostMapping; path & query params; JSON with Jackson; status codes', depth: 'F', status: 'done' },
+          { n: 'B5', slug: 'spring-config-basics', title: 'Configuration basics', sub: 'application.properties/yml; @Value; @ConfigurationProperties; profiles intro', depth: 'F', status: 'done' },
+          { n: 'B6', slug: 'spring-data-jpa-basics', title: 'Data JPA basics', sub: '@Entity & @Id; JpaRepository; derived queries; H2 vs Postgres; ddl-auto', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Spring core', topics: [
           { n: '1', slug: 'ioc-di', title: 'IoC & dependency injection', sub: 'ApplicationContext; constructor vs field injection; @Qualifier/@Primary; circular deps', depth: 'F', status: 'done' },
           { n: '2', slug: 'bean-lifecycle-scopes', title: 'Bean lifecycle & scopes', sub: 'instantiate → populate → init → destroy; BeanPostProcessor; scopes & scoped proxies; prototype-in-singleton trap', depth: 'D', status: 'done' },
@@ -176,12 +176,12 @@ window.IA_CATALOG = {
       text: { gotchaSub: 'The traps that separate “can kubectl apply” from “has been paged for a cluster”.', codeTitle: 'Manifests & Java tie-in', codeLabel: 'YAML / Java', codeSub: 'Manifests, commands and Spring settings that go with this topic.', footer: 'Interview Atlas · Kubernetes 1.30+ unless noted.', metaDesc: 'Animated visual, gotchas, real-world incidents, puzzles and interview questions. Kubernetes 1.30+.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
-          { n: 'B1', slug: 'docker-basics', title: 'Docker basics', sub: 'images vs containers; Dockerfile; build, run, ports; registries', depth: 'F', status: 'todo' },
-          { n: 'B2', slug: 'k8s-local-cluster', title: 'A local cluster', sub: 'kind / minikube / Docker Desktop; kubeconfig & contexts', depth: 'F', status: 'todo' },
-          { n: 'B3', slug: 'kubectl-basics', title: 'kubectl basics', sub: 'get/describe/logs/exec; apply vs create; namespaces; -o yaml', depth: 'F', status: 'todo' },
-          { n: 'B4', slug: 'k8s-yaml-manifests', title: 'Reading YAML manifests', sub: 'apiVersion/kind/metadata/spec; labels & selectors; multi-doc files', depth: 'F', status: 'todo' },
-          { n: 'B5', slug: 'first-deployment-service', title: 'First Deployment & Service', sub: 'deploy an app; scale; expose with a Service; port-forward', depth: 'F', status: 'todo' },
-          { n: 'B6', slug: 'configmaps-secrets-basics', title: 'ConfigMaps & Secrets basics', sub: 'env vars vs mounted files; creating them; Secrets are base64, not encrypted', depth: 'F', status: 'todo' }]},
+          { n: 'B1', slug: 'docker-basics', title: 'Docker basics', sub: 'images vs containers; Dockerfile; build, run, ports; registries', depth: 'F', status: 'done' },
+          { n: 'B2', slug: 'k8s-local-cluster', title: 'A local cluster', sub: 'kind / minikube / Docker Desktop; kubeconfig & contexts', depth: 'F', status: 'done' },
+          { n: 'B3', slug: 'kubectl-basics', title: 'kubectl basics', sub: 'get/describe/logs/exec; apply vs create; namespaces; -o yaml', depth: 'F', status: 'done' },
+          { n: 'B4', slug: 'k8s-yaml-manifests', title: 'Reading YAML manifests', sub: 'apiVersion/kind/metadata/spec; labels & selectors; multi-doc files', depth: 'F', status: 'done' },
+          { n: 'B5', slug: 'first-deployment-service', title: 'First Deployment & Service', sub: 'deploy an app; scale; expose with a Service; port-forward', depth: 'F', status: 'done' },
+          { n: 'B6', slug: 'configmaps-secrets-basics', title: 'ConfigMaps & Secrets basics', sub: 'env vars vs mounted files; creating them; Secrets are base64, not encrypted', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Foundations', topics: [
           { n: '1', slug: 'containers-vs-vms', title: 'Containers vs VMs', sub: 'namespaces & cgroups; image layers; OCI; why orchestration', depth: 'F', status: 'done' },
           { n: '2', slug: 'architecture', title: 'Cluster architecture', sub: 'API server, etcd, scheduler & controller manager; kubelet & kube-proxy; request path of kubectl apply', depth: 'D', status: 'done' },
@@ -271,14 +271,14 @@ window.IA_CATALOG = {
       text: { gotchaSub: 'The traps that separate “writes Node” from “knows what the event loop is doing”.', codeTitle: 'In your stack', codeLabel: 'Node / TS', codeSub: 'Production-style Node.js, plus the Java equivalent where it helps.', footer: 'Interview Atlas · Node.js 22 LTS unless noted.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
-          { n: 'B1', slug: 'node-setup-first-script', title: 'Running Node', sub: 'installing (nvm); node REPL & scripts; npm init; package.json scripts', depth: 'F', status: 'todo' },
-          { n: 'B2', slug: 'js-variables-types', title: 'Variables & types', sub: 'let/const/var; primitives vs objects; typeof; == vs ===', depth: 'F', status: 'todo' },
-          { n: 'B3', slug: 'js-functions-basics', title: 'Functions', sub: 'declarations vs arrows; default & rest params; closures intro; this basics', depth: 'F', status: 'todo' },
-          { n: 'B4', slug: 'js-objects-arrays', title: 'Objects & arrays', sub: 'object literals; destructuring & spread; map/filter/reduce; JSON', depth: 'F', status: 'todo' },
-          { n: 'B5', slug: 'js-control-flow-errors', title: 'Control flow & errors', sub: 'if/switch/loops; for…of vs for…in; try/catch/finally; throwing Error', depth: 'F', status: 'todo' },
-          { n: 'B6', slug: 'js-classes-modules', title: 'Classes & modules', sub: 'class syntax & extends; import/export (ESM); require (CJS)', depth: 'F', status: 'todo' },
-          { n: 'B7', slug: 'js-async-basics', title: 'Async basics', sub: 'callbacks; promises; async/await; why Node is non-blocking', depth: 'F', status: 'todo' },
-          { n: 'B8', slug: 'node-first-http-server', title: 'Your first HTTP server', sub: 'http module; Express hello world; routes & JSON; reading env vars', depth: 'F', status: 'todo' }]},
+          { n: 'B1', slug: 'node-setup-first-script', title: 'Running Node', sub: 'installing (nvm); node REPL & scripts; npm init; package.json scripts', depth: 'F', status: 'done' },
+          { n: 'B2', slug: 'js-variables-types', title: 'Variables & types', sub: 'let/const/var; primitives vs objects; typeof; == vs ===', depth: 'F', status: 'done' },
+          { n: 'B3', slug: 'js-functions-basics', title: 'Functions', sub: 'declarations vs arrows; default & rest params; closures intro; this basics', depth: 'F', status: 'done' },
+          { n: 'B4', slug: 'js-objects-arrays', title: 'Objects & arrays', sub: 'object literals; destructuring & spread; map/filter/reduce; JSON', depth: 'F', status: 'done' },
+          { n: 'B5', slug: 'js-control-flow-errors', title: 'Control flow & errors', sub: 'if/switch/loops; for…of vs for…in; try/catch/finally; throwing Error', depth: 'F', status: 'done' },
+          { n: 'B6', slug: 'js-classes-modules', title: 'Classes & modules', sub: 'class syntax & extends; import/export (ESM); require (CJS)', depth: 'F', status: 'done' },
+          { n: 'B7', slug: 'js-async-basics', title: 'Async basics', sub: 'callbacks; promises; async/await; why Node is non-blocking', depth: 'F', status: 'done' },
+          { n: 'B8', slug: 'node-first-http-server', title: 'Your first HTTP server', sub: 'http module; Express hello world; routes & JSON; reading env vars', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Runtime', topics: [
           { n: '1', slug: 'node-architecture', title: 'Node architecture', sub: 'V8 + libuv; the thread pool; bindings; single-threaded myth', depth: 'F', status: 'done' },
           { n: '2', slug: 'event-loop-phases', title: 'Event-loop phases', sub: 'timers, poll, check & close; setImmediate vs setTimeout; I/O callbacks', depth: 'X', status: 'done' },
@@ -315,12 +315,12 @@ window.IA_CATALOG = {
       text: { gotchaSub: 'The traps that separate “clicked it in the portal” from “runs it in production”.', codeTitle: 'In your stack', codeLabel: 'Bicep / CLI / Java', codeSub: 'Bicep, az CLI and Spring Cloud Azure code for this topic.', footer: 'Interview Atlas · Azure services and limits change; check Microsoft Learn before relying on a number.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
-          { n: 'B1', slug: 'cloud-basics', title: 'Cloud basics', sub: 'IaaS/PaaS/SaaS; shared responsibility; pay-as-you-go; regions', depth: 'F', status: 'todo' },
-          { n: 'B2', slug: 'azure-portal-cli', title: 'Portal & Azure CLI', sub: 'account & subscription; portal tour; az login; resource groups', depth: 'F', status: 'todo' },
-          { n: 'B3', slug: 'azure-services-tour', title: 'Core services tour', sub: 'compute, storage, databases, networking, identity: what to pick for what', depth: 'F', status: 'todo' },
-          { n: 'B4', slug: 'azure-storage-basics', title: 'Storage basics', sub: 'storage accounts; blobs/queues/tables/files; access tiers; SAS intro', depth: 'F', status: 'todo' },
-          { n: 'B5', slug: 'azure-networking-basics', title: 'Networking basics', sub: 'VNets & subnets; NSGs; public vs private IPs; DNS', depth: 'F', status: 'todo' },
-          { n: 'B6', slug: 'azure-first-deploy', title: 'Deploy your first app', sub: 'App Service for a Spring Boot jar; app settings; logs; cleanup', depth: 'F', status: 'todo' }]},
+          { n: 'B1', slug: 'cloud-basics', title: 'Cloud basics', sub: 'IaaS/PaaS/SaaS; shared responsibility; pay-as-you-go; regions', depth: 'F', status: 'done' },
+          { n: 'B2', slug: 'azure-portal-cli', title: 'Portal & Azure CLI', sub: 'account & subscription; portal tour; az login; resource groups', depth: 'F', status: 'done' },
+          { n: 'B3', slug: 'azure-services-tour', title: 'Core services tour', sub: 'compute, storage, databases, networking, identity: what to pick for what', depth: 'F', status: 'done' },
+          { n: 'B4', slug: 'azure-storage-basics', title: 'Storage basics', sub: 'storage accounts; blobs/queues/tables/files; access tiers; SAS intro', depth: 'F', status: 'done' },
+          { n: 'B5', slug: 'azure-networking-basics', title: 'Networking basics', sub: 'VNets & subnets; NSGs; public vs private IPs; DNS', depth: 'F', status: 'done' },
+          { n: 'B6', slug: 'azure-first-deploy', title: 'Deploy your first app', sub: 'App Service for a Spring Boot jar; app settings; logs; cleanup', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Foundations', topics: [
           { n: '1', slug: 'azure-hierarchy', title: 'Tenants to resources', sub: 'Entra tenant; management groups; subscriptions; resource groups & ARM', depth: 'F', status: 'done' },
           { n: '2', slug: 'regions-zones', title: 'Regions & availability zones', sub: 'region pairs; zonal vs zone-redundant; SLAs & composite SLAs', depth: 'F', status: 'done' },

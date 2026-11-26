@@ -277,3 +277,12 @@ B1–B12: `py-setup-first-program`, `variables-types`, `operators-expressions`, 
 
 ## Spark & PySpark (`spark`, 19 topics)
 M0 Basics (why-spark, spark-architecture, rdd-basics, dataframes-basics, pyspark-setup), M1 Working with data (reading-writing, transformations-aggregations, spark-sql, udfs, nulls-types-dates), M2 Internals (lazy-eval-dag, partitions-shuffle, join-strategies, caching-persistence, memory-tuning-aqe), M3 Production (structured-streaming, delta-lake-lakehouse, spark-for-java-devs), Drill (tricky-spark, 40 Qs). Status: done. Puzzles are concept questions; playground presets are plain-Python simulations and all run. Flagged claims checked against local PySpark 4.0.1 (ANSI default, CAST_INVALID_INPUT, AQE defaults 64 MB / 5 / 256 MB, UDF wrong-type → NULL, na.fill on NaN, WindowExec warning, withColumnsRenamed/toArrow/try_to_timestamp/max_by). Not checked live: Delta Lake defaults, Structured Streaming version notes, Kubernetes memory-overhead factor. `check_topic.cjs` 19/19.
+
+## Basics (start here) modules: Java, Spring, Node.js, Kubernetes, Azure (34 topics)
+Module `B` added at the front of each track, numbered B1… so existing numbers are unchanged.
+- Java (8): java-setup-first-program, java-types-variables, java-operators-control-flow, java-arrays-strings-basics, java-methods, java-classes-objects, java-inheritance-interfaces, java-collections-basics. 50 runnable puzzles pass (`verify_puzzles.cjs java` 203/203).
+- Spring (6): spring-what-is-spring, spring-first-app, spring-layers, spring-rest-basics, spring-config-basics, spring-data-jpa-basics. Concept puzzles.
+- Node.js (8): node-setup-first-script, js-variables-types, js-functions-basics, js-objects-arrays, js-control-flow-errors, js-classes-modules, js-async-basics, node-first-http-server. 51 runnable puzzles pass (`nodejs` 158/158); all 31 JS presets run.
+- Kubernetes (6): docker-basics, k8s-local-cluster, kubectl-basics, k8s-yaml-manifests, first-deployment-service, configmaps-secrets-basics. Concept puzzles.
+- Azure (6): cloud-basics, azure-portal-cli, azure-services-tour, azure-storage-basics, azure-networking-basics, azure-first-deploy. Concept puzzles.
+`check_topic.cjs` passes on all 34. Not checked against live docs (docs hosts blocked): Spring Boot defaults (ddl-auto, properties vs yml precedence), K8s event TTL / --validate=strict, Azure runtime strings and Bicep API versions, exact JDK launcher error texts.
