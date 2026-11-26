@@ -40,21 +40,21 @@ IA.register({
     kind: 'js',
     presets: [
       { label: 'Simulated: sleep vs retrying assertion', code: `// Simulation: a "toast" appears after a random delay, like a slow API on CI.
-const appearsAfter = () => 200 + Math.random() * 1500;
+const appearsAfter = () => 40 + Math.random() * 300;
 let shownAt;
 function startApp() { shownAt = performance.now() + appearsAfter(); }
 const toastVisible = () => performance.now() >= shownAt;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function fixedSleepTest() { startApp(); await sleep(1000); return toastVisible(); }
-async function retryingTest(timeout = 5000) {
+async function fixedSleepTest() { startApp(); await sleep(200); return toastVisible(); }
+async function retryingTest(timeout = 1000) {
   startApp(); const t0 = performance.now();
-  while (performance.now() - t0 < timeout) { if (toastVisible()) return true; await sleep(50); }
+  while (performance.now() - t0 < timeout) { if (toastVisible()) return true; await sleep(10); }
   return false;
 }
 let a = 0, b = 0;
 for (let i = 0; i < 10; i++) { if (await fixedSleepTest()) a++; if (await retryingTest()) b++; }
-console.log('fixed 1s sleep passes:', a, '/ 10');
+console.log('fixed 200 ms sleep passes:', a, '/ 10');
 console.log('retrying assertion passes:', b, '/ 10');`, note: 'A model of what Playwright’s <code>expect(locator)</code> and Testing Library’s <code>findBy*</code> do: poll a condition until a timeout.' }
     ]
   },

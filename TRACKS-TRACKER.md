@@ -286,3 +286,11 @@ Module `B` added at the front of each track, numbered B1… so existing numbers 
 - Kubernetes (6): docker-basics, k8s-local-cluster, kubectl-basics, k8s-yaml-manifests, first-deployment-service, configmaps-secrets-basics. Concept puzzles.
 - Azure (6): cloud-basics, azure-portal-cli, azure-services-tour, azure-storage-basics, azure-networking-basics, azure-first-deploy. Concept puzzles.
 `check_topic.cjs` passes on all 34. Not checked against live docs (docs hosts blocked): Spring Boot defaults (ddl-auto, properties vs yml precedence), K8s event TTL / --validate=strict, Azure runtime strings and Bicep API versions, exact JDK launcher error texts.
+
+## New tracks: TypeScript, Vue.js, Modern frontend, Databricks (64 topics)
+Each starts with a Basics (start here) module and ends with a timed 40-question drill.
+- TypeScript (`typescript`, 14): basics B1–B6, deeper (generics, utility, mapped/conditional, modules/config, strict, runtime validation), ts-for-java-devs, tricky-typescript. 49 runnable puzzles pass via `verify_puzzles.cjs typescript` (new runner: `node --experimental-strip-types`).
+- Vue.js (`vue`, 17): basics B1–B6, building apps, internals & production, tricky-vue. Concept puzzles.
+- Modern frontend (`frontend`, 17): browser rendering, CRP, modern CSS, rendering modes, hydration/islands, RSC, signals, state, build tools, micro-frontends, web components, Core Web Vitals, a11y, security, caching/PWA, testing, tricky-frontend. Concept puzzles.
+- Databricks (`databricks`, 16): basics B1–B5, data engineering, analytics/ML/ops, tricky-databricks. Concept puzzles.
+`check_topic.cjs`: 64/64. All JS and Python playground presets run (one Vue/TS strict-mode preset and one slow frontend preset fixed to fit the 5 s sandbox). Not checked against live docs (docs hosts blocked): fast-moving version/status claims (Vue 3.5/3.6 Vapor, Nuxt 4, Next.js caching defaults, TC39 Signals stage, Vite/Rolldown, web-vitals v5 field names), Databricks product renames, CLI subcommands and system-table column names.
