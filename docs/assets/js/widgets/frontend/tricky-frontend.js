@@ -104,7 +104,7 @@ IA.widget('tricky-frontend', (root, ctx) => {
     const opts = el('div', { class: 'w-tfe-opts' });
     card.append(el('div', { class: 'w-controls', style: { marginBottom: '0' } }, el('span', { class: 'pill accent', text: q.t }), el('span', { class: 'tiny', text: `#${i + 1}` })), barWrap, el('div', { class: 'w-tfe-q', html: q.q }));
     if (q.code) card.append(ctx.codeBox(q.code, q.l || 'ts'));
-    q.o.forEach((o, j) => { const b = el('button', { html: `<b>${'ABCD'[j]}.</b> ${o}` }); b.addEventListener('click', () => answer(j)); opts.append(b); });
+    shuffle(q.o.map((_, j) => j)).forEach((j, pos) => { const b = el('button', { html: `<b>${'ABCD'[pos]}.</b> ${q.o[j]}` }); b.dataset.j = j; b.addEventListener('click', () => answer(j)); opts.append(b); });  // options shuffled per showing
     card.append(opts);
     const paint = () => { bar.style.width = (left / secs) * 100 + '%'; bar.className = left <= 10 ? 'low' : ''; if (!ctx.reduced) bar.style.transition = 'width 1s linear'; };
     paint(); renderStats(); say('Pick an answer before the bar runs out. Skip counts as a miss.');
@@ -116,7 +116,7 @@ IA.widget('tricky-frontend', (root, ctx) => {
     if (answered || !started) return; answered = true; stopTimer();
     const q = deck[i]; const ok = j === q.a;
     if (ok) score++; else misses.push({ q, j });
-    [...card.opts.children].forEach((b, m) => { b.disabled = true; if (m === q.a) b.classList.add('ok'); else if (m === j) b.classList.add('bad'); });
+    [...card.opts.children].forEach((b) => { const m = +b.dataset.j; b.disabled = true; if (m === q.a) b.classList.add('ok'); else if (m === j) b.classList.add('bad'); });
     card.append(el('div', { class: 'pz-exp', html: (j === -1 ? '<b>Time’s up.</b> ' : j === -2 ? '<b>Skipped.</b> ' : ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.x + ` <span class="tiny">More: ${link(q.t)}</span>` }));
     bStep.textContent = i + 1 < deck.length ? 'Next ›' : 'Finish ›'; renderStats();
     say(ok ? 'Correct. Press Next.' : 'Read the explanation, then press Next.');
