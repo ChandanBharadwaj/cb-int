@@ -271,3 +271,9 @@ Verified by: `docs`. Code language: `bash`.
 | 25 | `spring-on-azure` | Spring apps on Azure end to end | reference architecture; identity-first config; observability; migration options | X | C | done | docs review (Microsoft Learn) |
 | **M6** | | **Drill** | | | | | |
 | ★ | `tricky-azure` | Tricky Azure (timed) | 50 mixed scenario puzzles | X | C | done | docs review (Microsoft Learn) |
+
+## Python Basics module (`python`, module B, 12 topics)
+B1–B12: `py-setup-first-program`, `variables-types`, `operators-expressions`, `strings`, `control-flow`, `lists-tuples`, `dicts-sets`, `functions-basics`, `comprehensions`, `classes-basics`, `exceptions-basics`, `files-modules-stdlib`. Status: done. 89 new runnable puzzles pass (`verify_puzzles.cjs python`: 247/247); all Pyodide presets run on CPython; `check_topic.cjs` 12/12.
+
+## Spark & PySpark (`spark`, 19 topics)
+M0 Basics (why-spark, spark-architecture, rdd-basics, dataframes-basics, pyspark-setup), M1 Working with data (reading-writing, transformations-aggregations, spark-sql, udfs, nulls-types-dates), M2 Internals (lazy-eval-dag, partitions-shuffle, join-strategies, caching-persistence, memory-tuning-aqe), M3 Production (structured-streaming, delta-lake-lakehouse, spark-for-java-devs), Drill (tricky-spark, 40 Qs). Status: done. Puzzles are concept questions; playground presets are plain-Python simulations and all run. Flagged claims checked against local PySpark 4.0.1 (ANSI default, CAST_INVALID_INPUT, AQE defaults 64 MB / 5 / 256 MB, UDF wrong-type → NULL, na.fill on NaN, WindowExec warning, withColumnsRenamed/toArrow/try_to_timestamp/max_by). Not checked live: Delta Lake defaults, Structured Streaming version notes, Kubernetes memory-overhead factor. `check_topic.cjs` 19/19.
