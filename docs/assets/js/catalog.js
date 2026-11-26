@@ -388,6 +388,114 @@ window.IA_CATALOG = {
           { n: '★', slug: 'tricky-spark', title: 'Tricky Spark (timed)', sub: '40 mixed puzzles', depth: 'X', status: 'done' }]}
       ]
     },
+    {
+      id: 'typescript', name: 'TypeScript', icon: 'TS', status: 'live', lang: 'ts',
+      blurb: 'From your first type to generics, mapped & conditional types, strict mode and runtime validation.',
+      index: { hero: 'TypeScript, <span class=\'grad\'>from types to type-level tricks.</span>', search: 'Search: generics, narrowing, satisfies…', desc: 'From your first type to generics, mapped & conditional types, strict mode and runtime validation.' },
+      text: { gotchaSub: 'The traps that let a type check pass and production still break.', codeTitle: 'In your stack', codeLabel: 'TypeScript', codeSub: 'Production-style TypeScript, plus the Java view where it helps.', footer: 'Interview Atlas · TypeScript 5.x unless noted.', metaDesc: 'Animated visuals, gotchas, real-world incidents, puzzles and interview questions.' },
+      modules: [
+        { id: 'B', name: 'Basics (start here)', topics: [
+          { n: 'B1', slug: 'ts-why-setup', title: 'Why TypeScript & setup', sub: 'JS + types; tsc & tsconfig; running TS (tsx, Node type stripping); editor feedback', depth: 'F', status: 'todo' },
+          { n: 'B2', slug: 'ts-basic-types', title: 'Basic types', sub: 'string/number/boolean; arrays & tuples; any vs unknown; inference', depth: 'F', status: 'todo' },
+          { n: 'B3', slug: 'ts-functions', title: 'Typing functions', sub: 'parameters & returns; optional & default; overloads; void vs never', depth: 'F', status: 'todo' },
+          { n: 'B4', slug: 'ts-objects-interfaces', title: 'Objects, interfaces & types', sub: 'interface vs type alias; optional & readonly; index signatures; structural typing', depth: 'F', status: 'todo' },
+          { n: 'B5', slug: 'ts-unions-narrowing', title: 'Unions & narrowing', sub: 'union & literal types; typeof/in/instanceof guards; discriminated unions; exhaustiveness', depth: 'F', status: 'todo' },
+          { n: 'B6', slug: 'ts-classes', title: 'Classes & enums', sub: 'access modifiers; parameter properties; abstract; enums vs union literals', depth: 'F', status: 'todo' }]},
+        { id: 'M1', name: 'Going deeper', topics: [
+          { n: '7', slug: 'ts-generics', title: 'Generics', sub: 'generic functions & types; constraints; defaults; inference', depth: 'D', status: 'todo' },
+          { n: '8', slug: 'ts-utility-types', title: 'Utility types', sub: 'Partial/Pick/Omit/Record; ReturnType; Awaited; satisfies', depth: 'D', status: 'todo' },
+          { n: '9', slug: 'ts-mapped-conditional', title: 'Mapped & conditional types', sub: 'keyof & indexed access; mapped types; conditional & infer; template literal types', depth: 'X', status: 'todo' },
+          { n: '10', slug: 'ts-modules-config', title: 'Modules, tsconfig & .d.ts', sub: 'ESM/CJS interop; moduleResolution; declaration files; @types', depth: 'D', status: 'todo' },
+          { n: '11', slug: 'ts-strict-mode', title: 'Strict mode & type safety', sub: 'strict flags; noUncheckedIndexedAccess; type assertions & !; escaping any', depth: 'D', status: 'todo' },
+          { n: '12', slug: 'ts-runtime-validation', title: 'Types vs runtime', sub: 'type erasure; validating input with Zod; branded types; API contracts', depth: 'D', status: 'todo' }]},
+        { id: 'M2', name: 'Practice', topics: [
+          { n: '13', slug: 'ts-for-java-devs', title: 'TypeScript for Java developers', sub: 'structural vs nominal; generics differences; no overloading at runtime; enums', depth: 'F', status: 'todo' },
+          { n: '★', slug: 'tricky-typescript', title: 'Tricky TypeScript (timed)', sub: '40 mixed puzzles', depth: 'X', status: 'todo' }]}
+      ]
+    },
+    {
+      id: 'vue', name: 'Vue.js', icon: 'V', status: 'live', lang: 'ts',
+      blurb: 'From templates and ref to components, Pinia, Router, reactivity internals and Nuxt.',
+      index: { hero: 'Vue.js, <span class=\'grad\'>from templates to internals.</span>', search: 'Search: ref vs reactive, Pinia, slots…', desc: 'From templates and ref to components, Pinia, Router, reactivity internals and Nuxt.' },
+      text: { gotchaSub: 'The traps that make a Vue UI silently stop updating.', codeTitle: 'In your stack', codeLabel: 'Vue', codeSub: 'Vue 3 + TypeScript, script setup.', footer: 'Interview Atlas · Vue 3.x unless noted.', metaDesc: 'Animated visuals, gotchas, real-world incidents, puzzles and interview questions.' },
+      modules: [
+        { id: 'B', name: 'Basics (start here)', topics: [
+          { n: 'B1', slug: 'vue-what-is-vue', title: 'What Vue is', sub: 'progressive framework; Vue vs React vs Angular; Vue 3; ecosystem', depth: 'F', status: 'todo' },
+          { n: 'B2', slug: 'vue-setup-vite', title: 'Setup with Vite', sub: 'create-vue; project layout; dev server & build; SFC files', depth: 'F', status: 'todo' },
+          { n: 'B3', slug: 'vue-template-syntax', title: 'Template syntax', sub: 'interpolation; v-bind & v-on; v-if/v-show; v-for & key', depth: 'F', status: 'todo' },
+          { n: 'B4', slug: 'vue-reactivity-basics', title: 'ref & reactive', sub: 'ref vs reactive; .value; reactivity in templates; common traps', depth: 'F', status: 'todo' },
+          { n: 'B5', slug: 'vue-computed-watch', title: 'computed & watch', sub: 'computed caching; watch vs watchEffect; deep & immediate', depth: 'F', status: 'todo' },
+          { n: 'B6', slug: 'vue-components', title: 'Components, props & emits', sub: 'defineProps/defineEmits; one-way data flow; v-model on components', depth: 'F', status: 'todo' }]},
+        { id: 'M1', name: 'Building apps', topics: [
+          { n: '7', slug: 'vue-composition-api', title: 'Composition API & composables', sub: 'script setup; composables; vs Options API', depth: 'D', status: 'todo' },
+          { n: '8', slug: 'vue-lifecycle', title: 'Lifecycle hooks', sub: 'onMounted/onUnmounted; nextTick; cleanup', depth: 'D', status: 'todo' },
+          { n: '9', slug: 'vue-slots-provide', title: 'Slots & provide/inject', sub: 'default, named & scoped slots; provide/inject', depth: 'D', status: 'todo' },
+          { n: '10', slug: 'vue-router', title: 'Vue Router', sub: 'routes & params; navigation guards; lazy routes', depth: 'D', status: 'todo' },
+          { n: '11', slug: 'vue-pinia', title: 'State with Pinia', sub: 'stores; state/getters/actions; storeToRefs; vs props', depth: 'D', status: 'todo' },
+          { n: '12', slug: 'vue-forms', title: 'Forms & v-model', sub: 'v-model modifiers; validation; async submit', depth: 'F', status: 'todo' }]},
+        { id: 'M2', name: 'Internals & production', topics: [
+          { n: '13', slug: 'vue-reactivity-internals', title: 'Reactivity internals', sub: 'Proxy; track & trigger; effect scheduling; why destructuring loses reactivity', depth: 'X', status: 'todo' },
+          { n: '14', slug: 'vue-rendering-perf', title: 'Rendering & performance', sub: 'virtual DOM & compiler hints; v-memo, shallowRef; KeepAlive; lazy loading', depth: 'X', status: 'todo' },
+          { n: '15', slug: 'vue-ssr-nuxt', title: 'SSR & Nuxt', sub: 'SSR vs SPA; hydration; Nuxt basics; data fetching', depth: 'D', status: 'todo' },
+          { n: '16', slug: 'vue-testing', title: 'Testing Vue', sub: 'Vitest & Vue Test Utils; component tests; Playwright e2e', depth: 'D', status: 'todo' },
+          { n: '★', slug: 'tricky-vue', title: 'Tricky Vue (timed)', sub: '40 mixed puzzles', depth: 'X', status: 'todo' }]}
+      ]
+    },
+    {
+      id: 'frontend', name: 'Modern frontend', icon: '◧', status: 'live', lang: 'ts',
+      blurb: 'How browsers render, rendering modes, hydration, server components, signals, Web Vitals, security and testing.',
+      index: { hero: 'Modern frontend, <span class=\'grad\'>concepts interviewers ask.</span>', search: 'Search: hydration, INP, CSP…', desc: 'How browsers render, rendering modes, hydration, server components, signals, Web Vitals, security and testing.' },
+      text: { gotchaSub: 'The traps behind slow, broken or insecure frontends.', codeTitle: 'In your stack', codeLabel: 'Frontend', codeSub: 'Framework-neutral TypeScript, React and Vue where it helps.', footer: 'Interview Atlas · current browsers unless noted.', metaDesc: 'Animated visuals, gotchas, real-world incidents, puzzles and interview questions.' },
+      modules: [
+        { id: 'B', name: 'Basics (start here)', topics: [
+          { n: 'B1', slug: 'fe-how-browser-works', title: 'How the browser renders', sub: 'HTML→DOM, CSS→CSSOM; layout, paint, composite; reflow', depth: 'F', status: 'todo' },
+          { n: 'B2', slug: 'fe-critical-rendering-path', title: 'Critical rendering path', sub: 'render-blocking CSS/JS; async & defer; preload', depth: 'F', status: 'todo' },
+          { n: 'B3', slug: 'fe-modern-css', title: 'Modern CSS', sub: 'flexbox & grid; container queries; :has(); cascade layers', depth: 'F', status: 'todo' },
+          { n: 'B4', slug: 'fe-rendering-modes', title: 'CSR, SSR, SSG & ISR', sub: 'what each is; trade-offs; when to pick which', depth: 'F', status: 'todo' }]},
+        { id: 'M1', name: 'Modern architecture', topics: [
+          { n: '5', slug: 'fe-hydration-islands', title: 'Hydration, islands & resumability', sub: 'hydration cost; partial/progressive hydration; islands (Astro); resumability (Qwik)', depth: 'D', status: 'todo' },
+          { n: '6', slug: 'fe-server-components', title: 'React Server Components', sub: 'server vs client components; streaming & Suspense; server actions', depth: 'X', status: 'todo' },
+          { n: '7', slug: 'fe-signals', title: 'Signals & fine-grained reactivity', sub: 'signals vs VDOM; Solid, Vue, Angular signals; TC39 proposal', depth: 'D', status: 'todo' },
+          { n: '8', slug: 'fe-state-management', title: 'State management', sub: 'local vs global vs server state; TanStack Query; stores', depth: 'D', status: 'todo' },
+          { n: '9', slug: 'fe-build-tools', title: 'Bundlers & build tools', sub: 'Vite, esbuild, Rollup, Turbopack; tree shaking; code splitting', depth: 'D', status: 'todo' },
+          { n: '10', slug: 'fe-microfrontends', title: 'Micro-frontends', sub: 'module federation; composition strategies; when not to', depth: 'D', status: 'todo' },
+          { n: '11', slug: 'fe-web-components', title: 'Web Components', sub: 'custom elements; shadow DOM; interop with frameworks', depth: 'D', status: 'todo' }]},
+        { id: 'M2', name: 'Quality & production', topics: [
+          { n: '12', slug: 'fe-core-web-vitals', title: 'Core Web Vitals', sub: 'LCP, INP, CLS; measuring (RUM vs lab); fixes', depth: 'D', status: 'todo' },
+          { n: '13', slug: 'fe-accessibility', title: 'Accessibility', sub: 'semantic HTML; ARIA; keyboard & focus; WCAG basics', depth: 'D', status: 'todo' },
+          { n: '14', slug: 'fe-security', title: 'Frontend security', sub: 'XSS & CSP; CORS; CSRF; cookies & token storage', depth: 'D', status: 'todo' },
+          { n: '15', slug: 'fe-caching-pwa', title: 'Caching, CDN & PWA', sub: 'HTTP caching; CDN; service workers; offline', depth: 'D', status: 'todo' },
+          { n: '16', slug: 'fe-testing', title: 'Frontend testing', sub: 'unit vs component vs e2e; Vitest; Playwright; visual tests', depth: 'D', status: 'todo' },
+          { n: '★', slug: 'tricky-frontend', title: 'Tricky frontend (timed)', sub: '40 mixed puzzles', depth: 'X', status: 'todo' }]}
+      ]
+    },
+    {
+      id: 'databricks', name: 'Databricks', icon: '◆', status: 'live', lang: 'python',
+      blurb: 'From workspace and Unity Catalog to medallion pipelines, Auto Loader, Lakeflow, Photon, MLflow and cost.',
+      index: { hero: 'Databricks, <span class=\'grad\'>from workspace to lakehouse.</span>', search: 'Search: Unity Catalog, Auto Loader, Photon…', desc: 'From workspace and Unity Catalog to medallion pipelines, Auto Loader, Lakeflow, Photon, MLflow and cost.' },
+      text: { gotchaSub: 'The traps that cost DBUs, data or a weekend.', codeTitle: 'In your stack', codeLabel: 'Databricks', codeSub: 'PySpark and SQL on Databricks, plus Asset Bundle YAML.', footer: 'Interview Atlas · features as of late 2025; check your runtime.', metaDesc: 'Animated visuals, gotchas, real-world incidents, puzzles and interview questions.' },
+      modules: [
+        { id: 'B', name: 'Basics (start here)', topics: [
+          { n: 'B1', slug: 'dbx-what-is-databricks', title: 'What Databricks is', sub: 'lakehouse idea; Spark + Delta + governance; clouds; vs Snowflake', depth: 'F', status: 'todo' },
+          { n: 'B2', slug: 'dbx-workspace-compute', title: 'Workspace & compute', sub: 'workspace; all-purpose vs job compute; serverless; runtimes', depth: 'F', status: 'todo' },
+          { n: 'B3', slug: 'dbx-notebooks-git', title: 'Notebooks & Git folders', sub: 'notebooks; magic commands; dbutils; Git folders', depth: 'F', status: 'todo' },
+          { n: 'B4', slug: 'dbx-unity-catalog', title: 'Unity Catalog', sub: 'metastore, catalog, schema, table; permissions; volumes; lineage', depth: 'F', status: 'todo' },
+          { n: 'B5', slug: 'dbx-delta-tables', title: 'Delta tables on Databricks', sub: 'managed vs external; MERGE; time travel; OPTIMIZE & liquid clustering', depth: 'F', status: 'todo' }]},
+        { id: 'M1', name: 'Data engineering', topics: [
+          { n: '6', slug: 'dbx-medallion', title: 'Medallion architecture', sub: 'bronze/silver/gold; idempotent loads; SCD type 2', depth: 'D', status: 'todo' },
+          { n: '7', slug: 'dbx-auto-loader', title: 'Auto Loader & ingestion', sub: 'cloudFiles; schema inference & evolution; COPY INTO', depth: 'D', status: 'todo' },
+          { n: '8', slug: 'dbx-declarative-pipelines', title: 'Lakeflow Declarative Pipelines (DLT)', sub: 'streaming tables & materialized views; expectations; CDC with AUTO CDC', depth: 'D', status: 'todo' },
+          { n: '9', slug: 'dbx-jobs-workflows', title: 'Jobs & workflows', sub: 'tasks & dependencies; job clusters; retries; parameters', depth: 'D', status: 'todo' },
+          { n: '10', slug: 'dbx-streaming', title: 'Streaming on Databricks', sub: 'Structured Streaming; triggers; checkpoints; Kafka', depth: 'D', status: 'todo' }]},
+        { id: 'M2', name: 'Analytics, ML & ops', topics: [
+          { n: '11', slug: 'dbx-sql-warehouses', title: 'Databricks SQL & warehouses', sub: 'SQL warehouses; serverless; dashboards; query tuning', depth: 'D', status: 'todo' },
+          { n: '12', slug: 'dbx-performance', title: 'Performance & Photon', sub: 'Photon; caching; data skipping; partitioning vs clustering', depth: 'X', status: 'todo' },
+          { n: '13', slug: 'dbx-mlflow', title: 'MLflow & ML', sub: 'experiments & runs; model registry in UC; serving', depth: 'D', status: 'todo' },
+          { n: '14', slug: 'dbx-asset-bundles', title: 'Asset Bundles & CI/CD', sub: 'bundles; environments; deploying jobs; service principals', depth: 'D', status: 'todo' },
+          { n: '15', slug: 'dbx-cost-governance', title: 'Cost & governance', sub: 'DBUs; cluster policies; system tables; tagging', depth: 'D', status: 'todo' },
+          { n: '★', slug: 'tricky-databricks', title: 'Tricky Databricks (timed)', sub: '40 mixed puzzles', depth: 'X', status: 'todo' }]}
+      ]
+    },
     { id: 'ai-agents', name: 'AI agents (Python)', icon: '✦', status: 'soon', blurb: 'Coming later.', modules: [] }
   ]
 };
