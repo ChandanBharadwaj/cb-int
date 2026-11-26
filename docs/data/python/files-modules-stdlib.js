@@ -10,7 +10,7 @@ IA.register({
     facts: [
       { v: 'once', l: 'a module’s top-level code runs once per process; later imports reuse the object in <code>sys.modules</code>' },
       { v: 'str', l: 'is what <code>csv</code> gives you for every field, and JSON object keys are always strings: <code>{1: "a"}</code> round-trips to <code>{"1": "a"}</code>' },
-      { v: 'locale', l: 'decides <code>open()</code>’s default text encoding (often not UTF-8 on Windows) until UTF-8 mode becomes the default, planned for Python 3.15 (PEP 686). Pass <code>encoding=</code> explicitly' }
+      { v: 'locale', l: 'decides <code>open()</code>’s default text encoding (often not UTF-8 on Windows) until UTF-8 mode became the default in Python 3.15 (PEP 686). Pass <code>encoding=</code> explicitly' }
     ]
   },
   intro: {
