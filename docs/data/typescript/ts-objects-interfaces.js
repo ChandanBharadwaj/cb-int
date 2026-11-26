@@ -38,7 +38,7 @@ IA.register({
   playground: {
     kind: 'js',
     presets: [
-      { label: 'readonly is not frozen', code: `// TS: interface Cfg { readonly port: number }\nconst cfg = { port: 80 };\ncfg.port = 8080;              // TS would refuse; JS allows\nconsole.log(cfg.port);\n\nconst frozen = Object.freeze({ port: 80 });\nfrozen.port = 8080;           // silently ignored (sloppy mode)\nconsole.log(frozen.port);`, note: 'Plain JavaScript (types erased). Only <code>Object.freeze</code> protects at runtime, and only shallowly.' },
+      { label: 'readonly is not frozen', code: `// TS: interface Cfg { readonly port: number }\nconst cfg = { port: 80 };\ncfg.port = 8080;              // TS would refuse; JS allows\nconsole.log(cfg.port);\n\nconst frozen = Object.freeze({ port: 80 });\ntry { frozen.port = 8080; } catch (e) { console.log('strict mode throws:', e.constructor.name); }  // sloppy mode ignores it silently\nconsole.log(frozen.port);`, note: 'Plain JavaScript (types erased). Only <code>Object.freeze</code> protects at runtime, and only shallowly.' },
       { label: 'Missing keys', code: `const stock = { apple: 3 };\nconsole.log(stock["pear"]);           // undefined, no error\nconsole.log("pear" in stock);\nconsole.log(stock["toString"]);       // inherited from Object.prototype!\nconst m = new Map([["apple", 3]]);\nconsole.log(m.get("toString"));`, note: 'Plain JavaScript. A plain object as a dictionary sees prototype keys; a <code>Map</code> does not.' }
     ]
   },
