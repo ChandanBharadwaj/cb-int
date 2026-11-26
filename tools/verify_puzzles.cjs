@@ -13,6 +13,7 @@ const RUNNERS = {
   java: { file: 'Main.java', cmd: (f) => ['java', [f]] },
   python: { file: 'main.py', cmd: (f) => ['python3', ['-I', f]] },
   nodejs: { file: 'main.js', cmd: (f) => ['node', [f]] },
+  typescript: { file: 'main.ts', cmd: (f) => ['node', ['--experimental-strip-types', '--no-warnings', f]] },
 };
 // drills reuse puzzles from the whole track
 const tracks = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(RUNNERS);
