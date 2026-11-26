@@ -83,7 +83,7 @@ window.IA_CATALOG = {
           { n: 'B6', slug: 'java-classes-objects', title: 'Classes & objects', sub: 'fields & constructors; this; static members; access modifiers; packages & imports', depth: 'F', status: 'done' },
           { n: 'B7', slug: 'java-inheritance-interfaces', title: 'Inheritance & interfaces', sub: 'extends & super; overriding; abstract classes; interfaces & default methods; polymorphism', depth: 'F', status: 'done' },
           { n: 'B8', slug: 'java-collections-basics', title: 'Collections basics', sub: 'List/Set/Map; ArrayList & HashMap; iterating; List.of & immutability', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-java-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-java-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Language core', topics: [
           { n: '1', slug: 'references-pass-by-value', title: 'References & pass-by-value', sub: 'stack vs heap refs; why Java is always pass-by-value; == vs equals; aliasing bugs', depth: 'F', status: 'done' },
           { n: '2', slug: 'equals-hashcode', title: 'equals & hashCode contract', sub: 'the contract; mutable keys in HashMap; records’ generated methods; Comparable consistency', depth: 'D', status: 'done' },
@@ -133,7 +133,7 @@ window.IA_CATALOG = {
           { n: 'B4', slug: 'spring-rest-basics', title: 'REST controller basics', sub: '@RestController; @GetMapping/@PostMapping; path & query params; JSON with Jackson; status codes', depth: 'F', status: 'done' },
           { n: 'B5', slug: 'spring-config-basics', title: 'Configuration basics', sub: 'application.properties/yml; @Value; @ConfigurationProperties; profiles intro', depth: 'F', status: 'done' },
           { n: 'B6', slug: 'spring-data-jpa-basics', title: 'Data JPA basics', sub: '@Entity & @Id; JpaRepository; derived queries; H2 vs Postgres; ddl-auto', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-spring-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-spring-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Spring core', topics: [
           { n: '1', slug: 'ioc-di', title: 'IoC & dependency injection', sub: 'ApplicationContext; constructor vs field injection; @Qualifier/@Primary; circular deps', depth: 'F', status: 'done' },
           { n: '2', slug: 'bean-lifecycle-scopes', title: 'Bean lifecycle & scopes', sub: 'instantiate → populate → init → destroy; BeanPostProcessor; scopes & scoped proxies; prototype-in-singleton trap', depth: 'D', status: 'done' },
@@ -184,7 +184,7 @@ window.IA_CATALOG = {
           { n: 'B4', slug: 'k8s-yaml-manifests', title: 'Reading YAML manifests', sub: 'apiVersion/kind/metadata/spec; labels & selectors; multi-doc files', depth: 'F', status: 'done' },
           { n: 'B5', slug: 'first-deployment-service', title: 'First Deployment & Service', sub: 'deploy an app; scale; expose with a Service; port-forward', depth: 'F', status: 'done' },
           { n: 'B6', slug: 'configmaps-secrets-basics', title: 'ConfigMaps & Secrets basics', sub: 'env vars vs mounted files; creating them; Secrets are base64, not encrypted', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-kubernetes-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-kubernetes-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Foundations', topics: [
           { n: '1', slug: 'containers-vs-vms', title: 'Containers vs VMs', sub: 'namespaces & cgroups; image layers; OCI; why orchestration', depth: 'F', status: 'done' },
           { n: '2', slug: 'architecture', title: 'Cluster architecture', sub: 'API server, etcd, scheduler & controller manager; kubelet & kube-proxy; request path of kubectl apply', depth: 'D', status: 'done' },
@@ -238,7 +238,7 @@ window.IA_CATALOG = {
           { n: 'B10', slug: 'classes-basics', title: 'Classes & OOP basics', sub: '__init__ & self; methods; inheritance & super(); vs Java classes', depth: 'F', status: 'done' },
           { n: 'B11', slug: 'exceptions-basics', title: 'Errors & exceptions', sub: 'try/except/else/finally; raise; custom exceptions', depth: 'F', status: 'done' },
           { n: 'B12', slug: 'files-modules-stdlib', title: 'Files, modules & stdlib', sub: 'open/with; json & csv; import; pip & venv; pathlib', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-python-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-python-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Language core', topics: [
           { n: '1', slug: 'data-model', title: 'Everything is an object', sub: 'names vs objects; identity vs equality; mutability; small-int & string caching', depth: 'F', status: 'done' },
           { n: '2', slug: 'scoping-closures', title: 'Scope, closures & defaults', sub: 'LEGB; nonlocal/global; late-binding closures; mutable default arguments', depth: 'D', status: 'done' },
@@ -283,7 +283,7 @@ window.IA_CATALOG = {
           { n: 'B6', slug: 'js-classes-modules', title: 'Classes & modules', sub: 'class syntax & extends; import/export (ESM); require (CJS)', depth: 'F', status: 'done' },
           { n: 'B7', slug: 'js-async-basics', title: 'Async basics', sub: 'callbacks; promises; async/await; why Node is non-blocking', depth: 'F', status: 'done' },
           { n: 'B8', slug: 'node-first-http-server', title: 'Your first HTTP server', sub: 'http module; Express hello world; routes & JSON; reading env vars', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-nodejs-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-nodejs-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Runtime', topics: [
           { n: '1', slug: 'node-architecture', title: 'Node architecture', sub: 'V8 + libuv; the thread pool; bindings; single-threaded myth', depth: 'F', status: 'done' },
           { n: '2', slug: 'event-loop-phases', title: 'Event-loop phases', sub: 'timers, poll, check & close; setImmediate vs setTimeout; I/O callbacks', depth: 'X', status: 'done' },
@@ -326,7 +326,7 @@ window.IA_CATALOG = {
           { n: 'B4', slug: 'azure-storage-basics', title: 'Storage basics', sub: 'storage accounts; blobs/queues/tables/files; access tiers; SAS intro', depth: 'F', status: 'done' },
           { n: 'B5', slug: 'azure-networking-basics', title: 'Networking basics', sub: 'VNets & subnets; NSGs; public vs private IPs; DNS', depth: 'F', status: 'done' },
           { n: 'B6', slug: 'azure-first-deploy', title: 'Deploy your first app', sub: 'App Service for a Spring Boot jar; app settings; logs; cleanup', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-azure-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-azure-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M0', name: 'Foundations', topics: [
           { n: '1', slug: 'azure-hierarchy', title: 'Tenants to resources', sub: 'Entra tenant; management groups; subscriptions; resource groups & ARM', depth: 'F', status: 'done' },
           { n: '2', slug: 'regions-zones', title: 'Regions & availability zones', sub: 'region pairs; zonal vs zone-redundant; SLAs & composite SLAs', depth: 'F', status: 'done' },
@@ -374,7 +374,7 @@ window.IA_CATALOG = {
           { n: '3', slug: 'rdd-basics', title: 'RDD basics', sub: 'RDDs; transformations vs actions; laziness', depth: 'F', status: 'done' },
           { n: '4', slug: 'dataframes-basics', title: 'DataFrame basics', sub: 'create & read; schema; select/filter/withColumn; show', depth: 'F', status: 'done' },
           { n: '5', slug: 'pyspark-setup', title: 'Setting up PySpark', sub: 'pip install pyspark; Java requirement; notebooks & Databricks', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-spark-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-spark-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M1', name: 'Working with data', topics: [
           { n: '6', slug: 'reading-writing', title: 'Reading & writing data', sub: 'CSV/JSON/Parquet; schemas; save modes; partitionBy', depth: 'F', status: 'done' },
           { n: '7', slug: 'transformations-aggregations', title: 'Transformations & aggregations', sub: 'groupBy/agg; joins; window functions', depth: 'D', status: 'done' },
@@ -408,7 +408,7 @@ window.IA_CATALOG = {
           { n: 'B4', slug: 'ts-objects-interfaces', title: 'Objects, interfaces & types', sub: 'interface vs type alias; optional & readonly; index signatures; structural typing', depth: 'F', status: 'done' },
           { n: 'B5', slug: 'ts-unions-narrowing', title: 'Unions & narrowing', sub: 'union & literal types; typeof/in/instanceof guards; discriminated unions; exhaustiveness', depth: 'F', status: 'done' },
           { n: 'B6', slug: 'ts-classes', title: 'Classes & enums', sub: 'access modifiers; parameter properties; abstract; enums vs union literals', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-typescript-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-typescript-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M1', name: 'Going deeper', topics: [
           { n: '7', slug: 'ts-generics', title: 'Generics', sub: 'generic functions & types; constraints; defaults; inference', depth: 'D', status: 'done' },
           { n: '8', slug: 'ts-utility-types', title: 'Utility types', sub: 'Partial/Pick/Omit/Record; ReturnType; Awaited; satisfies', depth: 'D', status: 'done' },
@@ -434,7 +434,7 @@ window.IA_CATALOG = {
           { n: 'B4', slug: 'vue-reactivity-basics', title: 'ref & reactive', sub: 'ref vs reactive; .value; reactivity in templates; common traps', depth: 'F', status: 'done' },
           { n: 'B5', slug: 'vue-computed-watch', title: 'computed & watch', sub: 'computed caching; watch vs watchEffect; deep & immediate', depth: 'F', status: 'done' },
           { n: 'B6', slug: 'vue-components', title: 'Components, props & emits', sub: 'defineProps/defineEmits; one-way data flow; v-model on components', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-vue-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-vue-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M1', name: 'Building apps', topics: [
           { n: '7', slug: 'vue-composition-api', title: 'Composition API & composables', sub: 'script setup; composables; vs Options API', depth: 'D', status: 'done' },
           { n: '8', slug: 'vue-lifecycle', title: 'Lifecycle hooks', sub: 'onMounted/onUnmounted; nextTick; cleanup', depth: 'D', status: 'done' },
@@ -461,7 +461,7 @@ window.IA_CATALOG = {
           { n: 'B2', slug: 'fe-critical-rendering-path', title: 'Critical rendering path', sub: 'render-blocking CSS/JS; async & defer; preload', depth: 'F', status: 'done' },
           { n: 'B3', slug: 'fe-modern-css', title: 'Modern CSS', sub: 'flexbox & grid; container queries; :has(); cascade layers', depth: 'F', status: 'done' },
           { n: 'B4', slug: 'fe-rendering-modes', title: 'CSR, SSR, SSG & ISR', sub: 'what each is; trade-offs; when to pick which', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-frontend-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-frontend-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M1', name: 'Modern architecture', topics: [
           { n: '5', slug: 'fe-hydration-islands', title: 'Hydration, islands & resumability', sub: 'hydration cost; partial/progressive hydration; islands (Astro); resumability (Qwik)', depth: 'D', status: 'done' },
           { n: '6', slug: 'fe-server-components', title: 'React Server Components', sub: 'server vs client components; streaming & Suspense; server actions', depth: 'X', status: 'done' },
@@ -491,7 +491,7 @@ window.IA_CATALOG = {
           { n: 'B3', slug: 'dbx-notebooks-git', title: 'Notebooks & Git folders', sub: 'notebooks; magic commands; dbutils; Git folders', depth: 'F', status: 'done' },
           { n: 'B4', slug: 'dbx-unity-catalog', title: 'Unity Catalog', sub: 'metastore, catalog, schema, table; permissions; volumes; lineage', depth: 'F', status: 'done' },
           { n: 'B5', slug: 'dbx-delta-tables', title: 'Delta tables on Databricks', sub: 'managed vs external; MERGE; time travel; OPTIMIZE & liquid clustering', depth: 'F', status: 'done' },
-          { n: '★', slug: 'tricky-databricks-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'todo' }]},
+          { n: '★', slug: 'tricky-databricks-basics', title: 'Basics drill (timed)', sub: '30 beginner interview questions', depth: 'F', status: 'done' }]},
         { id: 'M1', name: 'Data engineering', topics: [
           { n: '6', slug: 'dbx-medallion', title: 'Medallion architecture', sub: 'bronze/silver/gold; idempotent loads; SCD type 2', depth: 'D', status: 'done' },
           { n: '7', slug: 'dbx-auto-loader', title: 'Auto Loader & ingestion', sub: 'cloudFiles; schema inference & evolution; COPY INTO', depth: 'D', status: 'done' },
