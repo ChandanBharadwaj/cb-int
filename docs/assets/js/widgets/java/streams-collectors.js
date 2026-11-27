@@ -51,7 +51,7 @@ IA.widget('streams-collectors', (root, ctx) => {
       { l: 1, at: [1, 0], set: [[1, 0, 'seen', 'ok'], [1, 1, 'buffered', 'chg']], out: 'peek 1', s: '1 is peeked and buffered.' },
       { l: 1, at: [2, 0], set: [[2, 0, 'seen', 'ok'], [2, 1, 'buffered', 'chg']], out: 'peek 2', s: '2 is peeked and buffered. The source is exhausted, so sorted now sorts its buffer: [1, 2, 3].' },
       { l: 3, at: [1, 2], set: [[1, 1, 'emit #1', 'hot'], [1, 2, '10', 'ok']], out: 'map 1', s: 'Only now does anything flow downstream: the smallest element, 1, is mapped to 10.' },
-      { l: 4, at: [1, 3], set: [[1, 3, '✓ found', 'hot'], [0, 2, 'never', 'gc'], [2, 2, 'never', 'gc']], s: '<code>findFirst</code> short-circuits <i>after</i> the barrier: every element was still read and buffered. With an infinite source, <code>sorted()</code> never returns. <code>distinct()</code> is stateful too (it remembers what it has seen), and <code>limit()</code>/<code>skip()</code> must respect encounter order, which gets expensive in parallel.' }
+      { l: 4, at: [1, 3], set: [[1, 3, '✓ found', 'hot'], [0, 2, 'never', 'gc'], [2, 2, 'never', 'gc']], s: '<code>findFirst</code> stops early only <i>after</i> sorting: every element was still read and held. With an infinite source, <code>sorted()</code> never returns. <code>distinct()</code> also remembers what it has seen. <code>limit()</code>/<code>skip()</code> must keep the original order, which costs more in parallel.' }
     ] },
     tomap: { label: 'toMap duplicate key', cols: ['key: charAt(0)', 'toMap'], rows: ['"apple"', '"avocado"', '"banana"'], code: [
       'Map<Character, String> byInitial = Stream.of("apple", "avocado", "banana")',
