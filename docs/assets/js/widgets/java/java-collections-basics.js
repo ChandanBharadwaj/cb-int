@@ -134,9 +134,9 @@
         'nums.removeIf(n -> n % 2 == 0);       // fix',
         'for (var e : map.entrySet()) { e.getKey(); e.getValue(); }'],
       steps: [
-        { line: 1, cap: 'The for-each loop uses an <b>Iterator</b> behind the scenes. It remembers how many changes the list had when the loop started (<code>modCount</code>).', st: { boxes: [{ name: 'nums', kv: [['[0]', '1'], ['[1]', '2'], ['[2]', '3'], ['[3]', '4']], hot: true, hotKey: '[0]' }] } },
+        { line: 1, cap: 'The for-each loop uses a hidden <b>Iterator</b>. It remembers the list’s change count when the loop started (<code>modCount</code>).', st: { boxes: [{ name: 'nums', kv: [['[0]', '1'], ['[1]', '2'], ['[2]', '3'], ['[3]', '4']], hot: true, hotKey: '[0]' }] } },
         { line: 2, cap: 'At <code>2</code>, the loop removes from the list <b>directly</b>. The list changes under the iterator.', st: { boxes: [{ name: 'nums', kv: [['[0]', '1'], ['[1]', '3'], ['[2]', '4']], bad: true }], note: 'modCount changed; the iterator still expects the old value' } },
-        { line: 1, cap: 'The next <code>next()</code> call notices and throws. (It is a best-effort check, not a guarantee: with some sizes the loop simply ends early and skips elements.)', err: true, out: 'java.util.ConcurrentModificationException', st: { boxes: [{ name: 'iterator', kv: [['state', 'fail-fast ✗']], bad: true }] } },
+        { line: 1, cap: 'The next <code>next()</code> call notices and throws. (This check isn’t guaranteed. With some sizes the loop ends early and skips elements.)', err: true, out: 'java.util.ConcurrentModificationException', st: { boxes: [{ name: 'iterator', kv: [['state', 'fail-fast ✗']], bad: true }] } },
         { line: 4, cap: 'Fix: <code>removeIf</code>, or use the iterator’s own <code>it.remove()</code>.', out: '[1, 3]', st: { boxes: [{ name: 'nums', kv: [['[0]', '1'], ['[1]', '3']], hot: true }] } },
         { line: 5, cap: 'For a map, loop over <code>entrySet()</code> to get key and value together, without a second lookup.', st: { boxes: [{ name: 'map views', kv: [['keySet()', 'keys'], ['values()', 'values'], ['entrySet()', 'key + value ✓']], hot: true, hotKey: 'entrySet()' }] } }
       ] },

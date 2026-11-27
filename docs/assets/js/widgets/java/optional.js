@@ -38,7 +38,7 @@ IA.widget('optional', (root, ctx) => {
       { l: 3, r: [['some', 'User[ana]']], s: '<code>ofNullable</code> wraps a value that may be null. Here it isn’t null, so the Optional is <b>present</b>.' },
       { l: 4, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]']], s: '<code>map</code> runs the function on the value and wraps the result. A null result gives an <b>empty</b> Optional. That is why these chains are null-safe.' },
       { l: 5, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"']], s: 'Another hop through the object graph, with no null checks written.' },
-      { l: 6, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"'], ['some', '"Lisbon"']], s: '<code>filter</code> keeps the value if the predicate is true and turns the Optional empty otherwise.' },
+      { l: 6, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"'], ['some', '"Lisbon"']], s: '<code>filter</code> keeps the value if the test passes. Otherwise the Optional becomes empty.' },
       { l: 7, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"'], ['some', '"Lisbon"'], ['val', '"Lisbon"']], out: 'city = Lisbon', s: 'A final method leaves the box. <code>orElse</code> returns the value, or the fallback if the box is empty.' }
     ] },
     empty: { label: 'Empty short-circuits', ops: ['Optional.ofNullable(user)', '.map(User::address)', '.map(Address::city)', '.filter(c -> !c.isBlank())', '.orElse("unknown")'], code: [
@@ -64,7 +64,7 @@ IA.widget('optional', (root, ctx) => {
     steps: [
       { l: 2, r: [['some', '"cached"']], db: 0, s: 'The value is present, so we won’t need the fallback…' },
       { l: 2, r: [['some', '"cached"'], ['run', 'loadFromDb() runs first!']], db: 1, out: 'DB call!', s: '…but <code>orElse(x)</code> is an ordinary method call: Java evaluates its <b>argument first</b>. <code>loadFromDb()</code> runs even though the result is thrown away.' },
-      { l: 2, r: [['some', '"cached"'], ['val', '"cached" (db result discarded)']], db: 1, s: '<code>a</code> is "cached". The database call was pure waste, and if <code>loadFromDb</code> had side effects (insert a default row, call an API, throw), they happened anyway.' },
+      { l: 2, r: [['some', '"cached"'], ['val', '"cached" (db result discarded)']], db: 1, s: '<code>a</code> is "cached". The database call was wasted. Any side effects of <code>loadFromDb</code> (insert a row, call an API, throw) happened anyway.' },
       { l: 3, r: [['some', '"cached"'], ['val', '"cached"'], ['some', '"cached"'], ['skip', 'supplier not called']], db: 1, s: '<code>orElseGet</code> takes a <code>Supplier</code>: a lambda that runs <b>only if</b> the Optional is empty. Nothing runs here.' },
       { l: 4, r: [['some', '"cached"'], ['val', '"cached"'], ['some', '"cached"'], ['val', '"cached"']], db: 1, out: 'cached cached', s: 'Prints <b>DB call!</b> then <b>cached cached</b>. Use <code>orElse</code> for constants and values you already have; use <code>orElseGet</code> (or <code>orElseThrow</code>) when the fallback costs something.' }
     ] },
@@ -75,10 +75,10 @@ IA.widget('optional', (root, ctx) => {
       'Optional<User> m2 = u.flatMap(User::manager);',
       'String boss = m2.map(User::name).orElse("none");'],
     steps: [
-      { l: 1, r: [['some', 'User[7, cara]']], s: 'Spring Data’s <code>findById</code> returns <code>Optional&lt;User&gt;</code>: the textbook use of Optional, a return value that may be absent.' },
+      { l: 1, r: [['some', 'User[7, cara]']], s: 'Spring Data’s <code>findById</code> returns <code>Optional&lt;User&gt;</code>. This is the classic use: a return value that may be missing.' },
       { l: 2, r: [['some', 'User[7, cara]'], ['nested', 'Optional[Optional[User[3]]]']], s: '<code>map</code> wraps whatever the function returns. The function already returns an Optional, so you get an <b>Optional inside an Optional</b>, which is awkward to use.' },
       { l: 3, r: [['some', 'User[7, cara]'], ['nested', 'Optional[Optional[User[3]]]'], ['some', 'User[3, dev]']], s: '<code>flatMap</code> expects a function that returns an Optional and <b>doesn’t</b> wrap it again. Rule: <code>map</code> for <code>T → R</code>, <code>flatMap</code> for <code>T → Optional&lt;R&gt;</code>.' },
-      { l: 4, r: [['some', 'User[7, cara]'], ['nested', 'Optional[Optional[User[3]]]'], ['some', 'User[3, dev]']], out: 'boss = dev', s: 'The chain continues flat. The same map/flatMap distinction applies to Stream and CompletableFuture (<code>thenApply</code> vs <code>thenCompose</code>).' }
+      { l: 4, r: [['some', 'User[7, cara]'], ['nested', 'Optional[Optional[User[3]]]'], ['some', 'User[3, dev]']], out: 'boss = dev', s: 'The chain stays flat. The same map/flatMap split applies to Stream and CompletableFuture (<code>thenApply</code> vs <code>thenCompose</code>).' }
     ] }
   };
 

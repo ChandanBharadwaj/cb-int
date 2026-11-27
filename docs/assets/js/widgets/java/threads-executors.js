@@ -100,11 +100,11 @@ IA.widget('threads-executors', (root, ctx) => {
   /* ---------- execute() semantics ---------- */
   function addWorker(id) { const n = S.workers.length + 1; S.workers.push({ name: 'pool-1-thread-' + n, task: id }); S.hotW = S.workers.length - 1; return n; }
   function reject(id, why) {
-    if (policy === 'abort' || mode !== 'flow') { S.rejected.push({ id, k: 'abort' }); return `${why}: <b>AbortPolicy</b> throws <code>RejectedExecutionException</code> back into the caller. ${id} is lost unless the caller catches it (return 503, retry later, …).`; }
-    if (policy === 'caller') { S.callerRun = id; return `${why}: <b>CallerRunsPolicy</b> runs ${id} <b>on the caller thread</b>, synchronously. While main is busy with it, it can’t submit anything else: that is natural back-pressure.`; }
-    if (policy === 'discard') { S.rejected.push({ id, k: 'discard' }); return `${why}: <b>DiscardPolicy</b> drops ${id} silently. No exception, no log line, no metric. Only acceptable for genuinely optional work.`; }
+    if (policy === 'abort' || mode !== 'flow') { S.rejected.push({ id, k: 'abort' }); return `${why}: <b>AbortPolicy</b> throws <code>RejectedExecutionException</code> to the caller. ${id} is lost unless the caller catches it (return 503, retry later, …).`; }
+    if (policy === 'caller') { S.callerRun = id; return `${why}: <b>CallerRunsPolicy</b> runs ${id} <b>on the caller thread</b>, right away. While main is busy with it, it can’t submit more. That slows the sender down.`; }
+    if (policy === 'discard') { S.rejected.push({ id, k: 'discard' }); return `${why}: <b>DiscardPolicy</b> drops ${id} without a word. No exception, no log line, no metric. Only fine for optional work.`; }
     const old = S.queue.shift(); S.rejected.push({ id: old, k: 'oldest' }); S.queue.push(id); S.hot = id;
-    return `${why}: <b>DiscardOldestPolicy</b> drops the queue head (${old}, the task that has waited longest) and retries: ${id} is queued in its place. Someone’s oldest request just vanished.`;
+    return `${why}: <b>DiscardOldestPolicy</b> drops ${old}, the task that waited longest, and retries. ${id} is queued in its place. Someone’s oldest request just vanished.`;
   }
   function exec(id) {
     S.incoming = S.incoming.filter((x) => x !== id); S.hot = id; S.hotW = null;
@@ -112,7 +112,7 @@ IA.widget('threads-executors', (root, ctx) => {
     const live = S.workers.filter((w) => !w.dead).length;
     if (live < S.core) { const n = addWorker(id); return `<code>execute(${id})</code>: poolSize ${live} &lt; core ${S.core}, so a <b>new thread</b> pool-1-thread-${n} starts with ${id} as its first task. (It would do this even if another worker were idle.)`; }
     if (S.queue.length < S.cap) { S.queue.push(id); return `<code>execute(${id})</code>: core is full, so ${id} is <b>offered to the queue</b> (${S.queue.length}/${S.cap === Infinity ? '∞' : S.cap}). No new thread.`; }
-    if (live < S.max) { const n = addWorker(id); return `<code>execute(${id})</code>: the queue <b>refused</b> and poolSize ${live} &lt; max ${S.max}, so a thread <b>above core</b> (pool-1-thread-${n}) starts and runs ${id} directly. Note: ${id} overtakes the tasks already waiting in the queue.`; }
+    if (live < S.max) { const n = addWorker(id); return `<code>execute(${id})</code>: the queue <b>refused</b> and poolSize ${live} &lt; max ${S.max}, so an <b>extra thread</b> (pool-1-thread-${n}) starts and runs ${id} directly. Note: ${id} jumps ahead of the tasks waiting in the queue.`; }
     return reject(id, `<code>execute(${id})</code>: queue full and poolSize = max ${S.max}`);
   }
   function finish(i, extra) {
@@ -120,7 +120,7 @@ IA.widget('threads-executors', (root, ctx) => {
     const t = w.task; S.done.push(t); w.flag = null;
     if (S.queue.length && S.state !== 'STOP') { w.task = S.queue.shift(); S.hot = w.task; return `${w.name} finishes ${t} and loops back to <code>getTask()</code>: it takes <b>${w.task}</b> from the head of the queue.` + (extra || ''); }
     w.task = null;
-    if (S.state === 'SHUTDOWN' || S.state === 'STOP') { w.dead = true; w.note = 'exited'; return `${w.name} finishes ${t}. The queue is empty and the pool is shutting down, so <code>getTask()</code> returns null and the thread <b>exits</b>.` + (extra || ''); }
+    if (S.state === 'SHUTDOWN' || S.state === 'STOP') { w.dead = true; w.note = 'exited'; return `${w.name} finishes ${t}. The queue is empty and the pool is shutting down. <code>getTask()</code> returns null, and the thread <b>exits</b>.` + (extra || ''); }
     const above = S.workers.filter((x) => !x.dead).length > S.core;
     w.note = above ? 'idle: poll(30 s)' : 'idle: take()';
     return `${w.name} finishes ${t}. The queue is empty, so it waits: ` + (above ? '<code>poll(keepAliveTime)</code> because the pool is above core size.' : '<code>take()</code>, blocking until work arrives.') + (extra || '');
@@ -165,15 +165,15 @@ IA.widget('threads-executors', (root, ctx) => {
       code('Object lock = new Object();\nThread t = new Thread(() -> {\n    synchronized (lock) {           // main holds lock for a moment → BLOCKED\n        lock.wait();                // → WAITING (monitor released)\n    }\n    Thread.sleep(100);              // → TIMED_WAITING\n});                                  // (checked exceptions omitted)');
       const go = (a, b, label, t) => st.push({ run: () => { S.edge = [a, b]; S.label = label; S.cur = b; S.seen.add(b); }, t });
       st.push({ run: () => { S.cur = 'NEW'; S.seen.add('NEW'); S.edge = null; }, t: '<code>new Thread(r)</code>: a Java object in state <b>NEW</b>. No OS thread exists yet.' });
-      go('NEW', 'RUNNABLE', 'start()', '<code>t.start()</code> creates the OS thread: <b>RUNNABLE</b>. That covers “running on a CPU”, “ready, waiting for a CPU” and even “blocked in a native socket read”. The JVM can’t tell those apart.');
-      go('RUNNABLE', 'BLOCKED', 'synchronized (held)', '<code>t</code> reaches <code>synchronized (lock)</code> while main holds it: <b>BLOCKED</b>. Only waiting for a <b>monitor</b> produces BLOCKED.');
-      go('BLOCKED', 'RUNNABLE', 'monitor acquired', 'Main leaves its synchronized block; <code>t</code> acquires the monitor and is RUNNABLE again.');
-      go('RUNNABLE', 'WAITING', 'wait() / join() / park()', '<code>lock.wait()</code> releases the monitor and parks: <b>WAITING</b> (no timeout). <code>join()</code>, <code>LockSupport.park()</code> and therefore <code>ReentrantLock.lock()</code>, latches and blocking queues land here too, <i>not</i> in BLOCKED.');
-      go('WAITING', 'BLOCKED', 'notify() → re-acquire', 'Main calls <code>lock.notify()</code> inside its own synchronized block. <code>t</code> wakes but must re-acquire the monitor, which main still holds: <b>BLOCKED</b>.');
-      go('BLOCKED', 'RUNNABLE', 'monitor acquired', 'Main exits the block; <code>t</code> gets the monitor back and returns from <code>wait()</code>. Always re-check the condition in a loop: wake-ups can be spurious.');
+      go('NEW', 'RUNNABLE', 'start()', '<code>t.start()</code> creates the OS thread: <b>RUNNABLE</b>. That covers “running on a CPU”, “ready for a CPU” and even “stuck in a native socket read”. The JVM can’t tell them apart.');
+      go('RUNNABLE', 'BLOCKED', 'synchronized (held)', '<code>t</code> reaches <code>synchronized (lock)</code> while main holds it: <b>BLOCKED</b>. Only waiting for a <code>synchronized</code> lock (a <b>monitor</b>) gives BLOCKED.');
+      go('BLOCKED', 'RUNNABLE', 'monitor acquired', 'Main leaves its synchronized block. <code>t</code> gets the monitor and is RUNNABLE again.');
+      go('RUNNABLE', 'WAITING', 'wait() / join() / park()', '<code>lock.wait()</code> gives up the monitor and sleeps: <b>WAITING</b> (no timeout). <code>join()</code>, <code>LockSupport.park()</code>, <code>ReentrantLock.lock()</code>, latches and blocking queues land here too. <i>Not</i> in BLOCKED.');
+      go('WAITING', 'BLOCKED', 'notify() → re-acquire', 'Main calls <code>lock.notify()</code> inside its own synchronized block. <code>t</code> wakes, but must get the monitor back. Main still holds it: <b>BLOCKED</b>.');
+      go('BLOCKED', 'RUNNABLE', 'monitor acquired', 'Main exits the block. <code>t</code> gets the monitor back and returns from <code>wait()</code>. Always re-check the condition in a loop: threads can wake for no reason.');
       go('RUNNABLE', 'TIMED_WAITING', 'sleep(100)', '<code>Thread.sleep(100)</code>: <b>TIMED_WAITING</b>. Also <code>wait(ms)</code>, <code>join(ms)</code>, <code>parkNanos</code>, <code>poll(timeout)</code>.');
       go('TIMED_WAITING', 'RUNNABLE', 'timeout / interrupt', 'The timeout expires (or someone calls <code>t.interrupt()</code>, which makes <code>sleep</code> throw <code>InterruptedException</code>). Back to RUNNABLE.');
-      go('RUNNABLE', 'TERMINATED', 'run() returns / throws', '<code>run()</code> returns: <b>TERMINATED</b>. It can never be started again: a second <code>start()</code> throws <code>IllegalThreadStateException</code>. Pools keep threads alive by looping on the queue instead.');
+      go('RUNNABLE', 'TERMINATED', 'run() returns / throws', '<code>run()</code> returns: <b>TERMINATED</b>. It can never start again. A second <code>start()</code> throws <code>IllegalThreadStateException</code>. Pools keep threads alive by looping on the queue instead.');
       return st;
     }
     if (mode === 'flow' || mode === 'fixed') {
@@ -209,7 +209,7 @@ IA.widget('threads-executors', (root, ctx) => {
       ? 'List<Runnable> neverRan = ex.shutdownNow();   // STOP: drain the queue, interrupt workers\nboolean done = ex.awaitTermination(10, SECONDS);\n// T1: Thread.sleep(…) → InterruptedException → exits\n// T2: while (true) { crunch(); }   // never checks the interrupt flag'
       : 'ex.shutdown();                                  // SHUTDOWN: no new tasks, queued ones still run\nex.execute(T6);                                 // → RejectedExecutionException\nboolean done = ex.awaitTermination(10, SECONDS);');
     if (!now) {
-      st.push({ run: () => { S.state = 'SHUTDOWN'; S.hotW = null; S.hot = null; }, t: '<code>shutdown()</code> flips runState to <b>SHUTDOWN</b> and returns immediately. Running tasks aren’t interrupted, and the 3 queued tasks will still run.' });
+      st.push({ run: () => { S.state = 'SHUTDOWN'; S.hotW = null; S.hot = null; }, t: '<code>shutdown()</code> sets the state to <b>SHUTDOWN</b> and returns at once. Running tasks aren’t interrupted. The 3 queued tasks will still run.' });
       st.push({ run: () => { S.msg = exec('T6'); }, t: () => S.msg + ' After shutdown, <i>every</i> policy treats new work as rejected (CallerRuns and DiscardOldest silently discard it).' });
       st.push({ run: () => { S.msg = finish(0); }, t: () => S.msg });
       st.push({ run: () => { S.msg = finish(1); }, t: () => S.msg });
@@ -217,10 +217,10 @@ IA.widget('threads-executors', (root, ctx) => {
       st.push({ run: () => { S.msg = finish(1); }, t: () => S.msg });
       st.push({ run: () => { S.msg = finish(0); S.state = 'TERMINATED'; }, t: () => S.msg + ' The last worker is gone: runState <b>TERMINATED</b>, and <code>awaitTermination</code> returns <b>true</b>. All 5 tasks completed.' });
     } else {
-      st.push({ run: () => { S.state = 'STOP'; S.queue.forEach((id) => S.rejected.push({ id, k: 'returned' })); S.queue = []; S.workers.forEach((w) => { w.flag = 'interrupt!'; }); S.hotW = null; }, t: '<code>shutdownNow()</code>: runState <b>STOP</b>. The queue is drained and the 3 never-started tasks are <b>returned</b> as a <code>List&lt;Runnable&gt;</code> (log or persist them!). Every worker gets <code>interrupt()</code>.' });
-      st.push({ run: () => { const w = S.workers[0]; S.done.push(w.task); w.task = null; w.dead = true; w.note = 'exited'; w.flag = null; S.hotW = 0; }, t: 'T1 was in <code>Thread.sleep</code>, which throws <code>InterruptedException</code> when interrupted. The task cleans up and returns; the worker sees STOP and exits.' });
+      st.push({ run: () => { S.state = 'STOP'; S.queue.forEach((id) => S.rejected.push({ id, k: 'returned' })); S.queue = []; S.workers.forEach((w) => { w.flag = 'interrupt!'; }); S.hotW = null; }, t: '<code>shutdownNow()</code>: runState <b>STOP</b>. The queue is emptied. The 3 tasks that never started are <b>returned</b> as a <code>List&lt;Runnable&gt;</code> (log or save them!). Every worker gets <code>interrupt()</code>.' });
+      st.push({ run: () => { const w = S.workers[0]; S.done.push(w.task); w.task = null; w.dead = true; w.note = 'exited'; w.flag = null; S.hotW = 0; }, t: 'T1 was in <code>Thread.sleep</code>, which throws <code>InterruptedException</code> when interrupted. The task cleans up and returns. The worker sees STOP and exits.' });
       st.push({ run: () => { S.hotW = 1; S.workers[1].flag = 'ignores it'; }, t: 'T2 is a CPU loop that never checks <code>Thread.interrupted()</code>. An interrupt is only a flag, so <b>T2 keeps running</b>. You can’t safely kill a thread (<code>Thread.stop</code> throws since Java 20).' });
-      st.push({ run: () => { S.hotW = null; }, t: '<code>awaitTermination(10, SECONDS)</code> returns <b>false</b>: the pool is stuck in STOP until T2 ends. On Kubernetes, SIGKILL arrives at the end of the grace period. Make long tasks check the interrupt flag.' });
+      st.push({ run: () => { S.hotW = null; }, t: '<code>awaitTermination(10, SECONDS)</code> returns <b>false</b>. The pool is stuck in STOP until T2 ends. On Kubernetes, SIGKILL arrives at the end of the grace period. Make long tasks check the interrupt flag.' });
     }
     return st;
   }

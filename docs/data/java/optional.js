@@ -39,7 +39,7 @@ IA.register({
   gotchas: [
     { trap: '<code>orElse</code> evaluates its argument every time', code: `Settings s = repo.findByUser(id)
     .orElse(repo.save(Settings.defaults(id)));   // INSERT on every call, even when found`, why: '<code>orElse</code> is an ordinary method. Java computes its argument before calling it. So any side effect or slow work in the argument always runs.', fix: 'Use <code>orElseGet(() -&gt; repo.save(Settings.defaults(id)))</code> for anything that is not a constant or an existing variable.' },
-    { trap: 'Calling <code>get()</code> without checking', code: `User u = repo.findById(id).get();   // NoSuchElementException: No value present`, why: '<code>get()</code> on an empty Optional throws. The message doesn’t say <i>what</i> was missing. It is a null crash with extra steps.', fix: 'Use <code>orElseThrow(() -&gt; new UserNotFound(id))</code>, which maps cleanly to a 404. The no-arg <code>orElseThrow()</code> (Java 10) at least makes the intent explicit.' },
+    { trap: 'Calling <code>get()</code> without checking', code: `User u = repo.findById(id).get();   // NoSuchElementException: No value present`, why: '<code>get()</code> on an empty Optional throws. The message doesn’t say <i>what</i> was missing. It is a null crash with extra steps.', fix: 'Use <code>orElseThrow(() -&gt; new UserNotFound(id))</code>, which maps neatly to a 404. The no-argument <code>orElseThrow()</code> (Java 10) at least shows your intent.' },
     { trap: '<code>isPresent()</code> + <code>get()</code> pairs', code: `if (opt.isPresent()) {
   send(opt.get());
 } else {
@@ -51,17 +51,17 @@ Optional<List<Order>> orders()                    // two ways to say "none"`, wh
     { trap: '<code>Optional.of(null)</code> and returning null', code: `Optional.of(user.middleName());     // NPE if it is null
 Optional<User> find(long id) { return null; }   // defeats the whole point`, why: '<code>of</code> needs a non-null value. If an Optional-returning method returns null, callers get an NPE from the very thing meant to prevent one.', fix: 'Use <code>ofNullable</code> for values that may be null. Never return null from an Optional-returning method; return <code>Optional.empty()</code>.' },
     { trap: 'Boxing and nested Optionals', code: `Optional<Integer> n = …;                       // boxed int inside a box
-Optional<Optional<User>> mgr = u.map(User::manager);   // used map where flatMap was needed`, why: 'Optional of a wrapper costs two objects. <code>map</code> with a function that returns Optional double-wraps.', fix: 'Use <code>OptionalInt</code>, <code>OptionalLong</code> and <code>OptionalDouble</code> for primitives (that is what <code>IntStream.max()</code> returns). Use <code>flatMap</code> when the function returns an Optional.' }
+Optional<Optional<User>> mgr = u.map(User::manager);   // used map where flatMap was needed`, why: 'Optional of a wrapper costs two objects. <code>map</code> with a function that returns Optional double-wraps.', fix: 'Use <code>OptionalInt</code>, <code>OptionalLong</code> and <code>OptionalDouble</code> for primitives (<code>IntStream.max()</code> returns one). Use <code>flatMap</code> when the function returns an Optional.' }
   ],
   scenarios: [
     { title: 'The settings table grew by a million rows in a day',
-      symptom: 'The <code>user_settings</code> table grew by roughly one row per request, and a unique constraint started throwing <code>DataIntegrityViolationException</code> on hot users.',
+      symptom: 'The <code>user_settings</code> table grew by about one row per request. A unique constraint started throwing <code>DataIntegrityViolationException</code> on hot users.',
       diagnose: `public Settings settingsFor(long userId) {
   return repo.findByUserId(userId)
              .orElse(repo.save(Settings.defaults(userId)));   // save() runs every time
 }`,
       cause: 'Java computes the <code>orElse</code> argument before the call. So <code>save</code> ran on every request, even when the settings already existed.',
-      fix: 'Make the fallback lazy, and protect the “create if missing” path against races with the unique constraint.',
+      fix: 'Run the fallback only when needed. Guard “create if missing” against two requests racing on the unique constraint.',
       fixCode: `public Settings settingsFor(long userId) {
   return repo.findByUserId(userId)
              .orElseGet(() -> createDefaults(userId));   // runs only when empty
@@ -75,13 +75,13 @@ private Settings createDefaults(long userId) {
   }
 }` },
     { title: '500 errors instead of 404 for deleted products',
-      symptom: 'After soft-deletes were introduced, requests for removed products returned HTTP 500 with <code>NoSuchElementException: No value present</code> and no hint of which product was missing.',
+      symptom: 'After soft-deletes arrived, removed products returned HTTP 500 with <code>NoSuchElementException: No value present</code>. Nothing said which product was missing.',
       diagnose: `@GetMapping("/products/{id}")
 ProductDto get(@PathVariable long id) {
   return ProductDto.from(repo.findActiveById(id).get());   // empty for deleted rows
 }`,
       cause: 'The code assumed the Optional was always present. <code>get()</code> threw a generic exception that the error handler mapped to 500.',
-      fix: 'Turn absence into a domain exception that carries context and maps to 404.',
+      fix: 'Turn “missing” into your own exception. Give it context and map it to 404.',
       fixCode: `@GetMapping("/products/{id}")
 ProductDto get(@PathVariable long id) {
   return repo.findActiveById(id)
@@ -89,13 +89,13 @@ ProductDto get(@PathVariable long id) {
              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product " + id));
 }` },
     { title: 'Order events stopped publishing after a “small” DTO change',
-      symptom: 'The Kafka producer failed for every message after a release that added an optional coupon to the event: <code>InvalidDefinitionException: Java 8 optional type `java.util.Optional&lt;java.lang.String&gt;` not supported by default</code>.',
+      symptom: 'After a release added an optional coupon to the event, the Kafka producer failed on every message: <code>InvalidDefinitionException: Java 8 optional type `java.util.Optional&lt;java.lang.String&gt;` not supported by default</code>.',
       diagnose: `record OrderPlaced(long id, BigDecimal total, Optional<String> coupon) {}
 
 // the producer used a hand-built mapper, not Spring Boot's auto-configured one
 private final ObjectMapper mapper = new ObjectMapper();`,
       cause: 'Jackson needs the <code>jdk8</code> module to handle Optional. Spring Boot’s mapper registers it. The hand-built one didn’t. Recent Jackson 2.x versions then fail outright.',
-      fix: 'Keep Optional out of DTOs and events: use a nullable field (omitted from the JSON when null). Inject the Boot-configured <code>ObjectMapper</code> rather than creating your own.',
+      fix: 'Keep Optional out of DTOs and events. Use a nullable field, left out of the JSON when null. Inject Boot’s <code>ObjectMapper</code> instead of making your own.',
       fixCode: `@JsonInclude(JsonInclude.Include.NON_NULL)
 record OrderPlaced(long id, BigDecimal total, String coupon) {
   Optional<String> couponCode() { return Optional.ofNullable(coupon); }   // Optional at the API edge only
@@ -117,7 +117,7 @@ public class Main {
         String b = Optional.of("x").orElseGet(Main::load);
         System.out.println(a + b);
     }
-}`, options: ['xx', 'load / xx', 'load / load / xx', 'load / xdb'], answer: 1, explain: '<code>orElse(load())</code> evaluates <code>load()</code> before the call, even though the value is present. <code>orElseGet</code> only calls the supplier when empty. Both return "x". Prints <b>load</b> then <b>xx</b>.', run: true, expect: 'load\nxx' },
+}`, options: ['xx', 'load / xx', 'load / load / xx', 'load / xdb'], answer: 1, explain: '<code>orElse(load())</code> runs <code>load()</code> before the call, even though the value is there. <code>orElseGet</code> calls its function only when empty. Both return "x". Prints <b>load</b> then <b>xx</b>.', run: true, expect: 'load\nxx' },
     { kind: 'predict', q: 'map with a function that returns null. What does this print?', code: `import java.util.*;
 
 public class Main {
@@ -127,7 +127,7 @@ public class Main {
         Optional<String> n = Optional.of(new User(null)).map(User::nick);
         System.out.println(n.isPresent() + " " + n.orElse("anon"));
     }
-}`, options: ['true null', 'false anon', 'NullPointerException', 'true anon'], answer: 1, explain: '<code>map</code> wraps its result with <code>ofNullable</code>, so a null result becomes <code>Optional.empty()</code>. That is what makes chains like <code>map(User::address).map(Address::city)</code> null-safe. Prints <b>false anon</b>.', run: true, expect: 'false anon' },
+}`, options: ['true null', 'false anon', 'NullPointerException', 'true anon'], answer: 1, explain: '<code>map</code> wraps its result with <code>ofNullable</code>. A null result becomes <code>Optional.empty()</code>. That makes chains like <code>map(User::address).map(Address::city)</code> null-safe. Prints <b>false anon</b>.', run: true, expect: 'false anon' },
     { kind: 'predict', q: 'of vs ofNullable. What does this print?', code: `import java.util.*;
 
 public class Main {
@@ -153,7 +153,7 @@ public class Main {
             .orElse("none");
         System.out.println(r);
     }
-}`, options: ['"  " in upper case (two spaces)', 'BACKUP', 'none', 'backup'], answer: 1, explain: 'A blank string fails the filter, so the Optional becomes empty. <code>or</code> (Java 9) supplies another <i>Optional</i> lazily, which is then mapped to upper case. Prints <b>BACKUP</b>.', run: true, expect: 'BACKUP' },
+}`, options: ['"  " in upper case (two spaces)', 'BACKUP', 'none', 'backup'], answer: 1, explain: 'A blank string fails the filter, so the Optional becomes empty. <code>or</code> (Java 9) supplies another <i>Optional</i>, only when needed. It is then mapped to upper case. Prints <b>BACKUP</b>.', run: true, expect: 'BACKUP' },
     { kind: 'predict', q: 'Optional::stream and ifPresentOrElse (Java 9). What does this print?', code: `import java.util.*;
 import java.util.stream.*;
 
@@ -174,20 +174,20 @@ public class Main {
             System.out.println(e.getMessage());
         }
     }
-}`, options: ['null', 'No value present', 'Optional.empty', 'Compile error: orElseThrow needs a supplier'], answer: 1, explain: 'The no-argument <code>orElseThrow()</code> (Java 10) behaves like <code>get()</code> but with a name that says what happens. The message is the same unhelpful one: <b>No value present</b>. Prefer the overload that takes an exception supplier with context.', run: true, expect: 'No value present' },
-    { kind: 'concept', q: '<code>User.manager()</code> returns <code>Optional&lt;User&gt;</code>. What is the type of <code>repo.findById(7).map(User::manager)</code>?', options: ['<code>Optional&lt;User&gt;</code>', '<code>Optional&lt;Optional&lt;User&gt;&gt;</code>', '<code>User</code>', 'It doesn’t compile'], answer: 1, explain: '<code>map</code> always wraps the function’s result, and the result is already an Optional. Use <code>flatMap(User::manager)</code> to get a flat <code>Optional&lt;User&gt;</code>.' },
-    { kind: 'concept', q: 'Where is Optional the recommended choice?', options: ['As the type of a JPA entity field', 'As a method parameter for optional arguments', 'As the return type of a finder that may find nothing', 'As the element type of a List'], answer: 2, explain: 'Optional was designed as a <b>return type</b> for “maybe no result”. For fields use nullable values (exposed through an Optional-returning getter if you like). For parameters use overloads. Collections should just be empty.' }
+}`, options: ['null', 'No value present', 'Optional.empty', 'Compile error: orElseThrow needs a supplier'], answer: 1, explain: 'The no-argument <code>orElseThrow()</code> (Java 10) acts like <code>get()</code>, with a clearer name. The message is just as unhelpful: <b>No value present</b>. Prefer the version that takes your own exception with context.', run: true, expect: 'No value present' },
+    { kind: 'concept', q: '<code>User.manager()</code> returns <code>Optional&lt;User&gt;</code>. What is the type of <code>repo.findById(7).map(User::manager)</code>?', options: ['<code>Optional&lt;User&gt;</code>', '<code>Optional&lt;Optional&lt;User&gt;&gt;</code>', '<code>User</code>', 'It doesn’t compile'], answer: 1, explain: '<code>map</code> always wraps the result, and the result is already an Optional. Use <code>flatMap(User::manager)</code> to get a flat <code>Optional&lt;User&gt;</code>.' },
+    { kind: 'concept', q: 'Where is Optional the recommended choice?', options: ['As the type of a JPA entity field', 'As a method parameter for optional arguments', 'As the return type of a finder that may find nothing', 'As the element type of a List'], answer: 2, explain: 'Optional is meant as a <b>return type</b> for “maybe no result”. For fields, use nullable values, with an Optional getter if you like. For parameters, use overloads. Collections should be empty.' }
   ],
   interview: [
-    { q: 'What is Optional for, and what is it not for?', a: '<p>It is for method <b>return types</b> where “no result” is a normal outcome and returning null would be error-prone, such as <code>findById</code>, <code>findFirst</code> or <code>max</code>. It isn’t a general replacement for null: avoid it in fields, parameters, collections and DTOs. Its Javadoc says a variable of type Optional should never itself be null.</p>', lvl: 'core' },
-    { q: 'orElse vs orElseGet vs orElseThrow?', a: '<ul><li><code>orElse(v)</code>: v is evaluated <b>always</b>. Use it for constants and values you already have.</li><li><code>orElseGet(supplier)</code>: the supplier runs only when empty. Use it for computed or side-effecting defaults.</li><li><code>orElseThrow(supplier)</code>: throws your exception when empty. The no-arg form (Java 10) throws <code>NoSuchElementException</code>.</li></ul>', lvl: 'core' },
-    { q: 'Why not use Optional as a field or parameter type?', a: '<ul><li>Fields: Optional isn’t Serializable, adds a wrapper object per instance, and JPA can’t map it. Jackson needs an extra module.</li><li>Parameters: every caller has to wrap, and a caller can still pass <code>null</code> for the Optional itself. Overloads or a nullable parameter with clear docs are simpler.</li><li>Collections: an empty collection already means “none”, and <code>Optional&lt;List&gt;</code> gives two different ways to say it.</li></ul>', lvl: 'core' },
-    { q: 'map vs flatMap on Optional?', a: '<p><code>map(f)</code> for <code>f: T → R</code>: wraps the result (null becomes empty). <code>flatMap(f)</code> for <code>f: T → Optional&lt;R&gt;</code>: returns f’s Optional as is, avoiding <code>Optional&lt;Optional&lt;R&gt;&gt;</code>. The same pair appears on Stream (<code>map</code>/<code>flatMap</code>) and on CompletableFuture (<code>thenApply</code>/<code>thenCompose</code>).</p>', lvl: 'core' },
-    { q: 'What did Java 9–11 add to Optional?', a: '<ul><li>Java 9: <code>or(Supplier&lt;Optional&gt;)</code> for a lazy alternative Optional, <code>ifPresentOrElse</code>, and <code>stream()</code> (0 or 1 elements, handy with <code>flatMap</code>).</li><li>Java 10: <code>orElseThrow()</code> with no arguments, the preferred spelling of <code>get()</code>.</li><li>Java 11: <code>isEmpty()</code>.</li></ul>', lvl: 'core' },
+    { q: 'What is Optional for, and what is it not for?', a: '<p>It is for <b>return types</b> where “no result” is normal and null would be risky: <code>findById</code>, <code>findFirst</code>, <code>max</code>. It doesn’t replace null everywhere. Avoid it in fields, parameters, collections and DTOs. An Optional variable should never itself be null.</p>', lvl: 'core' },
+    { q: 'orElse vs orElseGet vs orElseThrow?', a: '<ul><li><code>orElse(v)</code>: v is evaluated <b>always</b>. Use it for constants and values you already have.</li><li><code>orElseGet(supplier)</code>: the supplier runs only when empty. Use it for defaults that cost something or have side effects.</li><li><code>orElseThrow(supplier)</code>: throws your exception when empty. The no-arg form (Java 10) throws <code>NoSuchElementException</code>.</li></ul>', lvl: 'core' },
+    { q: 'Why not use Optional as a field or parameter type?', a: '<ul><li>Fields: Optional isn’t Serializable and adds an object per instance. JPA can’t map it. Jackson needs an extra module.</li><li>Parameters: every caller must wrap, and can still pass <code>null</code>. Overloads or a documented nullable parameter are simpler.</li><li>Collections: empty already means “none”. <code>Optional&lt;List&gt;</code> gives two ways to say it.</li></ul>', lvl: 'core' },
+    { q: 'map vs flatMap on Optional?', a: '<p><code>map(f)</code> for <code>f: T → R</code>: wraps the result (null becomes empty). <code>flatMap(f)</code> for <code>f: T → Optional&lt;R&gt;</code>: returns f’s Optional as it is, so no <code>Optional&lt;Optional&lt;R&gt;&gt;</code>. The same pair exists on Stream (<code>map</code>/<code>flatMap</code>) and on CompletableFuture (<code>thenApply</code>/<code>thenCompose</code>).</p>', lvl: 'core' },
+    { q: 'What did Java 9–11 add to Optional?', a: '<ul><li>Java 9: <code>or(Supplier&lt;Optional&gt;)</code> for a fallback Optional made only when needed, <code>ifPresentOrElse</code>, and <code>stream()</code> (0 or 1 elements, handy with <code>flatMap</code>).</li><li>Java 10: <code>orElseThrow()</code> with no arguments, the clearer name for <code>get()</code>.</li><li>Java 11: <code>isEmpty()</code>.</li></ul>', lvl: 'core' },
     { q: 'Is Optional slower than null checks?', a: '<p>It may create a wrapper object per call. <code>Optional.empty()</code> is one shared object, though. The JIT often removes short-lived Optionals too. In normal service code the cost is tiny next to I/O. In tight loops or huge collections, prefer primitives, <code>OptionalInt</code>, or plain null checks behind a clear API.</p>', lvl: 'deep' },
-    { q: 'How does Optional work with Spring and Jackson?', a: '<ul><li>Spring Data repositories can return <code>Optional&lt;T&gt;</code> from finders, and <code>findById</code> does by default.</li><li>Spring MVC accepts <code>Optional</code> for <code>@RequestParam</code>, <code>@RequestHeader</code> and similar, as an alternative to <code>required = false</code>.</li><li>Jackson needs <code>jackson-datatype-jdk8</code> for Optional. Spring Boot registers it automatically, but a hand-built <code>new ObjectMapper()</code> doesn’t.</li></ul>', lvl: 'deep' },
-    { q: 'Why shouldn’t you compare Optionals with == or synchronise on them?', a: '<p>Optional is a <b>value-based</b> class: equal instances are interchangeable, and which object you hold doesn’t matter. <code>==</code> on equal Optionals may be true or false. Use <code>equals</code>, which compares contents. Future JDK versions may turn such classes into value objects without identity, where synchronising on them would fail.</p>', lvl: 'deep' },
-    { q: 'How would you refactor <code>if (opt.isPresent()) return opt.get().getName(); else return "n/a";</code>?', a: '<p><code>return opt.map(User::getName).orElse("n/a");</code>. Each <code>isPresent</code>/<code>get</code> pair is a chance to forget the check. Transform with <code>map</code>/<code>filter</code>/<code>flatMap</code> and unwrap exactly once, at the end.</p>', lvl: 'core' }
+    { q: 'How does Optional work with Spring and Jackson?', a: '<ul><li>Spring Data repositories can return <code>Optional&lt;T&gt;</code> from finders, and <code>findById</code> does by default.</li><li>Spring MVC accepts <code>Optional</code> for <code>@RequestParam</code>, <code>@RequestHeader</code> and similar, instead of <code>required = false</code>.</li><li>Jackson needs <code>jackson-datatype-jdk8</code> for Optional. Spring Boot registers it automatically, but a hand-built <code>new ObjectMapper()</code> doesn’t.</li></ul>', lvl: 'deep' },
+    { q: 'Why shouldn’t you compare Optionals with == or synchronise on them?', a: '<p>Optional is a <b>value-based</b> class: equal instances are interchangeable, and which object you hold doesn’t matter. <code>==</code> on equal Optionals may be true or false. Use <code>equals</code>, which compares contents. Future JDKs may make such classes identity-free. Locking on them would then fail.</p>', lvl: 'deep' },
+    { q: 'How would you refactor <code>if (opt.isPresent()) return opt.get().getName(); else return "n/a";</code>?', a: '<p><code>return opt.map(User::getName).orElse("n/a");</code>. Each <code>isPresent</code>/<code>get</code> pair is a chance to forget the check. Transform with <code>map</code>/<code>filter</code>/<code>flatMap</code>. Unwrap once, at the end.</p>', lvl: 'core' }
   ],
   code: [
     { title: 'Finders and 404s', lang: 'java', code: `public interface CustomerRepository extends JpaRepository<Customer, Long> {

@@ -44,7 +44,7 @@ IA.widget('java-arrays-strings-basics', (root, ctx) => {
       'String out = sb.toString();'],
     steps: [
       { l: 0, b: [['csv →', '""', 'hot']], s: 'Building text with <code>+=</code> in a loop…' },
-      { l: 1, b: [['csv →', '"0,1,2,"', 'chg'], ['objects created', '3 new Strings', 'bad']], s: '…creates a <b>new String every pass</b> and copies all the old characters into it. For n pieces that is roughly n² character copies. Fine for 3, slow for 100,000.' },
+      { l: 1, b: [['csv →', '"0,1,2,"', 'chg'], ['objects created', '3 new Strings', 'bad']], s: '…makes a <b>new String every pass</b> and copies all the old characters. For n pieces, that is about n² copies. Fine for 3, slow for 100,000.' },
       { l: 2, b: [['csv →', '"0,1,2,"', 'ok'], ['sb → buffer', '[ ] (capacity 16)', 'hot']], s: 'A <code>StringBuilder</code> is a <b>mutable</b> buffer of characters with spare room.' },
       { l: 3, b: [['csv →', '"0,1,2,"', 'ok'], ['sb → same buffer', '[0,1,2,]', 'ok']], s: '<code>append</code> writes into the same buffer and returns the builder, so calls chain. It grows only when full.' },
       { l: 4, b: [['csv →', '"0,1,2,"', 'ok'], ['sb → same buffer', '[0,1,2]', 'chg']], s: 'Builders can be edited in place: <code>setLength</code>, <code>insert</code>, <code>reverse</code>, <code>deleteCharAt</code>. Here we drop the last comma.' },
@@ -58,7 +58,7 @@ IA.widget('java-arrays-strings-basics', (root, ctx) => {
       '    """;'],
     steps: [
       { l: 0, b: [['opening """', 'must be followed by a line break', 'hot']], s: 'A <b>text block</b> (Java 15+) starts with <code>"""</code> and a newline. Ideal for JSON, SQL and HTML in code.' },
-      { l: [1, 2, 3], b: [['incidental indentation', '4 spaces on every line: removed', 'chg']], s: 'Java finds the smallest indentation of the content lines <i>and</i> the closing <code>"""</code> (here 4 spaces) and strips it from every line. Relative indentation stays.' },
+      { l: [1, 2, 3], b: [['incidental indentation', '4 spaces on every line: removed', 'chg']], s: 'Java finds the smallest indent among the lines <i>and</i> the closing <code>"""</code> (here 4 spaces). It strips that from every line. Extra indent stays.' },
       { l: 4, b: [['json →', '{⏎  "name": "Ada"⏎}⏎', 'ok']], s: 'The result: three lines, the inner line keeps its 2 extra spaces, and there is a trailing newline because the closing <code>"""</code> is on its own line. No <code>\\n</code> or <code>\\"</code> escapes needed.' }
     ] }
   };

@@ -16,7 +16,7 @@ IA.widget('java-setup-first-program', (root, ctx) => {
     steps: [
       { l: [1, 2, 3, 4, 5], b: [['1 · source', 'Main.java (text)', 'hot'], ['2 · compiler', 'javac (in the JDK)', 'gc'], ['3 · bytecode', 'Main.class (not yet)', 'gc'], ['4 · runtime', 'JVM (java)', 'gc']], s: 'You write <b>source code</b> in a plain text file. The file name must match the <code>public class</code> name: <code>Main</code> → <code>Main.java</code>.' },
       { l: 6, b: [['1 · source', 'Main.java', 'ok'], ['2 · compiler', 'javac checks types…', 'hot'], ['3 · bytecode', 'Main.class (not yet)', 'gc'], ['4 · runtime', 'JVM (java)', 'gc']], s: '<code>javac</code> is the Java <b>compiler</b>. It reads the source, checks syntax and types, and refuses to continue if something is wrong.' },
-      { l: 7, b: [['1 · source', 'Main.java', 'ok'], ['2 · compiler', 'javac: no errors', 'ok'], ['3 · bytecode', 'Main.class (bytes)', 'hot'], ['4 · runtime', 'JVM (java)', 'gc']], out: 'Main.class  Main.java', s: 'Success prints nothing. A new file appears: <code>Main.class</code>, holding <b>bytecode</b>, a portable instruction set for the JVM, not machine code for your CPU.' },
+      { l: 7, b: [['1 · source', 'Main.java', 'ok'], ['2 · compiler', 'javac: no errors', 'ok'], ['3 · bytecode', 'Main.class (bytes)', 'hot'], ['4 · runtime', 'JVM (java)', 'gc']], out: 'Main.class  Main.java', s: 'Success prints nothing. A new file appears: <code>Main.class</code>. It holds <b>bytecode</b>: instructions for the JVM, not for your CPU.' },
       { l: 8, b: [['1 · source', 'Main.java', 'ok'], ['2 · compiler', 'javac', 'ok'], ['3 · bytecode', 'Main.class', 'ok'], ['4 · runtime', 'JVM finds main(…)', 'hot']], s: '<code>java Main</code> starts the <b>JVM</b>. Note: the class name, <i>not</i> <code>Main.class</code>. The JVM loads the class and looks for <code>public static void main(String[] args)</code>.' },
       { l: 3, b: [['1 · source', 'Main.java', 'ok'], ['2 · compiler', 'javac', 'ok'], ['3 · bytecode', 'Main.class', 'ok'], ['4 · runtime', 'JVM runs main', 'ok']], out: 'Hello, Java!', s: 'The JVM runs <code>main</code> line by line. <code>System.out.println</code> writes a line to the terminal. When <code>main</code> returns, the program ends.' }
     ] },
@@ -37,7 +37,7 @@ IA.widget('java-setup-first-program', (root, ctx) => {
       'jshell> "hi".toUpperCase()',
       'jshell> /exit'],
     steps: [
-      { l: 0, b: [['x', 'int 42', 'hot']], out: 'x ==> 42', s: '<b>JShell</b> (Java 9+) is a REPL: type a line, see the result. No class, no <code>main</code>, no semicolon needed for a single line.' },
+      { l: 0, b: [['x', 'int 42', 'hot']], out: 'x ==> 42', s: '<b>JShell</b> (Java 9+) is an interactive prompt: type a line, see the result. No class, no <code>main</code>, no semicolon needed for a single line.' },
       { l: 1, b: [['x', 'int 42', 'ok'], ['$2', 'int 43', 'hot']], out: '$2 ==> 43', s: 'An expression without a name is saved in a scratch variable such as <code>$2</code>.' },
       { l: 2, b: [['x', 'int 42', 'ok'], ['$2', 'int 43', 'ok'], ['$3', 'String "HI"', 'hot']], out: '$3 ==> "HI"', s: 'Perfect for trying an API before you write it in a real file.' },
       { l: 3, b: [['session', 'ended', 'gc']], out: '|  Goodbye', s: '<code>/exit</code> leaves. Commands that start with <code>/</code> control JShell itself (<code>/vars</code>, <code>/help</code>).' }
@@ -50,7 +50,7 @@ IA.widget('java-setup-first-program', (root, ctx) => {
       '}'],
     steps: [
       { l: 2, b: [['1 · source', 'Main.java (bug)', 'chg'], ['2 · compiler', 'javac reading…', 'hot'], ['3 · bytecode', '—', 'gc'], ['4 · runtime', '—', 'gc']], s: 'A missing semicolon at the end of line 3.' },
-      { l: 2, b: [['1 · source', 'Main.java (bug)', 'bad'], ['2 · compiler', '1 error', 'bad'], ['3 · bytecode', 'not created', 'gc'], ['4 · runtime', 'never starts', 'gc']], out: "Main.java:3: error: ';' expected", s: 'The compiler stops with a file name, line number and message. Nothing runs. Catching mistakes <b>before</b> running is the point of a compiled, statically typed language.' }
+      { l: 2, b: [['1 · source', 'Main.java (bug)', 'bad'], ['2 · compiler', '1 error', 'bad'], ['3 · bytecode', 'not created', 'gc'], ['4 · runtime', 'never starts', 'gc']], out: "Main.java:3: error: ';' expected", s: 'The compiler stops with a file name, line number and message. Nothing runs. A compiled language catches mistakes <b>before</b> anything runs.' }
     ] }
   };
   const { el, svg, sleep, reduced } = ctx;

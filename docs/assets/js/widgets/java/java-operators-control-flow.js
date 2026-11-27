@@ -16,7 +16,7 @@ IA.widget('java-operators-control-flow', (root, ctx) => {
       { l: 2, b: [['int a', '7', 'ok'], ['int b', '2', 'ok'], ['a / b', '3', 'ok'], ['a % b', '1', 'hot']], s: '<code>%</code> is the remainder: 7 = 3 × 2 + <b>1</b>. Handy for “every other row” (<code>i % 2 == 0</code>).' },
       { l: 3, b: [['int a', '7', 'ok'], ['int b', '2', 'ok'], ['a / b', '3', 'ok'], ['a % b', '1', 'ok'], ['double d', '3.0', 'bad']], s: 'Trap: the division happens in <code>int</code> <b>first</b>, then 3 becomes 3.0. The target type doesn’t change how the right side is computed.' },
       { l: 4, b: [['int a', '7', 'ok'], ['int b', '2', 'ok'], ['a / b', '3', 'ok'], ['a % b', '1', 'ok'], ['double d', '3.0', 'bad'], ['double e', '3.5', 'ok']], s: 'Cast one operand first: <code>(double) a</code> is 7.0, so the division is floating-point. 3.5.' },
-      { l: 5, b: [['-7 / 2', '-3', 'chg'], ['-7 % 2', '-1', 'chg']], s: 'Integer division rounds <b>toward zero</b>, and the remainder takes the sign of the left operand. So <code>n % 2 == 1</code> is false for negative odd numbers; test <code>n % 2 != 0</code>. (<code>Math.floorDiv</code>/<code>floorMod</code> round down instead.)' }
+      { l: 5, b: [['-7 / 2', '-3', 'chg'], ['-7 % 2', '-1', 'chg']], s: 'Integer division rounds <b>toward zero</b>. The remainder takes the sign of the left side. So <code>n % 2 == 1</code> is false for negative odd numbers. Test <code>n % 2 != 0</code>. (<code>Math.floorDiv</code>/<code>floorMod</code> round down instead.)' }
     ] },
     branch: { label: 'if / else', cols: 2, code: [
       'int score = 72;',
@@ -34,7 +34,7 @@ IA.widget('java-operators-control-flow', (root, ctx) => {
       { l: 2, b: [['int score', '72', 'ok'], ['score >= 90', 'false', 'gc']], s: 'The first condition is checked. False, so its block is skipped.' },
       { l: 4, b: [['int score', '72', 'ok'], ['score >= 90', 'false', 'gc'], ['score >= 70', 'true', 'ok']], s: 'Then the next <code>else if</code>. True.' },
       { l: 5, b: [['int score', '72', 'ok'], ['score >= 90', 'false', 'gc'], ['score >= 70', 'true', 'ok'], ['String grade', '"B"', 'hot']], s: 'Only the first true branch runs. The remaining <code>else</code> is skipped entirely.' },
-      { l: 9, b: [['int score', '72', 'ok'], ['String grade', '"B"', 'ok']], out: 'B', s: 'The compiler accepts <code>grade</code> here because every path assigns it (“definitely assigned”). Remove the <code>else</code> and it won’t compile.' }
+      { l: 9, b: [['int score', '72', 'ok'], ['String grade', '"B"', 'ok']], out: 'B', s: 'The compiler accepts <code>grade</code> here because every path sets it. Remove the <code>else</code> and it won’t compile.' }
     ] },
     sw: { label: 'switch', cols: 2, code: [
       'int day = 6;',
@@ -50,7 +50,7 @@ IA.widget('java-operators-control-flow', (root, ctx) => {
       '}'],
     steps: [
       { l: [1, 2], b: [['int day', '6', 'ok'], ['matches', 'case 6, 7', 'hot']], s: 'A <b>switch expression</b> (Java 14+) produces a value. <code>case 6, 7 -></code> lists several labels; the arrow form never falls through.' },
-      { l: 5, b: [['int day', '6', 'ok'], ['String kind', '"weekend"', 'ok']], s: 'Only the matching arm runs. For an expression the compiler insists every possible value is covered, here via <code>default</code>.' },
+      { l: 5, b: [['int day', '6', 'ok'], ['String kind', '"weekend"', 'ok']], s: 'Only the matching arm runs. A switch expression must cover every possible value. Here <code>default</code> does that.' },
       { l: 8, b: [['int day', '6', 'ok'], ['String kind', '"weekend"', 'ok'], ['jump to', 'case 6:', 'hot']], out: 'Sat', s: 'The classic <b>colon</b> form jumps to the matching label and starts running…' },
       { l: 9, b: [['int day', '6', 'ok'], ['String kind', '"weekend"', 'ok'], ['fall-through!', 'case 7: runs too', 'bad']], out: 'Sun', s: '…and keeps going into the next case, because there is no <code>break</code>. This <b>fall-through</b> is a famous source of bugs; the arrow form avoids it.' }
     ] },
@@ -72,7 +72,7 @@ IA.widget('java-operators-control-flow', (root, ctx) => {
       { l: 4, b: [['int n', '10', 'ok'], ['n < 3', 'false', 'gc']], s: '<code>while</code> checks <b>first</b>: false, so the body never runs.' },
       { l: 5, b: [['int n', '11', 'chg'], ['n < 3', 'false', 'gc']], s: '<code>do … while</code> runs the body <b>first</b>, then checks. It always runs at least once: n becomes 11.' },
       { l: 7, b: [['int[] xs', '{4, 5}', 'ok'], ['int x', '4', 'hot']], out: 'each 4', s: 'The <b>enhanced for</b> loop (“for each”) gives you each element in turn, with no index to get wrong.' },
-      { l: 7, b: [['int[] xs', '{4, 5}', 'ok'], ['int x', '5', 'hot']], out: 'each 5', s: '<code>x</code> is a copy of the element. Assigning to <code>x</code> does not change the array; use an index loop for that.' }
+      { l: 7, b: [['int[] xs', '{4, 5}', 'ok'], ['int x', '5', 'hot']], out: 'each 5', s: '<code>x</code> is a copy of the element. Assigning to <code>x</code> doesn’t change the array. Use an index loop for that.' }
     ] }
   };
   const { el, svg, sleep, reduced } = ctx;

@@ -5,7 +5,7 @@ IA.widget('tricky-java-basics', (root, ctx) => {
   const Q = [
     // ---------- B1 Running Java ----------
     { t: 'Running Java', s: 'java-setup-first-program', q: 'A file named <code>Hello.java</code> contains <code>public class Main { … }</code>. What does <code>javac Hello.java</code> do?', o: ['Compiles to Hello.class', 'Compiles to Main.class with a warning', 'Compile error: a public class must be declared in a file named Main.java', 'Compiles, but java Hello fails'], a: 2, x: 'A <code>public</code> top-level class must live in a file with the same name. Rename the file or the class.' },
-    { t: 'Running Java', s: 'java-setup-first-program', q: 'On JDK 11+, what does <code>java Main.java</code> (no javac first) do?', o: ['Error: java only runs .class files', 'Compiles the single source file in memory and runs it', 'Opens JShell', 'Writes Main.class next to the source, then runs it'], a: 1, x: 'The single-file source-code launcher (JDK 11+) compiles in memory and runs <code>main</code>; no <code>.class</code> file is written. Larger projects still use <code>javac</code> or a build tool.' },
+    { t: 'Running Java', s: 'java-setup-first-program', q: 'On JDK 11+, what does <code>java Main.java</code> (no javac first) do?', o: ['Error: java only runs .class files', 'Compiles the single source file in memory and runs it', 'Opens JShell', 'Writes Main.class next to the source, then runs it'], a: 1, x: 'Since JDK 11, <code>java Main.java</code> compiles in memory and runs <code>main</code>. No <code>.class</code> file is written. Larger projects still use <code>javac</code> or a build tool.' },
     { t: 'Running Java', s: 'java-setup-first-program', q: 'What does this print?', run: true, expect: 'ab\nc', code: `public class Main {
     public static void main(String[] args) {
         System.out.print("a");
@@ -28,7 +28,7 @@ IA.widget('tricky-java-basics', (root, ctx) => {
         Integer a = 127, b = 127, c = 128, d = 128;
         System.out.println((a == b) + " " + (c == d) + " " + c.equals(d));
     }
-}`, o: ['true true true', 'true false true', 'false false true', 'true false false'], a: 1, x: '<code>==</code> on wrappers compares references. Autoboxing caches −128..127, so 127 gives the same object and 128 (by default) does not. Compare values with <code>equals</code>.' },
+}`, o: ['true true true', 'true false true', 'false false true', 'true false false'], a: 1, x: '<code>==</code> on wrappers asks “same object?”. Values −128..127 are cached, so 127 gives the same object. 128 (by default) does not. Compare values with <code>equals</code>.' },
     { t: 'Types & variables', s: 'java-types-variables', q: 'What does this print?', run: true, expect: '3.0 3.5 3', code: `public class Main {
     public static void main(String[] args) {
         double d = 7 / 2;
@@ -74,7 +74,7 @@ IA.widget('tricky-java-basics', (root, ctx) => {
         } while (i < 3);
         System.out.println(x + " " + i);
     }
-}`, o: ['12 5', '12 6', '12.7 6', 'Compile error: lossy conversion'], a: 1, x: 'Compound assignment includes a hidden cast: <code>x = (int) (x + 2.7)</code>, so 12. (<code>x = x + 2.7</code> would not compile.) A <code>do/while</code> body always runs at least once.' },
+}`, o: ['12 5', '12 6', '12.7 6', 'Compile error: lossy conversion'], a: 1, x: '<code>+=</code> has a hidden cast: <code>x = (int) (x + 2.7)</code>, so 12. (<code>x = x + 2.7</code> would not compile.) A <code>do/while</code> body always runs at least once.' },
     // ---------- B4 Arrays & strings ----------
     { t: 'Arrays & strings', s: 'java-arrays-strings-basics', q: 'What does this print?', run: true, expect: 'hi 3345', code: `public class Main {
     public static void main(String[] args) {
@@ -124,7 +124,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println(f(5) + " " + f(5L) + " " + f(Integer.valueOf(5)));
     }
-}`, o: ['int long int', 'int long Object', 'int int Object', 'Compile error: ambiguous'], a: 1, x: 'The compiler picks the overload at compile time from the <b>static</b> argument types. An <code>Integer</code> matches <code>Object</code> by subtyping before unboxing to <code>int</code> is even considered.' },
+}`, o: ['int long int', 'int long Object', 'int int Object', 'Compile error: ambiguous'], a: 1, x: 'The compiler picks the overload at compile time from the <b>declared</b> argument types. An <code>Integer</code> matches <code>Object</code> directly, so unboxing to <code>int</code> is never tried.' },
     { t: 'Methods', s: 'java-methods', q: 'What does this print?', run: true, expect: '0 6 9', code: `public class Main {
     static int sum(int... nums) {
         int s = 0;

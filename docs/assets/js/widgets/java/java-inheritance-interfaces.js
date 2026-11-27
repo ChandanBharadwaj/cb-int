@@ -110,7 +110,7 @@
         '}',
         '// Cat overrides speak(): name + " says meow"'],
       steps: [
-        { line: 0, cap: 'The array’s type is <code>Animal[]</code>, but each slot points to a different <b>real</b> class. The variable type is what the compiler checks; the object type is what runs.', st: { boxes: [{ name: 'zoo (declared Animal[])', kv: [['[0]', '→ Animal'], ['[1]', '→ Dog'], ['[2]', '→ Cat']], hot: true }] } },
+        { line: 0, cap: 'The array’s type is <code>Animal[]</code>, but each slot points to a different <b>real</b> class. The compiler checks the variable type. The object type decides what runs.', st: { boxes: [{ name: 'zoo (declared Animal[])', kv: [['[0]', '→ Animal'], ['[1]', '→ Dog'], ['[2]', '→ Cat']], hot: true }] } },
         { line: 2, cap: '<code>a</code> points to a plain Animal. Animal’s <code>speak()</code> runs.', out: 'Generic makes a sound', st: { boxes: [{ name: 'a → Animal', kv: [['speak()', 'Animal.speak ✓']], hot: true, hotKey: 'speak()' }] } },
         { line: 2, cap: 'Same line of code, but <code>a</code> now points to a Dog. The JVM picks Dog’s override at <b>run time</b>. This is <b>dynamic dispatch</b>.', out: 'Rex makes a sound (woof)', st: { boxes: [{ name: 'a → Dog', kv: [['speak()', 'Dog.speak ✓']], hot: true, hotKey: 'speak()' }] } },
         { line: 2, cap: 'And a Cat. One loop, three behaviours, no <code>if</code>/<code>instanceof</code>. That is polymorphism.', out: 'Tom says meow', st: { boxes: [{ name: 'a → Cat', kv: [['speak()', 'Cat.speak ✓']], hot: true, hotKey: 'speak()' }], note: 'Overriding is chosen at run time. Overloading (same name, different parameters) is chosen at compile time.' } }
@@ -143,7 +143,7 @@
         'Greeter g = new User("Ann");',
         'System.out.println(g.greet());'],
       steps: [
-        { line: [0, 1], cap: 'An <b>interface</b> is a contract: a list of methods a type promises to have. Methods without a body are implicitly <code>public abstract</code>.', st: { boxes: [{ name: 'interface Greeter', kv: [['name()', 'abstract'], ['greet()', 'default']], hot: true }] } },
+        { line: [0, 1], cap: 'An <b>interface</b> is a contract: a list of methods a type promises to have. Methods without a body are <code>public abstract</code> by default.', st: { boxes: [{ name: 'interface Greeter', kv: [['name()', 'abstract'], ['greet()', 'default']], hot: true }] } },
         { line: 2, cap: 'A <code>default</code> method (Java 8+) has a body. Implementers get it for free, and can override it. This lets libraries add methods without breaking old code.', st: { boxes: [{ name: 'interface Greeter', kv: [['greet()', 'default: "Hi " + name()']], hot: true, hotKey: 'greet()' }] } },
         { line: 5, cap: 'A class (or record) can <code>implement</code> <b>many</b> interfaces but <code>extend</code> only one class. The record’s <code>name()</code> accessor satisfies the abstract method.', st: { boxes: [{ name: 'record User', kv: [['name()', 'accessor ✓'], ['greet()', 'from Greeter'], ['shout()', 'from Loud']], hot: true }] } },
         { line: [7, 8, 2], cap: 'Use the interface as the variable type. <code>greet()</code> runs the default body, which calls the record’s <code>name()</code>.', out: 'Hi Ann', st: { boxes: [{ name: 'g (declared Greeter) → User', kv: [['greet()', 'default ✓'], ['name()', '"Ann"']], hot: true, hotKey: 'greet()' }], note: 'If two interfaces give the same default method, the class must override it and can pick one with <code>Greeter.super.greet()</code>.' } }

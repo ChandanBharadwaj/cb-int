@@ -98,7 +98,7 @@
         'Account b = a;'],
       steps: [
         { line: [0, 1, 2], cap: 'A <b>class</b> is a blueprint. Fields are declared up front with a type. Nothing exists in memory yet.', st: { boxes: [{ name: 'class Account', kv: [['owner', 'String (final)'], ['balance', 'long']], hot: true }] } },
-        { line: 9, cap: '<code>new</code> allocates an object on the <b>heap</b>. Every field starts at its default: <code>null</code> for references, <code>0</code> for numbers.', st: { boxes: [{ name: 'heap: Account#1', kv: [['owner', 'null'], ['balance', '0']], hot: true }] } },
+        { line: 9, cap: '<code>new</code> creates an object in memory (the <b>heap</b>). Every field starts at its default: <code>null</code> for references, <code>0</code> for numbers.', st: { boxes: [{ name: 'heap: Account#1', kv: [['owner', 'null'], ['balance', '0']], hot: true }] } },
         { line: [7, 9], cap: 'The one-argument constructor runs. <code>this(owner, 0)</code> delegates to the other constructor. It must be the first statement.', st: { boxes: [{ name: 'heap: Account#1', kv: [['owner', 'null'], ['balance', '0']], hot: true }], frame: 'Account(owner="Asha") → this("Asha", 0)' } },
         { line: [3, 4, 5], cap: '<code>this.owner = owner</code>: the parameter has the same name as the field, so <code>this.</code> picks the field. Without it you would assign the parameter to itself.', st: { boxes: [{ name: 'heap: Account#1', kv: [['owner', '"Asha"'], ['balance', '0']], hot: true, hotKey: 'owner' }], frame: 'Account(owner="Asha", balance=0)' } },
         { line: 9, cap: '<code>new</code> returns a <b>reference</b> (an arrow to the object). The variable <code>a</code> holds that reference, not the object.', st: { boxes: [{ name: 'stack: main', kv: [['a', '→ Account#1']], hot: true, hotKey: 'a' }, { name: 'heap: Account#1', kv: [['owner', '"Asha"'], ['balance', '0']] }] } },
@@ -114,7 +114,7 @@
         'Ticket t2 = new Ticket();',
         'Ticket t3 = new Ticket();'],
       steps: [
-        { line: 1, cap: 'A <code>static</code> field lives with the class, created once when the class is first used. Every object reads and writes the same one.', st: { boxes: [{ name: 'class Ticket (static)', kv: [['next', '1']], hot: true, hotKey: 'next' }] } },
+        { line: 1, cap: 'A <code>static</code> field belongs to the class. It is created once, when the class is first used. Every object shares it.', st: { boxes: [{ name: 'class Ticket (static)', kv: [['next', '1']], hot: true, hotKey: 'next' }] } },
         { line: [5, 3], cap: '<code>id = next++</code> copies the current <code>next</code> into this object, then increments the shared counter.', st: { boxes: [{ name: 'class Ticket (static)', kv: [['next', '2']], hot: true, hotKey: 'next' }, { name: 't1', kv: [['id', '1']] }] } },
         { line: [6, 7], cap: 'Each object gets its own <code>id</code>. There is still one <code>next</code>.', st: { boxes: [{ name: 'class Ticket (static)', kv: [['next', '4']], hot: true, hotKey: 'next' }, { name: 't1', kv: [['id', '1']] }, { name: 't2', kv: [['id', '2']] }, { name: 't3', kv: [['id', '3']] }], note: 'Not thread-safe: two threads can read the same <code>next</code>. Real code uses <code>AtomicInteger</code>.' } }
       ] },
