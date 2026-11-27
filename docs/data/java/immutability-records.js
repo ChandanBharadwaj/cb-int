@@ -2,20 +2,20 @@ IA.register({
   track: 'java',
   slug: 'immutability-records',
   title: 'Immutability & records',
-  tagline: '<code>final</code> freezes a <b>reference</b>, not the object behind it. An immutable type means that nobody, anywhere, still holds a writable path into its state. Records make the shell easy, and defensive copies make the rest true.',
+  tagline: '<code>final</code> freezes the pointer to an object (the <b>reference</b>), not the object. An object is immutable only if nobody can still change what is inside. Records make the outside easy. Copying what you are given makes the inside safe.',
   tldr: {
-    problem: '“Immutable” DTOs and config objects change underneath you because a caller kept a reference to the list it passed in, or because an “unmodifiable” wrapper is only a view of a list someone else is still writing to.',
-    model: 'Count the arrows. An object is immutable only if every reachable field is final <i>and</i> every object it points to is immutable, or is a private copy that never escapes. Copy on the way in; return unmodifiable data on the way out.',
+    problem: '“Immutable” DTOs and config objects change under you. A caller kept the list it passed in. Or an “unmodifiable” wrapper is only a window onto a list someone still writes to.',
+    model: 'Count the arrows. An object is immutable only if every field is final <i>and</i> everything it points to is immutable, or is a private copy that never leaks. Copy on the way in. Hand out unmodifiable data on the way out.',
     hook: '“Is a record immutable?” Shallowly. <code>record Order(List&lt;String&gt; items)</code> keeps the caller’s ArrayList unless the compact constructor does <code>items = List.copyOf(items)</code>.',
     facts: [
-      { v: 'Java 16', l: 'records became a standard feature (JEP 395), after previews in Java 14 and 15. Sealed types followed in Java 17' },
+      { v: 'Java 16', l: 'records became standard, after previews in Java 14 and 15. Sealed types followed in Java 17' },
       { v: 'view ≠ copy', l: '<code>Collections.unmodifiableList</code> shows later changes to its backing list. <code>List.of</code> (Java 9) and <code>List.copyOf</code> (Java 10) are snapshots' },
-      { v: 'JLS §17.5', l: 'final fields of a properly constructed object are visible to every thread without synchronisation, provided <code>this</code> doesn’t escape during construction' }
+      { v: 'JLS §17.5', l: 'every thread sees an object’s final fields without locking, if <code>this</code> didn’t leak during construction' }
     ]
   },
   intro: {
-    what: 'An <b>immutable</b> object can’t change after it is created. Every “change” produces a new object instead, the way <code>String.toUpperCase()</code> returns a new String. Immutable objects are easy to reason about: they can be shared between threads, used as map keys and cached without copying. A <b>record</b> (Java 16+) is a short way to declare a class whose job is to carry a fixed set of values.',
-    analogy: { icon: '🧾', title: 'A printed receipt vs a shared spreadsheet', text: 'A printed receipt never changes after it leaves the till. A link to a shared spreadsheet looks the same on your screen, but anyone with edit access can change it while you read. <code>final</code> gives you a link that can’t be redirected. Immutability means you were handed a printout.' },
+    what: 'An <b>immutable</b> object can’t change after it is created. Every “change” makes a new object, the way <code>String.toUpperCase()</code> returns a new String. Such objects are easy to reason about. You can share them between threads, use them as map keys and cache them. A <b>record</b> (Java 16+) is a short way to declare a class that carries a fixed set of values.',
+    analogy: { icon: '🧾', title: 'A printed receipt vs a shared spreadsheet', text: 'A printed receipt never changes after it leaves the till. A shared spreadsheet looks the same on screen, but anyone with edit access can change it while you read. <code>final</code> gives you a link that can’t be redirected. Immutability means you got a printout.' },
     steps: [
       { t: 'final stops reassignment', d: '<code>final List&lt;String&gt; xs = new ArrayList&lt;&gt;();</code> means <code>xs = …</code> won’t compile. <code>xs.add("a")</code> still works.' },
       { t: 'A record declares the state once', d: 'The compiler generates private final fields, a constructor, accessors, equals, hashCode and toString.', code: 'record Point(int x, int y) {}\nvar p = new Point(1, 2);\np.x();          // 1\np;              // Point[x=1, y=2]' },
@@ -25,9 +25,9 @@ IA.register({
     terms: [
       ['immutable', 'State can’t change after construction, through any reference.'],
       ['shallow vs deep', 'Shallow: the fields can’t be reassigned. Deep: nothing reachable from the object can change either.'],
-      ['defensive copy', 'Copying mutable input on the way in (and output on the way out) so callers can’t keep a writable alias.'],
-      ['canonical constructor', 'The record constructor whose parameters match the components exactly. The <b>compact</b> form omits the parameter list.'],
-      ['unmodifiable view', 'A wrapper that rejects writes through itself but shows writes made to the collection it wraps.']
+      ['defensive copy', 'Copying changeable input on the way in (and output on the way out). Callers then can’t keep a writable handle.'],
+      ['canonical constructor', 'The record constructor whose parameters match the fields exactly. The <b>compact</b> form leaves out the parameter list.'],
+      ['unmodifiable view', 'A wrapper that blocks writes through itself, but still shows writes made to the list underneath.']
     ]
   },
   visual: {
@@ -36,28 +36,28 @@ IA.register({
   },
   gotchas: [
     { trap: '<code>final</code> on a mutable object', code: `private final Map<String, Price> prices = new HashMap<>();   // still writable
-public static final String[] CODES = {"EU", "US"};          // CODES[0] = "XX" compiles`, why: '<code>final</code> applies to the variable. The map and the array can still be changed by anyone who can reach them. A <code>public static final</code> array is a classic security bug.', fix: 'Expose <code>Map.copyOf(prices)</code> or an unmodifiable view. Replace public arrays with <code>List.of(…)</code>.' },
+public static final String[] CODES = {"EU", "US"};          // CODES[0] = "XX" compiles`, why: '<code>final</code> applies to the variable. Anyone who can reach the map or array can still change it. A <code>public static final</code> array is a classic security bug.', fix: 'Expose <code>Map.copyOf(prices)</code> or an unmodifiable view. Replace public arrays with <code>List.of(…)</code>.' },
     { trap: 'Record components that are mutable', code: `record Order(List<String> items) {}
 var list = new ArrayList<>(List.of("pen"));
 var o = new Order(list);
 list.add("ink");          // o.items() is now [pen, ink]
 o.items().clear();        // and now []`, why: 'The generated constructor stores the reference it is given, and the generated accessor returns the same reference.', fix: 'Copy in the compact constructor: <code>items = List.copyOf(items);</code>. For arrays, <code>clone()</code> in the constructor <i>and</i> in an explicit accessor.' },
     { trap: 'An unmodifiable view is not a snapshot', code: `List<String> view = Collections.unmodifiableList(internal);
-internal.add("x");        // every holder of view sees "x"`, why: 'The wrapper delegates every read to the backing list. It is also not thread-safe: if another thread writes to the backing list, readers of the view race with that writer.', fix: 'Return <code>List.copyOf(internal)</code> when callers need a stable value. Keep views for cheap read-only access to state you own and control.' },
+internal.add("x");        // every holder of view sees "x"`, why: 'The wrapper passes every read to the list underneath. It is not thread-safe either. If another thread writes that list, readers of the view race with it.', fix: 'Return <code>List.copyOf(internal)</code> when callers need a stable value. Keep views for cheap read-only access to state you own and control.' },
     { trap: '<code>List.of</code> / <code>Set.of</code> / <code>Map.of</code> are strict', code: `List.of("a", null);                   // NullPointerException
 List.of("a").contains(null);          // NullPointerException, too
 Set.of(email, billingEmail);          // IllegalArgumentException if they are equal
-Map.of("k", 1, "k", 2);               // IllegalArgumentException: duplicate key`, why: 'The Java 9+ immutable collections reject null elements, and even reject null queries. The <code>Set.of</code> and <code>Map.of</code> factories also reject duplicates instead of silently collapsing them.', fix: 'Use them for constants and validated data. For user data that may contain duplicates, build a <code>LinkedHashSet</code> first and then <code>Set.copyOf</code> it.' },
+Map.of("k", 1, "k", 2);               // IllegalArgumentException: duplicate key`, why: 'The Java 9+ immutable collections reject null elements, and even null lookups. <code>Set.of</code> and <code>Map.of</code> also reject duplicates instead of merging them.', fix: 'Use them for constants and validated data. For user data that may contain duplicates, build a <code>LinkedHashSet</code> first and then <code>Set.copyOf</code> it.' },
     { trap: '<code>Stream.toList()</code> vs <code>Collectors.toList()</code>', code: `var a = stream.collect(Collectors.toList());  // ArrayList in practice, mutable
 var b = stream.toList();                        // Java 16+: unmodifiable
-b.add(x);                                       // UnsupportedOperationException`, why: 'They look interchangeable but aren’t. <code>Collectors.toList</code> makes no promise about mutability (it is an ArrayList today). <code>Stream.toList()</code> promises an unmodifiable list, and it allows null elements.', fix: 'Use <code>toList()</code> by default. Use <code>Collectors.toCollection(ArrayList::new)</code> when you really need to mutate the result.' },
+b.add(x);                                       // UnsupportedOperationException`, why: 'They look the same but aren’t. <code>Collectors.toList</code> promises nothing about changes (it is an ArrayList today). <code>Stream.toList()</code> promises an unmodifiable list, and allows nulls.', fix: 'Use <code>toList()</code> by default. Use <code>Collectors.toCollection(ArrayList::new)</code> when you really need to mutate the result.' },
     { trap: 'Letting <code>this</code> escape from the constructor', code: `final class Listener {
   private final Config cfg;
   Listener(Bus bus, Config cfg) {
     bus.register(this);   // another thread can call us now
     this.cfg = cfg;       // …and may still see cfg == null
   }
-}`, why: 'The final-field visibility guarantee (JLS §17.5) only holds once the constructor has finished. Publishing <code>this</code> earlier lets other threads see default values.', fix: 'Finish construction first, then register: use a static factory that calls the constructor and then <code>bus.register(listener)</code>.' }
+}`, why: 'Other threads are only sure to see final fields once the constructor has finished. Share <code>this</code> earlier, and they may see default values.', fix: 'Finish construction first, then register: use a static factory that calls the constructor and then <code>bus.register(listener)</code>.' }
   ],
   scenarios: [
     { title: 'Cached quote changed after it was sent to the customer',
@@ -67,7 +67,7 @@ Quote q = new Quote(id, lines);                    // lines: ArrayList from the 
 quoteCache.put(id, q);
 // later, the upsell step reuses the builder's list:
 lines.add(upsell);                                 // the cached Quote changes too`,
-      cause: 'The record stored the builder’s mutable list. The upsell step mutated that list after the quote was cached, so a supposedly frozen value changed.',
+      cause: 'The record kept the builder’s list. The upsell step changed that list after the quote was cached. So a “frozen” value changed.',
       fix: 'Copy mutable components in the compact constructor and make <code>Line</code> a record too, so the whole object graph is immutable.',
       fixCode: `record Quote(String id, List<Line> lines) {
   Quote {

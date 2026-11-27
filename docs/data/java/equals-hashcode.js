@@ -2,20 +2,20 @@ IA.register({
   track: 'java',
   slug: 'equals-hashcode',
   title: 'equals & hashCode contract',
-  tagline: 'A HashMap finds a key in two moves: <b>hashCode</b> picks the bucket, then <b>equals</b> picks the entry. Break the link between the two, or change a key after inserting it, and entries become invisible but are never removed.',
+  tagline: 'A HashMap finds a key in two moves: <b>hashCode</b> picks the bucket, then <b>equals</b> picks the entry. If the two disagree, or a key changes after you insert it, entries become invisible. They are never removed.',
   tldr: {
-    problem: 'Lookups return <code>null</code> for keys that are “obviously” there, Sets hold duplicates, caches grow forever, and a TreeSet silently drops records. The code compiles and usually passes the tests.',
-    model: '<code>hashCode</code> is a fast, lossy fingerprint that routes to a bucket. <code>equals</code> is the real identity check inside the bucket. Rule: <b>equal ⇒ same hash</b>, and neither may change while the object is a key.',
-    hook: '“What happens if you override equals but not hashCode?” Two equal keys get different identity hashes, so they land in different buckets and <code>equals</code> is never even called.',
+    problem: 'Lookups return <code>null</code> for keys that are “obviously” there. Sets hold duplicates. Caches grow forever. A TreeSet drops records. The code compiles and usually passes the tests.',
+    model: '<code>hashCode</code> is a quick, rough fingerprint that picks a bucket. <code>equals</code> is the real check inside that bucket. Rule: <b>equal ⇒ same hash</b>. Neither may change while the object is a key.',
+    hook: '“What happens if you override equals but not hashCode?” Two equal keys keep different default hashes. They land in different buckets, so <code>equals</code> is never called.',
     facts: [
       { v: 'equal ⇒ equal hash', l: 'the one-way rule in <code>Object.hashCode</code>’s contract. Unequal objects may collide, and HashMap must still work correctly when they do' },
       { v: '2112', l: 'is both <code>"Aa".hashCode()</code> and <code>"BB".hashCode()</code>. String collisions are easy to make on purpose' },
-      { v: '8 / 64', l: 'a HashMap bin becomes a red-black tree at 8 nodes once the table has at least 64 buckets (Java 8+), so heavy collisions degrade to O(log n), not O(n)' }
+      { v: '8 / 64', l: 'a HashMap bucket turns into a tree at 8 entries, once there are 64+ buckets (Java 8+). Heavy collisions then cost O(log n), not O(n)' }
     ]
   },
   intro: {
-    what: 'Every Java object has two methods that decide whether it is “the same” as another one: <code>equals</code> (the real comparison) and <code>hashCode</code> (an int fingerprint). Hash-based collections such as <code>HashMap</code> and <code>HashSet</code> use the fingerprint to jump straight to a small group of candidates, then use <code>equals</code> to find the exact match. If the two methods disagree, those collections stop working.',
-    analogy: { icon: '📚', title: 'A library shelf by first letter', text: 'A librarian files books on shelves by the first letter of the title (the hash) and then scans that shelf for the exact title (equals). If you file a book under “T” and someone looks under “H”, it is lost. The same happens if you rename the book after shelving it: it sits under the old letter, and nobody looking for it will check there.' },
+    what: 'Every Java object has two methods that decide if it is “the same” as another. <code>equals</code> does the real comparison. <code>hashCode</code> gives an int fingerprint. <code>HashMap</code> and <code>HashSet</code> use the fingerprint to jump to a few candidates. Then <code>equals</code> finds the exact match. If the two methods disagree, those collections break.',
+    analogy: { icon: '📚', title: 'A library shelf by first letter', text: 'A librarian shelves books by the title’s first letter (the hash). Then she scans that shelf for the exact title (equals). File a book under “T” while someone looks under “H”, and it is lost. Rename a book after shelving it, and it sits under the old letter. Nobody looks there.' },
     steps: [
       { t: 'Default behaviour is identity', d: '<code>Object.equals</code> is <code>==</code>, and <code>Object.hashCode</code> is an identity hash. Two <code>new Point(1, 1)</code> objects are not equal unless you override.' },
       { t: 'Override both, from the same fields', d: 'Whatever fields <code>equals</code> compares, <code>hashCode</code> should mix those fields and no others.', code: '@Override public boolean equals(Object o) {\n  return o instanceof Point p && x == p.x && y == p.y;\n}\n@Override public int hashCode() { return Objects.hash(x, y); }' },
@@ -24,9 +24,9 @@ IA.register({
     ],
     terms: [
       ['hash code', 'An <code>int</code> summarising an object. Equal objects must have equal hash codes.'],
-      ['bucket', 'A slot in the hash table array. Index = spread hash &amp; (capacity − 1).'],
-      ['collision', 'Two different keys in the same bucket. Normal and expected; <code>equals</code> sorts them out.'],
-      ['identity hash', 'The default <code>hashCode</code> from <code>Object</code>, one per object, also available as <code>System.identityHashCode</code>.'],
+      ['bucket', 'One slot in the map’s internal array. Index = mixed hash &amp; (capacity − 1).'],
+      ['collision', 'Two different keys in the same bucket. This is normal; <code>equals</code> tells them apart.'],
+      ['identity hash', 'The default <code>hashCode</code> from <code>Object</code>, one per object. <code>System.identityHashCode</code> returns it too.'],
       ['consistent with equals', 'A <code>compareTo</code> that returns 0 exactly when <code>equals</code> is true. Sorted collections depend on it.']
     ]
   },
@@ -40,24 +40,24 @@ IA.register({
   @Override public boolean equals(Object o) { return o instanceof Sku s && s.code.equals(code); }
   // hashCode not overridden
 }
-set.add(new Sku("A1")); set.contains(new Sku("A1"));   // false`, why: 'Equal objects keep their different identity hashes, so they go to different buckets. The contract is broken, and every hash-based collection misbehaves.', fix: 'Always override both, from the same fields. Use a record when the class is a plain value. IDEs and Error Prone (<code>EqualsHashCode</code>) flag the missing method.' },
+set.add(new Sku("A1")); set.contains(new Sku("A1"));   // false`, why: 'Equal objects keep different default hashes, so they go to different buckets. The contract is broken, and every hash-based collection misbehaves.', fix: 'Always override both, from the same fields. Use a record when the class is a plain value. IDEs and Error Prone (<code>EqualsHashCode</code>) flag the missing method.' },
     { trap: 'Mutating a field that hashCode uses', code: `Set<Order> pending = new HashSet<>();
 pending.add(order);
 order.setStatus(SHIPPED);      // status is part of equals/hashCode
 pending.remove(order);         // false: wrong bucket now
-pending.contains(order);       // false, yet size() is still 1`, why: 'HashMap stores each entry’s hash and leaves the entry in its bucket. After the mutation the key hashes somewhere else, so it can’t be found and can’t be removed.', fix: 'Use immutable keys (records, Strings, ids). If the object must be mutable, base equals and hashCode only on fields that never change, such as a natural key.' },
-    { trap: '<code>equals(MyType)</code> overloads instead of overriding', code: `public boolean equals(Point p) { … }   // overload: HashSet never calls it`, why: 'Collections call <code>equals(Object)</code>. An overload with a narrower parameter type is a different method, so <code>Object.equals</code> (identity) is still used.', fix: 'Always declare <code>equals(Object o)</code> with <code>@Override</code>. The compiler then rejects a wrong signature.' },
+pending.contains(order);       // false, yet size() is still 1`, why: 'HashMap remembers each entry’s hash and leaves it in its bucket. After the change the key hashes elsewhere. It can’t be found or removed.', fix: 'Use immutable keys (records, Strings, ids). If the object must be mutable, base equals and hashCode only on fields that never change, such as a natural key.' },
+    { trap: '<code>equals(MyType)</code> overloads instead of overriding', code: `public boolean equals(Point p) { … }   // overload: HashSet never calls it`, why: 'Collections call <code>equals(Object)</code>. <code>equals(Point)</code> is a different method. So the default <code>Object.equals</code> (same object?) still runs.', fix: 'Always declare <code>equals(Object o)</code> with <code>@Override</code>. The compiler then rejects a wrong signature.' },
     { trap: 'compareTo inconsistent with equals', code: `new BigDecimal("2.0").equals(new BigDecimal("2.00"));    // false (scale differs)
 new BigDecimal("2.0").compareTo(new BigDecimal("2.00")); // 0
-// HashSet keeps both; TreeSet keeps one`, why: 'TreeMap and TreeSet use only <code>compareTo</code> (or the Comparator) to decide sameness. If it returns 0 for objects that are not <code>equals</code>, sorted and hashed collections disagree about how many elements there are.', fix: 'Make comparators total over the identity: <code>comparing(Person::lastName).thenComparing(Person::id)</code>. For money, normalise scale with <code>setScale</code> or <code>stripTrailingZeros</code> before using values as keys.' },
+// HashSet keeps both; TreeSet keeps one`, why: 'TreeMap and TreeSet use only <code>compareTo</code> (or the Comparator) to decide sameness. If it returns 0 for objects that aren’t <code>equals</code>, sorted and hashed collections disagree on the count.', fix: 'Make comparators total over the identity: <code>comparing(Person::lastName).thenComparing(Person::id)</code>. For money, normalise scale with <code>setScale</code> or <code>stripTrailingZeros</code> before using values as keys.' },
     { trap: 'JPA entities with id-based hashCode', code: `@Entity class LineItem {
   @Id @GeneratedValue Long id;
   public int hashCode() { return Objects.hashCode(id); }   // changes at persist
 }
 order.getItems().add(item);   // id null → bucket of hash 0
-em.persist(item);             // id = 42 → hash changes; item is now lost in the Set`, why: 'A generated id is null until the entity is flushed. A hash that depends on it changes during the entity’s life, which is the mutable-key bug again.', fix: 'Use a stable business key, or compare ids in equals (two transient entities are never equal) and return a constant such as <code>LineItem.class.hashCode()</code> from hashCode. The constant is slower, but it is correct.' },
+em.persist(item);             // id = 42 → hash changes; item is now lost in the Set`, why: 'A generated id is null until the entity is saved. A hash based on it changes during the entity’s life. That is the changing-key bug again.', fix: 'Use a stable business key, or compare ids in equals (two transient entities are never equal) and return a constant such as <code>LineItem.class.hashCode()</code> from hashCode. The constant is slower, but it is correct.' },
     { trap: 'Records with array or mutable components', code: `record Tag(String name, byte[] digest) {}
-new Tag("x", new byte[]{1}).equals(new Tag("x", new byte[]{1}));   // false`, why: 'A record compares reference components with <code>Objects.equals</code>, and arrays don’t override equals, so they compare by identity. A <code>List</code> component compares by contents but can be mutated after construction.', fix: 'Override <code>equals</code>/<code>hashCode</code> with <code>Arrays.equals</code>/<code>Arrays.hashCode</code>, or store an immutable copy (<code>List.copyOf</code>) in the compact constructor.' },
+new Tag("x", new byte[]{1}).equals(new Tag("x", new byte[]{1}));   // false`, why: 'A record compares fields with <code>Objects.equals</code>. Arrays don’t override equals, so they compare as “same object?”. A <code>List</code> field compares contents, but someone can change it later.', fix: 'Override <code>equals</code>/<code>hashCode</code> with <code>Arrays.equals</code>/<code>Arrays.hashCode</code>, or store an immutable copy (<code>List.copyOf</code>) in the compact constructor.' },
     { trap: '<code>instanceof</code> vs <code>getClass()</code> with subclasses', why: 'If <code>Point.equals</code> uses <code>instanceof</code> and <code>ColorPoint extends Point</code> adds colour to its own equals, then <code>p.equals(cp)</code> is true but <code>cp.equals(p)</code> is false. That breaks symmetry, and Sets behave differently depending on insertion order.', fix: 'Make value classes <code>final</code> (records are), or use <code>getClass() != o.getClass()</code> when subclasses can add state. Composition is usually better than extending a value class.' }
   ],
   scenarios: [
@@ -70,7 +70,7 @@ class PriceQuery {
 }
 cache.computeIfAbsent(query, this::load);
 query.flags.add("seen");                            // later, in a filter`,
-      cause: 'The key object was mutated after insertion. Its hash moved, so later lookups missed. Each request inserted a new entry, and the old entries could no longer be reached or evicted by key.',
+      cause: 'The key changed after insertion. Its hash moved, so later lookups missed. Each request added a new entry. Old entries could no longer be found or removed by key.',
       fix: 'Make the key an immutable record that holds copies of its collections. Bound the cache (Caffeine <code>maximumSize</code>) so a key bug degrades the hit rate instead of crashing the pod.',
       fixCode: `record PriceQuery(String sku, String region, Set<String> flags) {
   PriceQuery { flags = Set.copyOf(flags); }   // immutable snapshot

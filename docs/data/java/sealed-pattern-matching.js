@@ -2,20 +2,20 @@ IA.register({
   track: 'java',
   slug: 'sealed-pattern-matching',
   title: 'Sealed types & pattern matching',
-  tagline: 'A <b>sealed</b> type lists every subtype it allows. A <b>pattern switch</b> tests a value’s shape, unpacks it and binds variables in one step. Together they let javac prove that you handled every case, so adding a new variant becomes a compile error everywhere it matters instead of a production surprise.',
+  tagline: 'A <b>sealed</b> type lists every subtype it allows. A <b>pattern switch</b> checks a value’s type and unpacks its fields in one step. Together, the compiler can prove you handled every case. A new variant then breaks the build, not production.',
   tldr: {
-    problem: 'Type hierarchies grow new variants, and the <code>if (x instanceof …)</code> chains or <code>default -&gt;</code> branches that handle them quietly fall through to the wrong behaviour. A refund for a new payment type throws “unsupported” in production.',
-    model: '<code>sealed … permits A, B, C</code> closes the hierarchy. <code>switch</code> tries cases <b>top to bottom</b>: type pattern, then record deconstruction, then the <code>when</code> guard, and the first full match wins. With no <code>default</code>, javac checks <b>exhaustiveness</b> against the permitted list.',
-    hook: '“Why shouldn’t you add <code>default</code> to a switch over a sealed interface?” Because it turns off the exhaustiveness check: the next new subtype silently goes to <code>default</code> instead of failing the build.',
+    problem: 'You add a new subtype. Old <code>if (x instanceof …)</code> chains and <code>default -&gt;</code> branches send it down the wrong path. A refund for a new payment type throws “unsupported” in production.',
+    model: '<code>sealed … permits A, B, C</code> fixes the list of subtypes. <code>switch</code> tries cases <b>top to bottom</b>. Each checks the type, unpacks the record, then tests the <code>when</code> condition. The first full match wins. With no <code>default</code>, the compiler checks that every listed type is covered (<b>exhaustiveness</b>).',
+    hook: '“Why shouldn’t you add <code>default</code> to a switch over a sealed interface?” It turns off the coverage check. The next new subtype goes to <code>default</code> instead of failing the build.',
     facts: [
-      { v: 'Java 17', l: 'made sealed classes and interfaces standard (JEP 409). Pattern matching for <code>instanceof</code> came in Java 16 (JEP 394)' },
-      { v: 'Java 21', l: 'made pattern matching for switch (JEP 441) and record patterns (JEP 440) standard, including guards with <code>when</code> and <code>case null</code>' },
+      { v: 'Java 17', l: 'made sealed classes and interfaces standard. Pattern matching for <code>instanceof</code> came in Java 16' },
+      { v: 'Java 21', l: 'made pattern matching for switch and record patterns standard, including <code>when</code> guards and <code>case null</code>' },
       { v: 'MatchException', l: 'is thrown (Java 21) when an exhaustive pattern switch meets a subtype that didn’t exist when it was compiled, for example after a library upgrade without recompiling' }
     ]
   },
   intro: {
-    what: 'Sometimes a value can be one of a fixed set of kinds: a payment is a card, a bank transfer or a voucher, and nothing else. A <b>sealed interface</b> writes that rule into the code. <b>Pattern matching</b> lets you ask “which kind is this?” and pull out its fields in a single, type-safe expression, and the compiler warns you if you forget a kind.',
-    analogy: { icon: '🗂️', title: 'A form with fixed checkboxes', text: 'A paper form says “Payment type: ☐ Card ☐ Transfer ☐ Voucher”. Because the list is printed, the clerk’s instructions can cover every box. When management adds “☐ Crypto” to the form, every instruction sheet that doesn’t mention crypto is obviously incomplete. That is sealing plus an exhaustive switch.' },
+    what: 'Sometimes a value is one of a fixed set of kinds. A payment is a card, a bank transfer or a voucher, nothing else. A <b>sealed interface</b> writes that rule into code. <b>Pattern matching</b> asks “which kind is this?” and pulls out its fields in one safe step. The compiler tells you if you forget a kind.',
+    analogy: { icon: '🗂️', title: 'A form with fixed checkboxes', text: 'A paper form says “Payment type: ☐ Card ☐ Transfer ☐ Voucher”. The list is printed, so the clerk’s instructions can cover every box. Add “☐ Crypto”, and any instruction sheet without crypto is clearly incomplete. That is sealing plus a complete switch.' },
     steps: [
       { t: 'Close the hierarchy', d: 'Only the listed types may implement the interface. Records are implicitly <code>final</code>, which makes them a good fit.', code: 'sealed interface Payment permits Card, Transfer, Voucher {}\nrecord Card(String last4) implements Payment {}\nrecord Transfer(String iban) implements Payment {}\nrecord Voucher(String code, int cents) implements Payment {}' },
       { t: 'Test and bind in one step', d: 'A type pattern checks the type and gives you a variable that is already cast.', code: 'if (p instanceof Card c) {\n  log.info("card ending {}", c.last4());\n}' },
@@ -25,11 +25,11 @@ IA.register({
     ],
     terms: [
       ['sealed / permits', 'A class or interface that names the only subtypes allowed to extend or implement it.'],
-      ['non-sealed', 'A permitted subtype that re-opens the hierarchy below itself.'],
+      ['non-sealed', 'A listed subtype that lets anyone extend it again.'],
       ['type pattern', '<code>Circle c</code>: matches if the value is a Circle and binds it to <code>c</code>.'],
       ['record pattern', '<code>Rect(var w, var h)</code>: matches a record and binds its components. Patterns can be nested.'],
       ['guard', 'A <code>when</code> condition attached to a case label.'],
-      ['exhaustive', 'Every possible value is handled by some case. Required for switch expressions and pattern switches.']
+      ['exhaustive', 'Some case handles every possible value. Switch expressions and pattern switches must be exhaustive.']
     ]
   },
   visual: {
@@ -41,21 +41,21 @@ IA.register({
   case Card c -> refundCard(c);
   case Transfer t -> refundTransfer(t);
   default -> throw new IllegalStateException("unsupported");   // Voucher, and every future type
-};`, why: 'With a <code>default</code> the switch is exhaustive by definition, so javac has nothing to check. A new permitted subtype compiles and fails at runtime.', fix: 'List every permitted type and leave out <code>default</code>. If you need a catch-all for a non-sealed branch, put it on that specific type.' },
+};`, why: 'A <code>default</code> covers everything, so the compiler has nothing to check. A new subtype compiles and then fails at runtime.', fix: 'List every permitted type and leave out <code>default</code>. If you need a catch-all for a non-sealed branch, put it on that specific type.' },
     { trap: 'Dominated case labels', code: `switch (o) {
   case CharSequence cs -> …;
   case String s -> …;          // error: this case label is dominated by a preceding case label
-}`, why: 'A case can never be reached if an earlier, unguarded pattern matches everything it would. javac rejects the dead case.', fix: 'Put specific types first and general ones after. A guarded case doesn’t dominate the same unguarded type, so <code>case Circle c when …</code> goes before <code>case Circle c</code>.' },
+}`, why: 'An earlier case already matches every String. So this case can never run, and the compiler rejects it.', fix: 'Put specific types first and general ones after. A guarded case doesn’t dominate the same unguarded type, so <code>case Circle c when …</code> goes before <code>case Circle c</code>.' },
     { trap: 'A null selector throws', code: `switch (event) {          // event == null
   case Created c -> …;
   default -> …;            // default does NOT match null
-}                          // NullPointerException`, why: 'For compatibility, a switch throws NPE on null unless one of its labels is <code>case null</code> (Java 21). <code>default</code> alone doesn’t match null.', fix: 'Add <code>case null -&gt; …</code> (or <code>case null, default -&gt; …</code>) when null is a valid input. Otherwise validate at the boundary so null never gets there.' },
+}                          // NullPointerException`, why: 'A switch throws NPE on null unless it has a <code>case null</code> label (Java 21). <code>default</code> alone doesn’t match null.', fix: 'Add <code>case null -&gt; …</code> (or <code>case null, default -&gt; …</code>) when null is a valid input. Otherwise validate at the boundary so null never gets there.' },
     { trap: 'Separate compilation breaks exhaustiveness', code: `// events-lib 2.0 adds: record Archived(...) implements OrderEvent
 // your service was compiled against 1.x and not rebuilt
 switch (event) { case Created c -> …; case Shipped s -> …; }   // MatchException at runtime`, why: 'Exhaustiveness is checked at <b>compile time</b>. At runtime the compiled switch has no case for the new class, so it throws <code>MatchException</code>.', fix: 'Rebuild consumers when a sealed hierarchy in a shared library changes, and treat adding a permitted subtype as a breaking change. At deserialisation boundaries, map unknown types to an explicit <code>Unknown</code> variant.' },
     { trap: 'Permitted subtypes must declare their own openness', code: `sealed interface Vehicle permits Car, Truck {}
 final class Car implements Vehicle {}
-class Truck implements Vehicle {}     // error: must be final, sealed or non-sealed`, why: 'Every permitted subclass has to say how the hierarchy continues. In the unnamed module they must also be in the same package, and in a named module, the same module.', fix: 'Use records (implicitly final), <code>final</code>, <code>sealed … permits</code> or <code>non-sealed</code>. If all the subtypes are in the same file, you can leave out <code>permits</code> and the compiler infers it.' },
+class Truck implements Vehicle {}     // error: must be final, sealed or non-sealed`, why: 'Every listed subclass must say whether others may extend it. Without modules, they must also share a package. With modules, they must share a module.', fix: 'Use records (implicitly final), <code>final</code>, <code>sealed … permits</code> or <code>non-sealed</code>. If all the subtypes are in the same file, you can leave out <code>permits</code> and the compiler infers it.' },
     { trap: 'Selector types Java 21 can’t switch on', code: `long id = …;
 switch (id) { case 1L -> … }    // error in Java 21: long selector not allowed
 switch (flag) { … }              // boolean selector: also not allowed`, why: 'Java 21 allows <code>char</code>, <code>byte</code>, <code>short</code>, <code>int</code>, their wrappers, <code>String</code>, enums and reference types (with patterns). Primitive type patterns are a later preview feature, not part of 21.', fix: 'Use <code>if</code>/<code>else</code>, or convert to an enum or an int range first.' }
@@ -69,7 +69,7 @@ return switch (payment) {
   case Transfer t -> bank.reverse(t, amount);
   default         -> throw new IllegalStateException("unsupported payment");
 };`,
-      cause: 'Payment was sealed, but the <code>default</code> branch made the switch trivially exhaustive. Adding <code>Voucher</code> to <code>permits</code> compiled cleanly and fell through to <code>default</code> at runtime.',
+      cause: 'Payment was sealed, but <code>default</code> covered everything. Adding <code>Voucher</code> compiled fine and then hit <code>default</code> at runtime.',
       fix: 'Remove <code>default</code> from switches over sealed types, so the compiler lists every place a new variant must be handled. A one-off search for <code>default -&gt;</code> over sealed selectors is worth doing.',
       fixCode: `return switch (payment) {
   case Card c                   -> gateway.refund(c, amount);

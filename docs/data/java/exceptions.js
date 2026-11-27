@@ -2,20 +2,20 @@ IA.register({
   track: 'java',
   slug: 'exceptions',
   title: 'Exceptions done right',
-  tagline: 'An exception is a value <b>in flight</b> up the call stack. <code>finally</code> can replace it, <code>close()</code> can mask it, a careless wrapper can drop its cause, and a framework can quietly decide whether your transaction commits. Learn what each construct does to the in-flight value.',
+  tagline: 'An exception is a value <b>in flight</b>, travelling up through the methods that called each other. <code>finally</code> can replace it. <code>close()</code> can hide it. A careless wrapper can drop its cause. A framework can decide whether your transaction commits. Learn what each construct does to it.',
   tldr: {
-    problem: 'Root causes vanish from the logs, transactions commit after a failure, scheduled jobs stop with no error, and every layer logs the same stack trace three times.',
-    model: 'At any moment a method is completing <b>normally</b> or <b>abruptly</b>, with a pending return value or a pending exception. <code>finally</code> always runs and can <i>replace</i> what is pending. Try-with-resources closes in reverse order and attaches close failures as <b>suppressed</b>. Translate exceptions at layer boundaries and always pass the cause.',
-    hook: '“What does <code>try { return 1; } finally { return 2; }</code> return?” 2, and if the try block had thrown, the exception would be silently discarded too.',
+    problem: 'Root causes vanish from the logs. Transactions commit after a failure. Scheduled jobs stop with no error. Every layer logs the same stack trace three times.',
+    model: 'A method ends <b>normally</b> or <b>abruptly</b>. Either a return value or an exception is waiting to leave. <code>finally</code> always runs and can <i>replace</i> it. Try-with-resources closes in reverse order. It attaches close failures to the main exception (<b>suppressed</b>). At layer boundaries, wrap exceptions and always pass the cause.',
+    hook: '“What does <code>try { return 1; } finally { return 2; }</code> return?” 2. If the try block had thrown, that exception would vanish too.',
     facts: [
       { v: 'Java 7', l: 'added try-with-resources, <code>Throwable.addSuppressed</code> and multi-catch. Java 9 allowed an effectively final variable as the resource: <code>try (conn) { … }</code>' },
       { v: 'unchecked → rollback', l: 'Spring’s <code>@Transactional</code> rolls back on <code>RuntimeException</code> and <code>Error</code> by default, but <b>commits</b> on checked exceptions unless you set <code>rollbackFor</code>' },
-      { v: 'OmitStackTraceInFastThrow', l: 'is on by default in HotSpot: after a hot method throws the same implicit exception (NPE, ArithmeticException…) many times, it may reuse a preallocated exception with no stack trace' }
+      { v: 'OmitStackTraceInFastThrow', l: 'is on by default in HotSpot. If hot code throws the same built-in exception (NPE, ArithmeticException…) many times, the JVM may reuse one with no stack trace' }
     ]
   },
   intro: {
-    what: 'When something goes wrong, Java code <b>throws</b> an exception object. The JVM unwinds the call stack, method by method, until it finds a matching <code>catch</code>. <b>Checked</b> exceptions (like <code>IOException</code>) must be caught or declared with <code>throws</code>. <b>Unchecked</b> ones (<code>RuntimeException</code> and its subclasses) don’t have to be. A <code>finally</code> block runs whether the code succeeded or failed, which makes it the place for cleanup.',
-    analogy: { icon: '📦', title: 'A parcel passed up a chain of managers', text: 'A problem report travels up the org chart until someone can handle it. Each manager may handle it, pass it on unchanged, or put it inside a new envelope addressed in their own team’s terms (translation), as long as the original report stays inside. The disaster is a manager who swaps the parcel for a different one, or shreds it on the way out of the office (finally).' },
+    what: 'When something goes wrong, Java code <b>throws</b> an exception object. The JVM exits methods one by one until it finds a matching <code>catch</code>. You must catch <b>checked</b> exceptions (like <code>IOException</code>) or declare them with <code>throws</code>. <b>Unchecked</b> ones (<code>RuntimeException</code> and its subclasses) need neither. A <code>finally</code> block runs on success or failure. That makes it the place for cleanup.',
+    analogy: { icon: '📦', title: 'A parcel passed up a chain of managers', text: 'A problem report travels up the org chart until someone can handle it. Each manager can handle it or pass it on. They can also put it in a new envelope in their team’s terms (translation), with the original inside. The disaster is a manager who swaps the parcel, or shreds it on the way out (finally).' },
     steps: [
       { t: 'throw and catch', d: 'The nearest enclosing <code>catch</code> whose type matches handles it. List more specific types first.', code: 'try {\n  pay(order);\n} catch (CardDeclinedException e) {\n  notifyCustomer(e);\n} catch (PaymentException e) {\n  retryLater(e);\n}' },
       { t: 'checked vs unchecked', d: 'Checked exceptions are part of the method signature. Unchecked exceptions usually signal programming errors or failures callers can’t do much about.' },
@@ -26,8 +26,8 @@ IA.register({
     terms: [
       ['checked exception', 'A subclass of <code>Exception</code> that isn’t a <code>RuntimeException</code>. The compiler forces callers to handle or declare it.'],
       ['unchecked exception', '<code>RuntimeException</code>, <code>Error</code> and their subclasses. They need no declaration.'],
-      ['stack unwinding', 'Popping frames and running their finally blocks until a handler is found.'],
-      ['suppressed exception', 'A secondary failure (usually from <code>close()</code>) attached to the primary exception.'],
+      ['stack unwinding', 'Leaving methods one by one, running their finally blocks, until a handler is found.'],
+      ['suppressed exception', 'A second failure (usually from <code>close()</code>) attached to the main exception.'],
       ['cause', 'The exception that led to this one, set via the constructor or <code>initCause</code>.'],
       ['exception translation', 'Catching a low-level exception and rethrowing one that fits the current layer, with the original as its cause.']
     ]
@@ -41,22 +41,22 @@ IA.register({
   return charge(card);          // throws PaymentException
 } finally {
   return Result.UNKNOWN;        // exception discarded, caller sees UNKNOWN
-}`, why: 'A finally block that completes abruptly replaces the pending outcome. A thrown exception disappears, and so does a pending return value.', fix: 'Keep finally blocks to cleanup that can’t fail, or use try-with-resources. Compile with <code>-Xlint:finally</code> (or <code>-Xlint:all</code>) and treat warnings as errors.' },
+}`, why: 'A <code>return</code> or <code>throw</code> in finally replaces whatever was leaving. A thrown exception disappears. So does a return value.', fix: 'Keep finally blocks to cleanup that can’t fail, or use try-with-resources. Compile with <code>-Xlint:finally</code> (or <code>-Xlint:all</code>) and treat warnings as errors.' },
     { trap: 'Wrapping without the cause', code: `catch (SQLException e) {
   throw new OrderException("save failed: " + e.getMessage());   // stack trace and SQL state lost
 }`, why: 'The new exception’s stack trace starts in the catch block. The original type, SQL state and frames are gone.', fix: 'Always chain: <code>throw new OrderException("save order " + id, e);</code>. Every JDK exception type has a <code>(String, Throwable)</code> constructor; give your own exceptions one too.' },
     { trap: 'Checked exceptions commit the transaction', code: `@Transactional
 public void settle(Payment p) throws GatewayException {
   repo.markPaid(p);
-  gateway.capture(p);           // throws GatewayException (checked) → COMMIT`, why: 'Spring’s default rollback rule (inherited from EJB) is: roll back on RuntimeException and Error, commit on checked exceptions.', fix: '<code>@Transactional(rollbackFor = Exception.class)</code>, or translate to an unchecked exception inside the transactional method.' },
+  gateway.capture(p);           // throws GatewayException (checked) → COMMIT`, why: 'By default Spring rolls back on RuntimeException and Error. It commits on checked exceptions.', fix: '<code>@Transactional(rollbackFor = Exception.class)</code>, or translate to an unchecked exception inside the transactional method.' },
     { trap: 'Log-and-rethrow at every layer', code: `catch (Exception e) {
   log.error("failed", e);       // logged here…
-  throw e;                      // …and again by the caller, and again by the controller`, why: 'One failure becomes three or four stack traces in the logs, often with different messages. Alerting counts multiply and the real one is hard to find.', fix: 'Either handle it (log it and recover) or propagate it (add context by wrapping). Log once, at the boundary: the <code>@RestControllerAdvice</code>, the message listener, or the job runner.' },
+  throw e;                      // …and again by the caller, and again by the controller`, why: 'One failure becomes three or four stack traces, often with different messages. Alerts multiply and the real one is hard to find.', fix: 'Either handle it (log it and recover) or propagate it (add context by wrapping). Log once, at the boundary: the <code>@RestControllerAdvice</code>, the message listener, or the job runner.' },
     { trap: 'Swallowing <code>InterruptedException</code>', code: `try { Thread.sleep(backoff); }
-catch (InterruptedException e) { }   // shutdown request lost`, why: 'Catching it clears the thread’s interrupt flag. Executors and frameworks use interruption to cancel work, so the thread keeps running through a shutdown.', fix: 'Restore the flag and stop: <code>Thread.currentThread().interrupt(); return;</code>, or let it propagate.' },
+catch (InterruptedException e) { }   // shutdown request lost`, why: 'Catching it clears the thread’s interrupt flag. Executors use that flag to cancel work. So the thread keeps running through a shutdown.', fix: 'Restore the flag and stop: <code>Thread.currentThread().interrupt(); return;</code>, or let it propagate.' },
     { trap: 'Exceptions that disappear in executors', code: `executor.submit(() -> process(batch));      // exception stored in the Future, never read
-scheduler.scheduleAtFixedRate(job, 0, 1, MINUTES);   // one throw → no more runs`, why: '<code>submit</code> captures the exception in the returned Future, and nobody calls <code>get()</code>. With <code>scheduleAtFixedRate</code>, if an execution throws, all later executions are suppressed, silently.', fix: 'Use <code>execute</code> with an <code>UncaughtExceptionHandler</code>, check your Futures, and wrap scheduled job bodies in a try/catch that logs and keeps going.' },
-    { trap: 'NPEs with no stack trace', code: `java.lang.NullPointerException      ← no "at …" lines at all`, why: 'With <code>-XX:+OmitStackTraceInFastThrow</code> (the default), C2-compiled code that keeps throwing the same implicit exception may switch to a preallocated instance without a stack trace.', fix: 'Search earlier logs for the first occurrences, which still have traces, or run with <code>-XX:-OmitStackTraceInFastThrow</code>. Java 14+ helpful NPE messages (JEP 358) need the real exception.' }
+scheduler.scheduleAtFixedRate(job, 0, 1, MINUTES);   // one throw → no more runs`, why: '<code>submit</code> stores the exception in the returned Future, and nobody calls <code>get()</code>. With <code>scheduleAtFixedRate</code>, one throw silently cancels all later runs.', fix: 'Use <code>execute</code> with an <code>UncaughtExceptionHandler</code>, check your Futures, and wrap scheduled job bodies in a try/catch that logs and keeps going.' },
+    { trap: 'NPEs with no stack trace', code: `java.lang.NullPointerException      ← no "at …" lines at all`, why: 'With <code>-XX:+OmitStackTraceInFastThrow</code> (the default), hot code that keeps throwing the same built-in exception may reuse one with no stack trace.', fix: 'Search earlier logs for the first occurrences, which still have traces, or run with <code>-XX:-OmitStackTraceInFastThrow</code>. Java 14+ helpful NPE messages need the real exception.' }
   ],
   scenarios: [
     { title: 'Orders marked PAID although the card capture failed',
@@ -67,7 +67,7 @@ public void settle(long orderId) throws GatewayException {
   o.markPaid();                       // UPDATE pending, flushed at commit
   gateway.capture(o.paymentRef());    // throws checked GatewayException
 }`,
-      cause: 'The method exited with a <b>checked</b> exception. Spring’s default rollback rule commits in that case, so the pending UPDATE was flushed. The exception still reached the caller, which made it look as if nothing had been saved.',
+      cause: 'The method exited with a <b>checked</b> exception. By default Spring commits then, so the UPDATE was saved. The exception still reached the caller, so it looked as if nothing had been saved.',
       fix: 'Capture first, then mark paid, or roll back on everything. Put integration calls outside long transactions where you can.',
       fixCode: `@Transactional(rollbackFor = Exception.class)
 public void settle(long orderId) throws GatewayException {

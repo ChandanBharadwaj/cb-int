@@ -16,7 +16,7 @@ IA.widget('tricky-java', (root, ctx) => {
         change(sb);
         System.out.println(sb);
     }
-}`, o: ['hi', 'hi!', 'new?', 'hi!new?'], a: 1, x: 'Java passes the <b>reference by value</b>. <code>append</code> mutates the shared object (“hi!”); reassigning the parameter only changes the method’s local copy of the reference, so <code>new?</code> is never seen by the caller.' },
+}`, o: ['hi', 'hi!', 'new?', 'hi!new?'], a: 1, x: 'Java passes a copy of the address that points to the object (the <b>reference</b>). <code>append</code> changes the shared object (“hi!”). Reassigning the parameter only changes the method’s own copy. So the caller never sees <code>new?</code>.' },
     { t: 'References & pass-by-value', s: 'references-pass-by-value', m: 'Language core', q: 'Boxed comparisons. Output?', run: true, expect: 'true false true', code: `public class Main {
     public static void main(String[] args) {
         Integer a = 127, b = 127, c = 128, d = 128;
@@ -38,7 +38,7 @@ public class Main {
         Set<Q> qs = new HashSet<>(List.of(new Q(1)));
         System.out.println(ps.contains(new P(1)) + " " + qs.contains(new Q(1)));
     }
-}`, o: ['true true', 'false true', 'false false', 'true false'], a: 1, x: 'Without <code>hashCode</code>, <code>P</code> uses identity hashes, so the lookup goes to a different bucket (or fails the stored-hash check) and <code>equals</code> is never consulted: <b>false</b>. Records generate <code>equals</code> and <code>hashCode</code> from their components: <b>true</b>.' },
+}`, o: ['true true', 'false true', 'false false', 'true false'], a: 1, x: 'Without <code>hashCode</code>, each <code>P</code> gets a hash tied to the object, not to <code>x</code>. The lookup goes to a different bucket, so <code>equals</code> is never called: <b>false</b>. Records generate <code>equals</code> and <code>hashCode</code> from their components: <b>true</b>.' },
     { t: 'equals & hashCode', s: 'equals-hashcode', m: 'Language core', q: 'A comparator that disagrees with equals. Output?', run: true, expect: '1 2', code: `import java.util.*;
 
 public class Main {
@@ -49,7 +49,7 @@ public class Main {
         Set<String> hash = new HashSet<>(List.of("a", "A"));
         System.out.println(tree.size() + " " + hash.size());
     }
-}`, o: ['2 2', '1 2', '1 1', '2 1'], a: 1, x: 'A <code>TreeSet</code> uses <code>compare</code>, never <code>equals</code>: “a” and “A” compare as 0, so the second add is a duplicate (<b>1</b>). <code>HashSet</code> uses <code>hashCode</code>/<code>equals</code> (<b>2</b>). This is why “consistent with equals” matters for sorted collections.' },
+}`, o: ['2 2', '1 2', '1 1', '2 1'], a: 1, x: 'A <code>TreeSet</code> uses <code>compare</code>, never <code>equals</code>: “a” and “A” compare as 0, so the second add counts as a duplicate (<b>1</b>). <code>HashSet</code> uses <code>hashCode</code>/<code>equals</code> (<b>2</b>). This is why “consistent with equals” matters for sorted collections.' },
     { t: 'Immutability & records', s: 'immutability-records', m: 'Language core', q: 'View vs copy. Output?', run: true, expect: '2 1\nUOE', code: `import java.util.*;
 
 public class Main {
@@ -140,7 +140,7 @@ public class Main {
         String d = part + "lo";
         System.out.println((a == b) + " " + (a == c) + " " + (a == d) + " " + (a == d.intern()));
     }
-}`, o: ['true false false true', 'true false true true', 'false false false true', 'true true false true'], a: 0, x: '<code>"hel" + "lo"</code> is a compile-time constant, folded into the same pooled literal. <code>new String</code> always makes a new object. <code>part</code> isn’t <code>final</code>, so <code>part + "lo"</code> is built at run time: a new object. <code>intern()</code> returns the pooled instance.' },
+}`, o: ['true false false true', 'true false true true', 'false false false true', 'true true false true'], a: 0, x: '<code>"hel" + "lo"</code> is a constant. The compiler joins it into the same shared literal. <code>new String</code> always makes a new object. <code>part</code> isn’t <code>final</code>, so <code>part + "lo"</code> is built at run time: a new object. <code>intern()</code> returns the pooled instance.' },
     { t: 'Strings & interning', s: 'strings-interning', m: 'Language core', q: 'One emoji. Output?', run: true, expect: '2 1', code: `public class Main {
     public static void main(String[] args) {
         String s = "\\uD83D\\uDE00";   // U+1F600, grinning face
@@ -290,7 +290,7 @@ public class Main {
         System.out.print(A.K + " ");
         System.out.println(A.v);
     }
-}`, o: ['init 1 2', '1 init 2', '1 2', 'init 1 init 2'], a: 1, x: '<code>K</code> is a compile-time constant (<code>static final</code> primitive with a constant initializer), so javac inlines the value and reading it doesn’t touch <code>A</code>. Reading the non-constant <code>v</code> triggers class initialisation first. Changing a constant therefore requires recompiling its users.' },
+}`, o: ['init 1 2', '1 init 2', '1 2', 'init 1 init 2'], a: 1, x: '<code>K</code> is a constant: a <code>static final</code> primitive set to a fixed value. The compiler copies the value in, so reading it doesn’t touch <code>A</code>. Reading the non-constant <code>v</code> runs class setup first. So if you change a constant, you must recompile the code that uses it.' },
     { t: 'Class loading', s: 'class-loading', m: 'JVM internals', q: '<code>Class.forName("com.acme.X")</code> vs <code>loader.loadClass("com.acme.X")</code>: which runs X’s static initializer?', o: ['Both', 'Only Class.forName (by default)', 'Only loadClass', 'Neither until new X()'], a: 1, x: 'One-argument <code>Class.forName</code> loads, links <b>and initialises</b> the class (that is how old JDBC drivers registered themselves). <code>ClassLoader.loadClass</code> only loads it; initialisation happens on first active use.' },
     { t: 'JVM memory areas', s: 'jvm-memory-areas', m: 'JVM internals', q: '<code>java.lang.OutOfMemoryError: Metaspace</code> most likely means:', o: ['The heap is full of large arrays', 'Class metadata keeps growing, typically a class-loader leak (redeploys, dynamic proxies, scripting)', 'Too many threads', 'Direct buffers are not released'], a: 1, x: 'Metaspace (native memory, since Java 8) holds class metadata. It can only be freed when the <b>class loader</b> is unreachable. Common culprits: redeploys in an app server, generated classes per request, a ThreadLocal or static field pinning an old loader.' },
     { t: 'JVM memory areas', s: 'jvm-memory-areas', m: 'JVM internals', q: 'Why might raising <code>-Xmx</code> from 31 GB to 33 GB give you <i>less</i> usable heap for your objects?', o: ['It doesn’t; more is always more', 'Above ~32 GB the JVM can’t use compressed oops, so every reference grows from 4 to 8 bytes', 'The GC switches to Serial', 'Metaspace is taken out of the heap'], a: 1, x: 'Compressed ordinary object pointers store references as 32-bit offsets scaled by the 8-byte alignment, which covers about 32 GB. Beyond that, references are 64-bit, and reference-heavy heaps can lose much of the gain.' },
@@ -318,7 +318,7 @@ public class Main {
         gate.countDown();
         ex.shutdown();
     }
-}`, o: ['1 2', '2 1', '3 0', '1 0'], a: 1, x: 'Task 1 starts the core thread. A <code>SynchronousQueue</code> has no capacity: <code>offer</code> succeeds only if a thread is waiting to take, and the only worker is busy, so task 2 starts a second thread (up to max). Task 3: offer fails and the pool is at max, so it is <b>rejected</b>. That is how <code>newCachedThreadPool</code> works, with max = ∞.' },
+}`, o: ['1 2', '2 1', '3 0', '1 0'], a: 1, x: 'Task 1 starts the core thread. A <code>SynchronousQueue</code> holds nothing. <code>offer</code> succeeds only if a thread is waiting to take. The only worker is busy, so task 2 starts a second thread (up to max). Task 3: offer fails and the pool is at max, so it is <b>rejected</b>. That is how <code>newCachedThreadPool</code> works, with max = ∞.' },
     { t: 'Threads & executors', s: 'threads-executors', m: 'Concurrency', q: '<code>new ThreadPoolExecutor(4, 64, 60, SECONDS, new LinkedBlockingQueue&lt;&gt;())</code> under a burst of 10,000 slow tasks. Peak thread count?', o: ['64', '4', '10,000', 'availableProcessors()'], a: 1, x: 'Threads above core are created only when the queue <b>refuses</b> a task. An unbounded <code>LinkedBlockingQueue</code> never does, so the pool stays at 4 and the backlog grows. Bound the queue if you want max to mean something.' },
     { t: 'Java Memory Model', s: 'java-memory-model', m: 'Concurrency', q: 'A worker loops <code>while (!stop) { count++; }</code> on a plain <code>boolean stop</code>. Another thread sets <code>stop = true</code>. Guaranteed outcome?', o: ['The worker stops within one iteration', 'Nothing is guaranteed: the JIT may hoist the read and the loop can run forever', 'An exception is thrown', 'The worker stops after the next GC'], a: 1, x: 'Without a happens-before edge (volatile, a lock, an atomic), the JIT may read <code>stop</code> once. This really happens after C2 compiles the loop. Make the flag <code>volatile</code>.' },
     { t: 'Java Memory Model', s: 'java-memory-model', m: 'Concurrency', q: 'An object with only <code>final</code> fields is published through a plain (non-volatile) field. A reader sees the reference as non-null. What is guaranteed?', o: ['Nothing', 'The final fields have their constructed values (if <code>this</code> didn’t escape during construction)', 'Only that the reference is non-null', 'The reader sees the newest reference'], a: 1, x: 'JLS §17.5 final-field semantics: readers that see the reference see the frozen final fields, even through a data race. They may still see a <i>stale</i> reference. Immutable objects are thread-safe; their publication may still need volatile for freshness.' },

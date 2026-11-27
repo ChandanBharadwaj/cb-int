@@ -2,11 +2,11 @@ IA.register({
   track: 'java',
   slug: 'java-operators-control-flow',
   title: 'Operators & control flow',
-  tagline: 'Operators compute values; control flow decides which lines run and how often. Learn integer division and <code>%</code>, <code>&&</code> short-circuiting, <code>++</code> before vs after, <code>if/else</code>, the modern <b>switch expression</b> (Java 14+), and the four loops: <code>for</code>, <code>while</code>, <code>do/while</code> and enhanced <code>for</code>.',
+  tagline: 'Operators compute values. Control flow decides which lines run, and how often. Learn integer division and <code>%</code>, <code>&&</code>, <code>++</code> before vs after, <code>if/else</code>, the modern <b>switch expression</b>, and the four loops.',
   tldr: {
-    problem: 'Most beginner bugs here are quiet: <code>7 / 2</code> is 3, an old-style <code>switch</code> falls through to the next case, <code>i++</code> returns the old value, and <code>&</code> evaluates both sides when you meant <code>&&</code>.',
-    model: 'An expression is evaluated <b>with the types of its operands</b>, left to right, by precedence. Conditions must be real <code>boolean</code>s. Branches pick one path; loops repeat a block while a condition holds, checked before (<code>while</code>, <code>for</code>) or after (<code>do</code>) each pass.',
-    hook: '“Arrow <code>switch</code> vs colon <code>switch</code>?” The arrow form (Java 14+) never falls through, can return a value, and as an expression must be exhaustive.',
+    problem: 'Most bugs here give no error. <code>7 / 2</code> is 3. An old-style <code>switch</code> runs into the next case. <code>i++</code> returns the old value. <code>&</code> runs both sides when you meant <code>&&</code>.',
+    model: 'An expression uses <b>the types of its values</b>: <code>int / int</code> gives an <code>int</code>. Conditions must be real <code>boolean</code>s. Branches pick one path. Loops repeat while a condition holds. <code>while</code> and <code>for</code> check it first; <code>do</code> checks it after.',
+    hook: '“Arrow <code>switch</code> vs colon <code>switch</code>?” The arrow form (Java 14+) never runs into the next case. It can return a value, and then must cover every case.',
     facts: [
       { v: 'Java 14', l: 'switch expressions became standard (JEP 361); pattern matching for switch followed in Java 21 (JEP 441)' },
       { v: 'toward 0', l: 'integer <code>/</code> truncates toward zero: <code>-7 / 2 == -3</code>, and <code>-7 % 2 == -1</code>' },
@@ -14,7 +14,7 @@ IA.register({
     ]
   },
   intro: {
-    what: '<b>Operators</b> are the symbols that compute: <code>+ - * / %</code> for arithmetic, <code>== != &lt; &gt; &lt;= &gt;=</code> for comparisons, <code>&& || !</code> for logic. <b>Control flow</b> statements choose what runs: <code>if</code>/<code>else</code> and <code>switch</code> pick a branch; <code>for</code>, <code>while</code> and <code>do</code> repeat code. Without them, a program just runs top to bottom once.',
+    what: '<b>Operators</b> are the symbols that compute: <code>+ - * / %</code> for arithmetic, <code>== != &lt; &gt; &lt;= &gt;=</code> for comparisons, <code>&& || !</code> for logic. <b>Control flow</b> chooses what runs. <code>if</code>/<code>else</code> and <code>switch</code> pick a branch. <code>for</code>, <code>while</code> and <code>do</code> repeat code. Without them, a program runs top to bottom once.',
     analogy: { icon: '🚦', title: 'Road signs for the computer', text: 'Your program is a car driving down the page. An <code>if</code> is a fork in the road: one way or the other, never both. A <code>switch</code> is a roundabout with numbered exits. A loop is a lap around the block, repeated until the sign says “stop”.' },
     steps: [
       { t: 'Do arithmetic', d: 'With two ints, <code>/</code> drops the fraction and <code>%</code> gives the remainder.', code: 'int boxes = 17 / 5;     // 3\nint left  = 17 % 5;     // 2\ndouble avg = 17 / 5.0;  // 3.4' },
@@ -34,7 +34,7 @@ IA.register({
   },
   visual: {
     title: 'Trace the program line by line',
-    caption: 'Pick <b>Division</b>, <b>if / else</b>, <b>switch</b> or <b>Loops</b>, then <b>Play</b> or <b>Step</b>. The highlighted line runs next; boxes show variables and the value of each condition. Skipped branches go dashed.'
+    caption: 'Pick <b>Division</b>, <b>if / else</b>, <b>switch</b> or <b>Loops</b>, then <b>Play</b> or <b>Step</b>. The highlighted line runs next. Boxes show variables and each condition’s value. Skipped branches go dashed.'
   },
   gotchas: [
     { trap: 'Integer division before widening', code: `int done = 3, total = 4;
@@ -61,7 +61,7 @@ for (int i = 0; i <= a.length; i++) a[i] = i;   // ArrayIndexOutOfBounds at i = 
 for (int i = 0; i < a.length; i++) a[i] = i;    // correct`, why: 'Valid indexes are 0 to <code>length - 1</code>. <code>&lt;=</code> runs one pass too many.', fix: 'Use <code>i &lt; length</code>, or the enhanced for loop when you don’t need the index.' }
   ],
   scenarios: [
-    { title: 'Welcome emails sent to every paying customer', symptom: 'After a release, existing customers receive “Welcome!” emails on every billing run.', diagnose: 'switch (account.status()) {\n    case TRIAL:\n        sendWelcome(account);\n    case PAID:\n        charge(account);\n        break;\n}\n// someone reordered the cases: PAID used to come first', cause: 'A colon-style switch with a missing <code>break</code>. After reordering, <code>TRIAL</code> fell through into <code>PAID</code>, and a later edit moved <code>sendWelcome</code> so that PAID accounts reached it too. Fall-through made the order of cases matter.', fix: 'Rewrite with arrows: each case is independent and order no longer matters. With an enum and a switch expression, the compiler also flags a missing case.', fixCode: `switch (account.status()) {
+    { title: 'Welcome emails sent to every paying customer', symptom: 'After a release, existing customers receive “Welcome!” emails on every billing run.', diagnose: 'switch (account.status()) {\n    case TRIAL:\n        sendWelcome(account);\n    case PAID:\n        charge(account);\n        break;\n}\n// someone reordered the cases: PAID used to come first', cause: 'A colon-style switch with a missing <code>break</code>. After reordering, <code>TRIAL</code> ran on into <code>PAID</code> (<i>fall-through</i>). A later edit let PAID accounts reach <code>sendWelcome</code> too. Fall-through made case order matter.', fix: 'Rewrite with arrows. Each case stands alone, so order no longer matters. With an enum and a switch expression, the compiler also flags a missing case.', fixCode: `switch (account.status()) {
     case TRIAL -> sendWelcome(account);
     case PAID  -> charge(account);
     case CLOSED -> { }
@@ -69,7 +69,7 @@ for (int i = 0; i < a.length; i++) a[i] = i;    // correct`, why: 'Valid indexes
     { title: 'Progress bar stuck at 0% until the end', symptom: 'An import job’s progress API returns 0 for the whole run, then jumps to 100.', diagnose: 'int processed = 4_200, total = 10_000;\nint pct = processed / total * 100;   // 0', cause: 'Integer division: <code>4200 / 10000</code> is 0, so the result is 0 until <code>processed == total</code>.', fix: 'Multiply first (watch for overflow with big numbers) or compute in floating point.', fixCode: `int pct = (int) (processed * 100L / total);     // 42
 // or
 double pct2 = 100.0 * processed / total;        // 42.0` },
-    { title: 'Batch job never finishes', symptom: 'A cleanup job runs forever at 100% CPU on one core.', diagnose: 'Thread dump shows the job stuck in:\nint page = 0;\nwhile (page < pages) {\n    if (skip(page)) continue;   // page++ never reached\n    process(page);\n    page++;\n}', cause: '<code>continue</code> jumps straight back to the condition, skipping the <code>page++</code> at the end of the body. The first skipped page loops forever.', fix: 'Put the update where it can’t be skipped: use a <code>for</code> loop, whose update part runs even after <code>continue</code>.', fixCode: `for (int page = 0; page < pages; page++) {
+    { title: 'Batch job never finishes', symptom: 'A cleanup job runs forever at 100% CPU on one core.', diagnose: 'Thread dump shows the job stuck in:\nint page = 0;\nwhile (page < pages) {\n    if (skip(page)) continue;   // page++ never reached\n    process(page);\n    page++;\n}', cause: '<code>continue</code> jumps back to the condition. It skips the <code>page++</code> at the end. The first skipped page loops forever.', fix: 'Put the update where it can’t be skipped: use a <code>for</code> loop, whose update part runs even after <code>continue</code>.', fixCode: `for (int page = 0; page < pages; page++) {
     if (skip(page)) continue;   // page++ still happens
     process(page);
 }` }
@@ -79,7 +79,7 @@ double pct2 = 100.0 * processed / total;        // 42.0` },
     public static void main(String[] args) {
         System.out.println(7 / 2 + " " + 7 % 3 + " " + -7 / 2 + " " + -7 % 3 + " " + 7 / 2.0);
     }
-}`, options: ['3 1 -4 2 3.5', '3 1 -3 -1 3.5', '3.5 1 -3.5 -1 3.5', '3 1 -3 2 3.5'], answer: 1, run: true, expect: '3 1 -3 -1 3.5', explain: 'Integer division truncates toward zero (−3.5 → −3). The remainder takes the sign of the left operand: −7 = −2 × 3 + (−1). One double operand makes the division floating-point.' },
+}`, options: ['3 1 -4 2 3.5', '3 1 -3 -1 3.5', '3.5 1 -3.5 -1 3.5', '3 1 -3 2 3.5'], answer: 1, run: true, expect: '3 1 -3 -1 3.5', explain: 'Integer division cuts toward zero (−3.5 → −3). The remainder takes the sign of the left side: −7 = −2 × 3 + (−1). One <code>double</code> makes it decimal division.' },
     { kind: 'predict', q: 'What does this print?', code: `public class Main {
     public static void main(String[] args) {
         int day = 2;
@@ -91,7 +91,7 @@ double pct2 = 100.0 * processed / total;        // 42.0` },
             default: System.out.println("other");
         }
     }
-}`, options: ['two', 'two, three', 'two, three, other', 'one, two, three'], answer: 1, run: true, expect: 'two\nthree', explain: 'Execution jumps to <code>case 2</code>, then <b>falls through</b> into <code>case 3</code> until it hits <code>break</code>. <code>default</code> is never reached.' },
+}`, options: ['two', 'two, three', 'two, three, other', 'one, two, three'], answer: 1, run: true, expect: 'two\nthree', explain: 'It jumps to <code>case 2</code>, then <b>falls through</b> into <code>case 3</code> until <code>break</code>. <code>default</code> never runs.' },
     { kind: 'predict', q: 'What does this print?', code: `public class Main {
     public static void main(String[] args) {
         int i = 5;
@@ -131,7 +131,7 @@ double pct2 = 100.0 * processed / total;        // 42.0` },
         y += 2.7;
         System.out.println(y);
     }
-}`, options: ['ArithmeticException: / by zero', 'safe, then 12', 'safe, then 12.7', 'Compile error on y += 2.7'], answer: 1, run: true, expect: 'safe\n12', explain: '<code>&&</code> short-circuits: <code>x != 0</code> is false, so <code>10 / x</code> never runs. <code>y += 2.7</code> compiles because compound assignment casts back to <code>int</code>: 12.7 → 12.' },
+}`, options: ['ArithmeticException: / by zero', 'safe, then 12', 'safe, then 12.7', 'Compile error on y += 2.7'], answer: 1, run: true, expect: 'safe\n12', explain: '<code>&&</code> stops early: <code>x != 0</code> is false, so <code>10 / x</code> never runs. <code>y += 2.7</code> compiles because <code>+=</code> casts back to <code>int</code>: 12.7 → 12.' },
     { kind: 'predict', q: 'What does this print?', code: `import java.util.Arrays;
 
 public class Main {
@@ -148,21 +148,21 @@ public class Main {
         };
         System.out.println(size);
     }
-}`, options: ['[2, 4, 6] and small', '[1, 2, 3] and small', '[1, 2, 3] and big', 'Compile error: cannot assign to loop variable'], answer: 1, run: true, expect: '[1, 2, 3]\nsmall', explain: 'In an enhanced for loop, <code>v</code> is a local copy of each element; changing it leaves the array alone. The switch expression matches <code>case 1, 2, 3</code> for length 3.' },
+}`, options: ['[2, 4, 6] and small', '[1, 2, 3] and small', '[1, 2, 3] and big', 'Compile error: cannot assign to loop variable'], answer: 1, run: true, expect: '[1, 2, 3]\nsmall', explain: 'In a for-each loop, <code>v</code> is a copy of each element. Changing it leaves the array alone. The switch expression matches <code>case 1, 2, 3</code> for length 3.' },
     { kind: 'concept', q: 'Which loop always runs its body at least once?', options: ['for', 'while', 'do / while', 'enhanced for'], answer: 2, explain: '<code>do { … } while (cond);</code> checks the condition after the body. The others check before the first pass.' }
   ],
   interview: [
-    { q: 'What does <code>5 / 2</code> evaluate to in Java, and why?', a: '<p><code>2</code>. Both operands are <code>int</code>, so Java performs integer division and truncates toward zero. To get 2.5, make an operand a <code>double</code>: <code>5 / 2.0</code> or <code>(double) 5 / 2</code>.</p>', lvl: 'core' },
-    { q: 'What is the difference between <code>i++</code> and <code>++i</code>?', a: '<p>Both add one to <code>i</code>. As an expression, <code>i++</code> (post-increment) yields the old value; <code>++i</code> (pre-increment) yields the new value. As a standalone statement (<code>i++;</code>) there is no difference.</p>', fu: 'What does <code>i = i++;</code> leave in i? (Unchanged: the old value is assigned back.)', lvl: 'core' },
-    { q: 'What is short-circuit evaluation?', a: '<p><code>a && b</code> skips <code>b</code> when <code>a</code> is false; <code>a || b</code> skips <code>b</code> when <code>a</code> is true. It lets you guard: <code>s != null && s.isEmpty()</code>. The non-short-circuit <code>&</code> and <code>|</code> always evaluate both sides.</p>', lvl: 'core' },
+    { q: 'What does <code>5 / 2</code> evaluate to in Java, and why?', a: '<p><code>2</code>. Both are <code>int</code>, so Java does integer division and cuts toward zero. To get 2.5, make an operand a <code>double</code>: <code>5 / 2.0</code> or <code>(double) 5 / 2</code>.</p>', lvl: 'core' },
+    { q: 'What is the difference between <code>i++</code> and <code>++i</code>?', a: '<p>Both add one to <code>i</code>. Inside an expression, <code>i++</code> gives the old value and <code>++i</code> gives the new one. On its own line (<code>i++;</code>) there is no difference.</p>', fu: 'What does <code>i = i++;</code> leave in i? (Unchanged: the old value is assigned back.)', lvl: 'core' },
+    { q: 'What is short-circuit evaluation?', a: '<p><code>a && b</code> skips <code>b</code> when <code>a</code> is false. <code>a || b</code> skips <code>b</code> when <code>a</code> is true. That lets you guard: <code>s != null && s.isEmpty()</code>. <code>&</code> and <code>|</code> always run both sides.</p>', lvl: 'core' },
     { q: 'Compare the old switch statement with switch expressions.', a: '<ul><li><b>Colon form</b> (<code>case 1:</code>): a statement, falls through without <code>break</code>.</li><li><b>Arrow form</b> (<code>case 1 -></code>, Java 14+): no fall-through, several labels per case (<code>case 6, 7 -></code>), and can be used as an <b>expression</b> that returns a value.</li><li>A switch <i>expression</i> must be exhaustive (cover every value, or have <code>default</code>). Use <code>yield</code> to return a value from a block arm.</li></ul>', lvl: 'core' },
-    { q: 'What types can you switch on?', a: '<p>Classically <code>byte</code>, <code>short</code>, <code>char</code>, <code>int</code> and their wrappers, <code>String</code> (Java 7+) and enums. Java 21 adds pattern matching for switch (JEP 441), so you can switch on any reference type with type patterns like <code>case Circle c -></code>. You still can’t switch on <code>long</code>, <code>float</code>, <code>double</code> or <code>boolean</code> in Java 21.</p>', lvl: 'core' },
+    { q: 'What types can you switch on?', a: '<p>Classically <code>byte</code>, <code>short</code>, <code>char</code>, <code>int</code> and their wrappers, <code>String</code> and enums. Java 21 adds pattern matching, so you can switch on any object type with cases like <code>case Circle c -></code>. You still can’t switch on <code>long</code>, <code>float</code>, <code>double</code> or <code>boolean</code> in Java 21.</p>', lvl: 'core' },
     { q: 'When would you choose <code>for</code>, <code>while</code>, <code>do/while</code> or enhanced <code>for</code>?', a: '<ul><li><b>for</b>: a known count or you need the index.</li><li><b>while</b>: repeat until a condition changes (reading input, polling).</li><li><b>do/while</b>: the body must run at least once (show a menu, then ask again).</li><li><b>enhanced for</b>: read every element of an array or collection; clearest and no index bugs.</li></ul>', lvl: 'core' },
     { q: 'What do <code>break</code> and <code>continue</code> do? What is a labelled break?', a: '<p><code>break</code> exits the innermost loop or switch; <code>continue</code> skips to the next iteration. A label lets you exit an outer loop from an inner one:</p><pre><code>outer:\nfor (int[] row : grid)\n    for (int v : row)\n        if (v == target) break outer;</code></pre>', lvl: 'core' },
-    { q: 'Why can’t you write <code>if (count)</code> in Java?', a: '<p>Java conditions must be of type <code>boolean</code>. There is no truthiness: ints, nulls and empty strings are not converted. Write <code>if (count != 0)</code>. This also turns the classic <code>if (x = 5)</code> typo into a compile error.</p>', lvl: 'core' },
-    { q: 'Why is <code>a.equals(b)</code> used instead of <code>a == b</code> for Strings?', a: '<p><code>==</code> compares references (same object?). <code>equals</code> compares content. Two equal strings built at run time are usually different objects, so <code>==</code> is false even though the text matches. Literals are interned, which makes <code>==</code> seem to work in small tests.</p>', lvl: 'core' },
-    { q: 'Can modifying a collection inside an enhanced for loop cause problems?', a: '<p>Yes. Adding or removing elements of an <code>ArrayList</code> while iterating with for-each typically throws <code>ConcurrentModificationException</code>, because the hidden iterator detects the change. Use <code>Iterator.remove()</code>, <code>removeIf</code>, or collect changes and apply them afterwards.</p>', lvl: 'deep' },
-    { q: 'How do you avoid overflow when computing a midpoint in binary search?', a: '<p><code>(lo + hi) / 2</code> can overflow when both are large ints. Use <code>lo + (hi - lo) / 2</code> or <code>(lo + hi) >>> 1</code> (unsigned shift). This bug sat in the JDK’s own <code>Arrays.binarySearch</code> until it was fixed in Java 6.</p>', lvl: 'deep' }
+    { q: 'Why can’t you write <code>if (count)</code> in Java?', a: '<p>Java conditions must be <code>boolean</code>. Ints, nulls and empty strings never count as true or false. Write <code>if (count != 0)</code>. This also turns the classic <code>if (x = 5)</code> typo into a compile error.</p>', lvl: 'core' },
+    { q: 'Why is <code>a.equals(b)</code> used instead of <code>a == b</code> for Strings?', a: '<p><code>==</code> asks “same object?”. <code>equals</code> compares content. Two equal strings built at run time are usually different objects, so <code>==</code> is false. Literals are shared, so <code>==</code> seems to work in small tests.</p>', lvl: 'core' },
+    { q: 'Can modifying a collection inside an enhanced for loop cause problems?', a: '<p>Yes. Adding to or removing from an <code>ArrayList</code> inside for-each usually throws <code>ConcurrentModificationException</code>. The hidden iterator notices the change. Use <code>Iterator.remove()</code>, <code>removeIf</code>, or collect changes and apply them afterwards.</p>', lvl: 'deep' },
+    { q: 'How do you avoid overflow when computing a midpoint in binary search?', a: '<p><code>(lo + hi) / 2</code> can overflow when both are large ints. Use <code>lo + (hi - lo) / 2</code> or <code>(lo + hi) >>> 1</code> (unsigned shift). This bug sat in the JDK’s own <code>Arrays.binarySearch</code> until Java 6.</p>', lvl: 'deep' }
   ],
   code: [
     { title: 'Switch expressions with enums', lang: 'java', code: `enum Plan { FREE, PRO, ENTERPRISE }

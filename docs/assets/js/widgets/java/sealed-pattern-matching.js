@@ -83,7 +83,7 @@ IA.widget('sealed-pattern-matching', (root, ctx) => {
   function plan() {
     const x = INPUTS[inp]; const st = [];
     if (tri) {
-      st.push({ l: 6 + off(), marks: {}, node: 'Triangle', s: '<b>Compile error</b>: “the switch expression does not cover all possible input values”. Shape now permits Triangle, and no case handles it. Sealing lets javac <b>prove</b> exhaustiveness, so a new subtype breaks every switch that forgot it, at compile time. A <code>default</code> branch would silence this check, which is why you shouldn’t add one to a switch over a sealed type.', out: ['error: the switch expression does not cover all possible input values', 1] });
+      st.push({ l: 6 + off(), marks: {}, node: 'Triangle', s: '<b>Compile error</b>: “the switch expression does not cover all possible input values”. Shape now allows Triangle, and no case handles it. Sealing lets the compiler <b>prove</b> every case is covered. So a new subtype breaks every switch that forgot it, at compile time. A <code>default</code> branch would hide this. Don’t add one to a switch over a sealed type.', out: ['error: the switch expression does not cover all possible input values', 1] });
       return st;
     }
     st.push({ l: 6, marks: {}, node: x.t, s: `The selector is <code>${x.t === 'null' ? 'null' : x.label}</code>. Cases are tried <b>top to bottom</b>. The first one whose pattern matches and whose guard is true wins.` });
@@ -102,11 +102,11 @@ IA.widget('sealed-pattern-matching', (root, ctx) => {
         break;
       }
       marks[i] = ['✓ type', 'hot'];
-      st.push({ l: c.line, marks: { ...marks }, cur: i, node: x.t, s: `Type matches. ${c.bind(x.v)}. ${c.line === 10 || c.line === 11 ? 'A <b>record pattern</b> (Java 21) calls the accessors and binds the components, and patterns can be nested.' : 'A <b>type pattern</b> binds the value, already cast, to a new variable.'}` });
+      st.push({ l: c.line, marks: { ...marks }, cur: i, node: x.t, s: `Type matches. ${c.bind(x.v)}. ${c.line === 10 || c.line === 11 ? 'A <b>record pattern</b> (Java 21) unpacks the record’s fields into variables. Patterns can nest.' : 'A <b>type pattern</b> binds the value, already cast, to a new variable.'}` });
       if (c.guard) {
         const g = c.guard(x.v);
         marks[i] = [g ? '✓ guard' : '✗ guard', g ? 'ok' : 'chg'];
-        st.push({ l: c.line, marks: { ...marks }, cur: i, node: x.t, s: `Guard <code>when ${c.gt(x.v)}</code> is <b>${g}</b>. ${g ? '' : 'The pattern matched, but a false guard means “try the next case”.'}` });
+        st.push({ l: c.line, marks: { ...marks }, cur: i, node: x.t, s: `Guard <code>when ${c.gt(x.v)}</code> is <b>${g}</b>. ${g ? '' : 'The pattern matched, but the condition is false, so try the next case.'}` });
         if (!g) continue;
       }
       marks[i] = ['✓ match', 'ok'];

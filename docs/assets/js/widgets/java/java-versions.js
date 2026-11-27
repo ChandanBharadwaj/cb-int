@@ -77,7 +77,7 @@ IA.widget('java-versions', (root, ctx) => {
     }
     if (mode === 'migrate' && S.done) {
       stage.append(R(16, 124, W - 32, 200, { fill: 'var(--surface-2)', stroke: 'var(--ok)', sw: 2 }));
-      ['Order that works: build tools → libraries → JDK in CI → JDK in prod → new features.', 'Scan first: jdeps --jdk-internals and jdeprscan on every jar, not just yours.', 'Keep JVM flags explicit (GC, heap %, charsets) so defaults can’t change behaviour.', 'Spring Boot 2 → 3 is its own hop: Java 17+, javax → jakarta, Hibernate 6.', 'Then adopt: records, sealed + switch patterns, virtual threads, sequenced collections.'].forEach((t, i) => stage.append(T(32, 156 + i * 34, (i + 1) + '. ' + t, { fs: 12.5 })));
+      ['Order that works: build tools → libraries → JDK in CI → JDK in prod → new features.', 'Scan first: jdeps --jdk-internals and jdeprscan on every jar, not just yours.', 'Set JVM flags explicitly (GC, heap %, charsets), so new defaults can’t change behavior.', 'Spring Boot 2 → 3 is its own hop: Java 17+, javax → jakarta, Hibernate 6.', 'Then adopt: records, sealed + switch patterns, virtual threads, sequenced collections.'].forEach((t, i) => stage.append(T(32, 156 + i * 34, (i + 1) + '. ' + t, { fs: 12.5 })));
     }
     statLine();
   }
@@ -95,7 +95,7 @@ IA.widget('java-versions', (root, ctx) => {
         st.push({ run: () => { S.hop = i; S.fixed = false; S.done = false; }, t: `Hop ${i + 1}: <b>Java ${h.from} → ${h.to}</b>. These are the things that typically break. Step again for the fixes.` });
         st.push({ run: () => { S.fixed = true; }, t: `Fixes for Java ${h.from} → ${h.to}. Most are library and build upgrades rather than code changes.` });
       });
-      st.push({ run: () => { S.hop = null; S.done = true; }, t: 'The playbook. Going straight from 8 to 21 is possible, but you still pay for every hop’s traps at once, so scan for all of them first.' });
+      st.push({ run: () => { S.hop = null; S.done = true; }, t: 'The playbook. You can jump straight from 8 to 21. But you pay for every hop’s traps at once, so scan for all of them first.' });
     }
     return st;
   }

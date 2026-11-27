@@ -68,7 +68,7 @@ IA.widget('exceptions', (root, ctx) => {
       '  System.out.println(e.getMessage() + " " + e.getSuppressed().length);',
       '}'],
     steps: [
-      { l: 6, fr: ['main'], fly: ['', ['nothing pending']], res: [['a = Res(A)', 'open']], s: 'Resources are initialised left to right. If <code>b</code>’s initialiser threw, <code>a</code> would still be closed.' },
+      { l: 6, fr: ['main'], fly: ['', ['nothing pending']], res: [['a = Res(A)', 'open']], s: 'Resources open left to right. If opening <code>b</code> threw, <code>a</code> would still be closed.' },
       { l: 6, fr: ['main'], fly: ['', ['nothing pending']], res: [['a = Res(A)', 'open'], ['b = Res(B)', 'open']], s: 'Both resources are open.' },
       { l: 7, fr: ['main'], fly: ['exc', ['IllegalStateException: body']], res: [['a = Res(A)', 'open'], ['b = Res(B)', 'open']], s: 'The body throws. Before any <code>catch</code> runs, the resources are closed in <b>reverse order</b>.' },
       { l: 2, fr: ['main', 'b.close'], fly: ['exc', ['IllegalStateException: body']], res: [['a = Res(A)', 'open'], ['b = Res(B)', 'closing']], out: ['close B'], s: '<code>b</code> is closed first and prints “close B”…' },
@@ -89,7 +89,7 @@ IA.widget('exceptions', (root, ctx) => {
       'ProblemDetail busy(OrderStoreException e) { … 503 … }'],
     steps: [
       { l: 1, fr: ['controller', 'service', 'repository', 'JDBC driver'], fly: ['exc', ['SQLException: deadlock [40P01]']], s: 'A low-level, <b>checked</b> exception from the driver. Its type and SQL state mean nothing to the web layer.' },
-      { l: 4, fr: ['controller', 'service', 'repository'], fly: ['exc', ['OrderStoreException: save order 42', '  Caused by: SQLException: deadlock [40P01]']], s: '<b>Translation</b>: the repository catches it and throws an exception that fits its own abstraction, <b>passing the cause</b>. Nothing is lost, and context (“order 42”) is added.' },
+      { l: 4, fr: ['controller', 'service', 'repository'], fly: ['exc', ['OrderStoreException: save order 42', '  Caused by: SQLException: deadlock [40P01]']], s: '<b>Translation</b>: the repository catches it and throws an exception in its own terms, <b>passing the cause</b>. Nothing is lost, and it adds context (“order 42”).' },
       { l: 6, fr: ['controller', 'service'], fly: ['exc', ['OrderStoreException: save order 42', '  Caused by: SQLException: deadlock [40P01]']], s: 'It is unchecked, so the service neither catches nor declares it. The <code>@Transactional</code> proxy sees a RuntimeException and <b>rolls back</b>, which is Spring’s default for unchecked exceptions.' },
       { l: 9, fr: ['controller advice'], fly: ['', ['HTTP 503 problem+json, retryable']], out: ['WARN save order 42 (cause logged once, here)'], s: 'One place at the boundary maps it to HTTP and logs it <b>once</b>, with the full cause chain. Spring’s own <code>SQLExceptionTranslator</code> does the same job for JdbcTemplate and JPA, turning a deadlock into a subclass of <code>PessimisticLockingFailureException</code>.' }
     ] }

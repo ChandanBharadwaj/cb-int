@@ -36,10 +36,10 @@ IA.widget('optional', (root, ctx) => {
       '    .orElse("unknown");'],
     steps: [
       { l: 3, r: [['some', 'User[ana]']], s: '<code>ofNullable</code> wraps a value that may be null. Here it isn’t null, so the Optional is <b>present</b>.' },
-      { l: 4, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]']], s: '<code>map</code> applies the function to the value and wraps the result. If the function returned null, map would give back an <b>empty</b> Optional, which is what makes null-safe chains work.' },
+      { l: 4, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]']], s: '<code>map</code> runs the function on the value and wraps the result. A null result gives an <b>empty</b> Optional. That is why these chains are null-safe.' },
       { l: 5, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"']], s: 'Another hop through the object graph, with no null checks written.' },
       { l: 6, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"'], ['some', '"Lisbon"']], s: '<code>filter</code> keeps the value if the predicate is true and turns the Optional empty otherwise.' },
-      { l: 7, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"'], ['some', '"Lisbon"'], ['val', '"Lisbon"']], out: 'city = Lisbon', s: 'A terminal method leaves the Optional world: <code>orElse</code> unwraps the value, or returns the fallback when the Optional is empty.' }
+      { l: 7, r: [['some', 'User[ana]'], ['some', 'Address[Lisbon]'], ['some', '"Lisbon"'], ['some', '"Lisbon"'], ['val', '"Lisbon"']], out: 'city = Lisbon', s: 'A final method leaves the box. <code>orElse</code> returns the value, or the fallback if the box is empty.' }
     ] },
     empty: { label: 'Empty short-circuits', ops: ['Optional.ofNullable(user)', '.map(User::address)', '.map(Address::city)', '.filter(c -> !c.isBlank())', '.orElse("unknown")'], code: [
       'User user = new User("ben", null);   // no address',
@@ -52,8 +52,8 @@ IA.widget('optional', (root, ctx) => {
       { l: 1, r: [['some', 'User[ben]']], s: 'Present: ben exists.' },
       { l: 2, r: [['some', 'User[ben]'], ['none', 'Optional.empty']], s: '<code>user.address()</code> returns <b>null</b>, so <code>map</code> produces <code>Optional.empty</code>. No exception.' },
       { l: 3, r: [['some', 'User[ben]'], ['none', 'Optional.empty'], ['skip', 'function not called']], s: 'On an empty Optional, <code>map</code> doesn’t call its function at all. <code>Address::city</code> is never invoked on null.' },
-      { l: 4, r: [['some', 'User[ben]'], ['none', 'Optional.empty'], ['skip', 'function not called'], ['skip', 'predicate not called']], s: 'Same for <code>filter</code>: emptiness just flows through.' },
-      { l: 5, r: [['some', 'User[ben]'], ['none', 'Optional.empty'], ['skip', 'function not called'], ['skip', 'predicate not called'], ['val', '"unknown"']], out: 'city = unknown', s: 'The fallback is used. One expression replaces three nested <code>if (x != null)</code> checks, and the “maybe absent” part is visible in the types.' }
+      { l: 4, r: [['some', 'User[ben]'], ['none', 'Optional.empty'], ['skip', 'function not called'], ['skip', 'predicate not called']], s: 'Same for <code>filter</code>: the empty box passes through.' },
+      { l: 5, r: [['some', 'User[ben]'], ['none', 'Optional.empty'], ['skip', 'function not called'], ['skip', 'predicate not called'], ['val', '"unknown"']], out: 'city = unknown', s: 'The fallback is used. One expression replaces three nested <code>if (x != null)</code> checks. The types show what may be missing.' }
     ] },
     eager: { label: 'orElse vs orElseGet', ops: ['Optional.of("cached")', '.orElse(loadFromDb())', 'Optional.of("cached")', '.orElseGet(() -> loadFromDb())'], code: [
       'static String loadFromDb() { System.out.println("DB call!"); return "db"; }',

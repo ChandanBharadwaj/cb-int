@@ -2,11 +2,11 @@ IA.register({
   track: 'java',
   slug: 'threads-executors',
   title: 'Threads & executors',
-  tagline: 'A <code>ThreadPoolExecutor</code> is <b>a queue in front of a set of workers</b>, with a rule for what to do when both are full. It tries <i>core threads → queue → extra threads → reject</i>, in that order. Most pool incidents come from that order, an unbounded queue, or a shutdown nobody waited for.',
+  tagline: 'A <code>ThreadPoolExecutor</code> is <b>a queue in front of a set of workers</b>, with a rule for what to do when both are full. It tries <i>core threads → queue → extra threads → reject</i>, in that order. Most pool bugs come from that order, a queue with no limit, or a shutdown nobody waited for.',
   tldr: {
-    problem: 'Pools rarely fail loudly. They hide work in an unbounded queue until latency explodes, swallow exceptions inside a <code>Future</code> nobody reads, never grow past core size, or lose in-flight tasks when the pod is stopped.',
-    model: '<code>execute(task)</code>: if fewer than <b>core</b> threads, start one. Else <b>offer</b> the task to the queue. If the queue refuses, start a thread up to <b>max</b>. Else call the <b>RejectedExecutionHandler</b>. Workers loop on <code>queue.take()</code>; threads above core die after <code>keepAliveTime</code> idle.',
-    hook: '“I set core 10, max 100. Why do I never see more than 10 threads?” Because the queue is unbounded: <code>offer()</code> always succeeds, so step 3 (grow to max) never runs.',
+    problem: 'Pools rarely fail loudly. They hide work in a queue with no limit until requests get very slow. They hide errors inside a <code>Future</code> nobody reads. They never grow past core size. Or they lose running tasks when the pod stops.',
+    model: '<code>execute(task)</code>: if fewer than <b>core</b> threads, start one. Else <b>offer</b> the task to the queue. If the queue says no, start a thread, up to <b>max</b>. Else call the <b>RejectedExecutionHandler</b>. Workers loop on <code>queue.take()</code>. Threads above core exit after <code>keepAliveTime</code> with no work.',
+    hook: '“I set core 10, max 100. Why do I never see more than 10 threads?” The queue has no limit. <code>offer()</code> always succeeds, so step 3 (grow to max) never runs.',
     facts: [
       { v: 'core → queue → max', l: 'the order <code>execute()</code> tries. Extra threads are only created when the queue is <b>full</b>' },
       { v: '6', l: 'thread states in <code>Thread.State</code>: NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED' },
@@ -17,17 +17,17 @@ IA.register({
     what: 'A <b>thread</b> is an independent line of execution inside your program. Creating a platform thread is expensive (it is an OS thread with its own stack), so servers keep a <b>pool</b> of threads and hand them small jobs. An <b>executor</b> is that pool plus a <b>queue</b> of waiting jobs. You submit a task; a free worker picks it up; when all workers are busy, tasks wait in the queue; when the queue is full too, the executor must say no.',
     analogy: { icon: '🍳', title: 'A restaurant kitchen', text: 'The core cooks are always on shift. Orders that arrive while they are busy go on the ticket rail (the queue). If the rail fills up, the manager calls in temporary cooks (up to max), who go home after a quiet spell (keepAlive). If the rail is full and every cook is in, the host turns guests away, or asks them to cook it themselves (CallerRunsPolicy).' },
     steps: [
-      { t: 'Never create a thread per request by hand', d: 'Use an <code>ExecutorService</code>. It reuses threads, bounds concurrency and gives you a place to shut everything down.', code: 'ExecutorService pool = Executors.newFixedThreadPool(8);\nFuture<Report> f = pool.submit(() -> buildReport(id));\nReport r = f.get(5, TimeUnit.SECONDS);' },
-      { t: 'Know the five knobs', d: 'core size, max size, keepAlive, the queue (bounded or not) and the rejection policy. The <code>Executors</code> factory methods pick these for you, sometimes badly.' },
-      { t: 'Decide what “full” means', d: 'A bounded queue plus a rejection policy turns overload into a visible error or back-pressure, instead of unbounded memory and latency.' },
-      { t: 'Shut it down', d: 'Pools hold non-daemon threads, so a forgotten pool keeps the JVM alive. Call <code>shutdown()</code> then <code>awaitTermination()</code>, or use try-with-resources on Java 19+.' }
+      { t: 'Never create a thread per request by hand', d: 'Use an <code>ExecutorService</code>. It reuses threads, caps how many run at once, and gives you one place to shut down.', code: 'ExecutorService pool = Executors.newFixedThreadPool(8);\nFuture<Report> f = pool.submit(() -> buildReport(id));\nReport r = f.get(5, TimeUnit.SECONDS);' },
+      { t: 'Know the five knobs', d: 'Core size, max size, keepAlive, the queue (with or without a limit) and the rejection policy. The <code>Executors</code> helpers pick these for you, sometimes badly.' },
+      { t: 'Decide what “full” means', d: 'Give the queue a limit and a rejection policy. Then overload becomes a visible error or slows the sender (<i>back-pressure</i>). Without them, memory and wait times grow forever.' },
+      { t: 'Shut it down', d: 'Pool threads keep the JVM alive, so a forgotten pool stops your app from exiting. Call <code>shutdown()</code> then <code>awaitTermination()</code>. On Java 19+, use try-with-resources.' }
     ],
     terms: [
-      ['platform thread', 'A Java thread backed 1:1 by an OS thread. Costly to create; has a fixed-size stack (often 1 MB by default on 64-bit Linux).'],
+      ['platform thread', 'A Java thread that sits on its own OS thread. Costly to create. It has a fixed-size stack, often 1 MB on 64-bit Linux.'],
       ['corePoolSize', 'Threads the pool keeps even when idle (unless <code>allowCoreThreadTimeOut(true)</code>).'],
-      ['maximumPoolSize', 'Upper bound on threads. Only reached when the queue refuses a task.'],
+      ['maximumPoolSize', 'The most threads the pool may have. Only reached when the queue refuses a task.'],
       ['work queue', 'Where tasks wait for a worker: <code>ArrayBlockingQueue</code> (bounded), <code>LinkedBlockingQueue</code> (unbounded by default), <code>SynchronousQueue</code> (no capacity).'],
-      ['rejection policy', 'What happens when the pool is saturated or shut down: Abort (throw), CallerRuns, Discard, DiscardOldest.'],
+      ['rejection policy', 'What happens when the pool is full or shut down: Abort (throw), CallerRuns, Discard, DiscardOldest.'],
       ['Future', 'A handle to a submitted task’s result or exception: <code>get()</code>, <code>cancel()</code>, <code>isDone()</code>.']
     ]
   },
@@ -38,16 +38,16 @@ IA.register({
   gotchas: [
     { trap: 'Max pool size does nothing with an unbounded queue', code: `new ThreadPoolExecutor(10, 100, 60, SECONDS,
     new LinkedBlockingQueue<>());      // capacity Integer.MAX_VALUE
-// never more than 10 threads; the queue absorbs everything`, why: '<code>execute()</code> only creates threads above core when <code>queue.offer()</code> fails. An unbounded queue never refuses, so the pool stays at core size while the backlog (and latency) grows without limit.', fix: 'Use a bounded <code>ArrayBlockingQueue</code> sized for the latency you can tolerate, plus an explicit rejection policy. If you really want “grow first, then queue”, set core = max and <code>allowCoreThreadTimeOut(true)</code>.' },
-    { trap: '<code>Executors.newFixedThreadPool</code> and <code>newCachedThreadPool</code> have hidden extremes', why: 'Fixed: core = max = n with an <b>unbounded</b> <code>LinkedBlockingQueue</code>, so overload becomes memory and latency. Cached: core 0, max <code>Integer.MAX_VALUE</code>, a <code>SynchronousQueue</code> and 60 s keepAlive, so overload becomes <b>thousands of threads</b> (and possibly <code>OutOfMemoryError: unable to create native thread</code>).', fix: 'In services, build the <code>ThreadPoolExecutor</code> yourself (or a Spring <code>ThreadPoolTaskExecutor</code>) with a bounded queue, a max, a named <code>ThreadFactory</code> and a rejection policy.' },
+// never more than 10 threads; the queue absorbs everything`, why: '<code>execute()</code> adds threads above core only when <code>queue.offer()</code> fails. A queue with no limit never refuses. So the pool stays at core size while the backlog keeps growing.', fix: 'Use an <code>ArrayBlockingQueue</code> with a size that matches the wait you can accept. Add an explicit rejection policy. Want “grow first, then queue”? Set core = max and <code>allowCoreThreadTimeOut(true)</code>.' },
+    { trap: '<code>Executors.newFixedThreadPool</code> and <code>newCachedThreadPool</code> have hidden extremes', why: 'Fixed: core = max = n with an <b>unbounded</b> <code>LinkedBlockingQueue</code>, so overload becomes memory and latency. Cached: core 0, max <code>Integer.MAX_VALUE</code>, a <code>SynchronousQueue</code> and 60 s keepAlive, so overload becomes <b>thousands of threads</b>. You may hit <code>OutOfMemoryError: unable to create native thread</code>.', fix: 'In services, build the <code>ThreadPoolExecutor</code> yourself (or a Spring <code>ThreadPoolTaskExecutor</code>) with a bounded queue, a max, a named <code>ThreadFactory</code> and a rejection policy.' },
     { trap: '<code>submit()</code> swallows exceptions', code: `pool.submit(() -> { throw new IllegalStateException("boom"); });
-// nothing logged, ever, unless someone calls future.get()`, why: '<code>submit</code> wraps the task in a <code>FutureTask</code>, which catches the exception and stores it in the Future. <code>execute</code> lets it escape, so the default uncaught-exception handler prints it (and the worker thread is replaced).', fix: 'Call <code>get()</code> (or use CompletableFuture with <code>exceptionally</code>), catch and log inside the task, or override <code>afterExecute</code>. Use <code>execute</code> for fire-and-forget work so failures are at least printed.' },
+// nothing logged, ever, unless someone calls future.get()`, why: '<code>submit</code> wraps the task in a <code>FutureTask</code>. It catches the exception and stores it in the Future. <code>execute</code> lets it escape, so the default handler prints it. The worker thread is then replaced.', fix: 'Call <code>get()</code> (or use CompletableFuture with <code>exceptionally</code>), catch and log inside the task, or override <code>afterExecute</code>. Use <code>execute</code> for fire-and-forget work so failures are at least printed.' },
     { trap: 'A periodic task silently stops after one exception', code: `scheduler.scheduleAtFixedRate(this::syncPrices, 0, 1, MINUTES);
-// one NullPointerException in syncPrices → no more runs, no log line`, why: 'The <code>ScheduledExecutorService</code> javadoc: if any execution throws, subsequent executions are suppressed. The exception sits in the returned <code>ScheduledFuture</code>, which nobody reads.', fix: 'Wrap the body in <code>try { … } catch (Exception e) { log.error(…); }</code>, or use Spring <code>@Scheduled</code>, whose error handler logs and keeps the schedule.' },
+// one NullPointerException in syncPrices → no more runs, no log line`, why: 'If one run throws, the <code>ScheduledExecutorService</code> cancels all later runs. The exception sits in the returned <code>ScheduledFuture</code>, which nobody reads.', fix: 'Wrap the body in <code>try { … } catch (Exception e) { log.error(…); }</code>, or use Spring <code>@Scheduled</code>, whose error handler logs and keeps the schedule.' },
     { trap: 'Tasks that wait for other tasks in the same pool', code: `Future<A> a = pool.submit(this::loadA);
-return pool.submit(() -> combine(a.get(), loadB())).get();   // all workers can end up waiting`, why: 'If every worker is blocked in <code>get()</code> on a task that is still in the queue, nobody is left to run it: a <b>thread-starvation deadlock</b>. It only shows up under load, when the pool is saturated.', fix: 'Don’t block on same-pool work. Use separate pools per stage, CompletableFuture composition, or virtual threads (no fixed worker count).' },
-    { trap: 'No graceful shutdown on SIGTERM', why: 'Kubernetes sends SIGTERM, and the JVM runs shutdown hooks and then exits. Daemon threads die mid-task; non-daemon pool threads keep the JVM alive past <code>terminationGracePeriodSeconds</code> until SIGKILL. Either way queued work disappears.', fix: '<code>shutdown()</code>, then <code>awaitTermination(timeout)</code>, then <code>shutdownNow()</code>. In Spring Boot set <code>spring.task.execution.shutdown.await-termination=true</code> and <code>await-termination-period</code>, and keep it shorter than the grace period.' },
-    { trap: 'Ignoring <code>InterruptedException</code>', code: `try { Thread.sleep(1000); } catch (InterruptedException e) { }   // flag cleared, lost`, why: 'Interruption is how <code>shutdownNow()</code> and <code>Future.cancel(true)</code> ask a task to stop. Catching the exception clears the interrupt flag; swallowing it means the task, and the pool, never stop.', fix: 'Propagate it, or restore the flag with <code>Thread.currentThread().interrupt()</code> and return. Check <code>Thread.interrupted()</code> in long CPU loops.' }
+return pool.submit(() -> combine(a.get(), loadB())).get();   // all workers can end up waiting`, why: 'Say every worker waits in <code>get()</code> for a task still in the queue. Nobody is left to run it. This is a <b>thread-starvation deadlock</b>. It only shows up under load, when the pool is full.', fix: 'Don’t block on same-pool work. Use separate pools per stage, CompletableFuture composition, or virtual threads (no fixed worker count).' },
+    { trap: 'No graceful shutdown on SIGTERM', why: 'Kubernetes sends SIGTERM. The JVM runs shutdown hooks, then exits. Daemon threads die mid-task. Other pool threads keep the JVM alive past <code>terminationGracePeriodSeconds</code>, until SIGKILL. Either way, queued work is lost.', fix: '<code>shutdown()</code>, then <code>awaitTermination(timeout)</code>, then <code>shutdownNow()</code>. In Spring Boot set <code>spring.task.execution.shutdown.await-termination=true</code> and <code>await-termination-period</code>, and keep it shorter than the grace period.' },
+    { trap: 'Ignoring <code>InterruptedException</code>', code: `try { Thread.sleep(1000); } catch (InterruptedException e) { }   // flag cleared, lost`, why: 'Interruption is how <code>shutdownNow()</code> and <code>Future.cancel(true)</code> ask a task to stop. Catching the exception clears the interrupt flag. If you then ignore it, the task and the pool never stop.', fix: 'Propagate it, or restore the flag with <code>Thread.currentThread().interrupt()</code> and return. Check <code>Thread.interrupted()</code> in long CPU loops.' }
   ],
   scenarios: [
     { title: 'p99 latency climbs from 80 ms to 40 s during a partner outage',
@@ -59,7 +59,7 @@ pool.getQueue().size()    // 184,000 and growing
 
 // the bean
 Executors.newFixedThreadPool(20)   // LinkedBlockingQueue, unbounded`,
-      cause: 'All 20 workers are stuck on the slow partner. New tasks queue without limit, each holding its request payload, so memory grows and every queued task waits behind all the earlier ones.',
+      cause: 'All 20 workers are stuck on the slow partner. New tasks pile up in the queue, each holding its request data. Memory grows, and each task waits behind all earlier ones.',
       fix: 'Bound the queue, reject early with a clear error (or shed load with a 503), and put a timeout on the partner call so a worker is never held for 30 s. Export pool metrics (Micrometer’s <code>ExecutorServiceMetrics</code>) and alert on queue depth.',
       fixCode: `ThreadPoolExecutor partnerPool = new ThreadPoolExecutor(
     20, 20, 0, TimeUnit.SECONDS,
@@ -71,7 +71,7 @@ Executors.newFixedThreadPool(20)   // LinkedBlockingQueue, unbounded`,
       diagnose: `jcmd <pid> Thread.print | grep -A3 price-sync
 # "price-sync-1" WAITING (parking) ... DelayedWorkQueue.take
 # the thread is idle: no run is scheduled any more`,
-      cause: 'The job was scheduled with <code>scheduleAtFixedRate</code>. On Monday one run hit a NullPointerException on an unexpected empty response. The executor stored it in the <code>ScheduledFuture</code> and suppressed every later run.',
+      cause: 'The job used <code>scheduleAtFixedRate</code>. On Monday one run hit a NullPointerException on an empty response. The executor stored it in the <code>ScheduledFuture</code> and cancelled every later run.',
       fix: 'Catch and log inside the scheduled body so one bad run doesn’t cancel the schedule. Add a “last successful sync” metric and alert on its age.',
       fixCode: `scheduler.scheduleAtFixedRate(() -> {
     try {
@@ -87,7 +87,7 @@ Executors.newFixedThreadPool(20)   // LinkedBlockingQueue, unbounded`,
 // pod logs end with:
 //   Commencing graceful shutdown. Waiting for active requests to complete
 //   ... JVM exits 2 s later; no "email sent" for the last tasks`,
-      cause: 'The HTTP layer shut down gracefully, but the task executor didn’t wait: queued and running <code>@Async</code> tasks were dropped when the context closed. The work lived only in memory.',
+      cause: 'The HTTP layer shut down cleanly, but the task executor didn’t wait. Queued and running <code>@Async</code> tasks were dropped when the app closed. The work lived only in memory.',
       fix: 'Make the executor wait on shutdown, and for work that must not be lost, write it to a durable outbox table in the same transaction and process it from there.',
       fixCode: `# application.yml (Spring Boot 3.x)
 spring:
@@ -105,7 +105,7 @@ spring:
 #   at java.util.concurrent.FutureTask.get(...)
 #   at ReportService.lambda$build$2(ReportService.java:58)
 # ... all 16 "report-*" threads are in FutureTask.get`,
-      cause: 'Each report task submitted sub-tasks to the <b>same</b> 16-thread pool and blocked on their futures. At peak, all 16 workers were parent tasks waiting for children that sat in the queue: a thread-starvation deadlock.',
+      cause: 'Each report task sent sub-tasks to the <b>same</b> 16-thread pool and waited for them. At peak, all 16 workers were parents waiting for children stuck in the queue. That is a thread-starvation deadlock.',
       fix: 'Compose instead of blocking (<code>CompletableFuture.supplyAsync(…, ioPool).thenCombine(…)</code>), give sub-tasks their own pool, or on Java 21 run each request on a virtual thread so blocking costs no pool slot.' }
   ],
   puzzles: [
@@ -133,7 +133,7 @@ public class Main {
         ex.awaitTermination(5, TimeUnit.SECONDS);
         System.out.println("done");
     }
-}`, options: ['accepted 1, accepted 2, accepted 3, ran 1, ran 2, ran 3, done', 'accepted 1, accepted 2, rejected 3, ran 1, ran 2, done', 'accepted 1, rejected 2, rejected 3, ran 1, done', 'accepted 1, accepted 2, rejected 3, done'], answer: 1, run: true, expect: 'accepted 1\naccepted 2\nrejected 3\nran 1\nran 2\ndone', explain: 'Task 1 starts the only worker and blocks on the gate. Task 2 fills the queue (capacity 1). Task 3: the queue refuses and poolSize = max, so <b>AbortPolicy</b> throws <code>RejectedExecutionException</code> into the caller. After the gate opens, the single worker runs 1 and then 2. <code>shutdown()</code> still lets queued tasks finish.' },
+}`, options: ['accepted 1, accepted 2, accepted 3, ran 1, ran 2, ran 3, done', 'accepted 1, accepted 2, rejected 3, ran 1, ran 2, done', 'accepted 1, rejected 2, rejected 3, ran 1, done', 'accepted 1, accepted 2, rejected 3, done'], answer: 1, run: true, expect: 'accepted 1\naccepted 2\nrejected 3\nran 1\nran 2\ndone', explain: 'Task 1 starts the only worker and blocks on the gate. Task 2 fills the queue (capacity 1). Task 3: the queue is full and poolSize = max. So <b>AbortPolicy</b> throws <code>RejectedExecutionException</code> to the caller. After the gate opens, the single worker runs 1 and then 2. <code>shutdown()</code> still lets queued tasks finish.' },
     { kind: 'predict', q: 'Same saturated pool, but with <code>CallerRunsPolicy</code>. Task 3 doesn’t wait on the gate; it prints the thread it runs on. Output?', code: `import java.util.concurrent.*;
 
 public class Main {
@@ -149,7 +149,7 @@ public class Main {
         gate.countDown();
         ex.shutdown();
     }
-}`, options: ['task 3 on pool-1-thread-1, then submitted', 'submitted, then task 3 on pool-1-thread-1', 'task 3 on main, then submitted', 'RejectedExecutionException'], answer: 2, run: true, expect: 'task 3 on main\nsubmitted', explain: 'The pool is saturated, so <code>CallerRunsPolicy</code> runs task 3 <b>synchronously on the submitting thread</b> (main) before <code>execute</code> returns. That is the back-pressure: the producer is busy and can’t submit more. Had task 3 been the blocker, main itself would wait on the gate it is supposed to open, and the program would hang.' },
+}`, options: ['task 3 on pool-1-thread-1, then submitted', 'submitted, then task 3 on pool-1-thread-1', 'task 3 on main, then submitted', 'RejectedExecutionException'], answer: 2, run: true, expect: 'task 3 on main\nsubmitted', explain: 'The pool is full. So <code>CallerRunsPolicy</code> runs task 3 <b>on the thread that submitted it</b> (main), before <code>execute</code> returns. That slows the sender down: it is busy and can’t submit more. If task 3 were the blocker, main would wait on the gate it must open. The program would hang.' },
     { kind: 'predict', q: 'Core size 3. Each task is submitted and finished (<code>get()</code>) before the next. How many threads does the pool hold at the end?', code: `import java.util.concurrent.*;
 
 public class Main {
@@ -160,7 +160,7 @@ public class Main {
         System.out.println(ex.getPoolSize());
         ex.shutdown();
     }
-}`, options: ['1', '2', '3', '0'], answer: 2, run: true, expect: '3', explain: 'While <code>poolSize &lt; corePoolSize</code>, <code>execute</code> starts a <b>new</b> thread for every task, even when existing workers are idle. Three submissions, three core threads. Call <code>prestartAllCoreThreads()</code> if you want them created up front.' },
+}`, options: ['1', '2', '3', '0'], answer: 2, run: true, expect: '3', explain: 'While <code>poolSize &lt; corePoolSize</code>, <code>execute</code> starts a <b>new</b> thread for each task, even if other workers are idle. Three submissions, three core threads. Call <code>prestartAllCoreThreads()</code> if you want them created up front.' },
     { kind: 'predict', q: 'What does this print (stdout)?', code: `import java.util.concurrent.*;
 
 public class Main {
@@ -176,7 +176,7 @@ public class Main {
             System.out.println("cause=" + e.getCause().getMessage());
         }
     }
-}`, options: ['A stack trace, then done=true', 'done=false', 'done=true, then cause=boom', 'done=true only'], answer: 2, run: true, expect: 'done=true\ncause=boom', explain: 'A task that throws is still “done”. <code>submit</code> stores the exception in the Future and prints nothing; <code>get()</code> rethrows it wrapped in <code>ExecutionException</code>. Without the <code>get()</code>, this failure would leave no trace at all.' },
+}`, options: ['A stack trace, then done=true', 'done=false', 'done=true, then cause=boom', 'done=true only'], answer: 2, run: true, expect: 'done=true\ncause=boom', explain: 'A task that throws is still “done”. <code>submit</code> stores the exception in the Future and prints nothing. <code>get()</code> rethrows it inside an <code>ExecutionException</code>. Without <code>get()</code>, the failure leaves no trace.' },
     { kind: 'predict', q: 'What does this print?', code: `public class Main {
     public static void main(String[] a) throws Exception {
         Thread t = new Thread(() -> { });
@@ -191,9 +191,9 @@ public class Main {
         }
     }
 }`, options: ['NEW, TERMINATED, no restart', 'NEW, RUNNABLE, no restart', 'RUNNABLE, TERMINATED, (runs again)', 'NEW, TERMINATED, (runs again)'], answer: 0, run: true, expect: 'NEW\nTERMINATED\nno restart', explain: 'Before <code>start()</code> a thread is <b>NEW</b>. <code>join()</code> waits until it has finished, so it is <b>TERMINATED</b>. A thread can be started only once: the second <code>start()</code> throws <code>IllegalThreadStateException</code>. That is one reason pools reuse worker threads by looping, not by restarting them.' },
-    { kind: 'concept', q: '<code>new ThreadPoolExecutor(2, 10, 60, SECONDS, new LinkedBlockingQueue&lt;&gt;())</code> receives 1,000 slow tasks at once. What is the largest pool size?', options: ['10', '2', '1,000', 'It depends on CPU count'], answer: 1, explain: 'The unbounded queue accepts every task, so the “start a thread up to max” branch is never reached: <b>2</b> threads, 998 queued tasks. Max only matters when the queue can say no.' },
-    { kind: 'concept', q: 'You call <code>shutdownNow()</code>. A running task is in a tight CPU loop that never checks interruption. What happens?', options: ['The JVM kills the thread', 'The task keeps running; awaitTermination may time out', 'The task gets an InterruptedException at the next bytecode', 'shutdownNow blocks until the task completes'], answer: 1, explain: '<code>shutdownNow()</code> drains and returns queued tasks and <b>interrupts</b> workers. Interruption is cooperative: it only sets a flag, plus wakes threads in <code>sleep</code>/<code>wait</code>/<code>join</code>/interruptible I/O. A loop that never checks <code>Thread.interrupted()</code> keeps running. There is no safe way to kill a thread (<code>Thread.stop</code> throws UnsupportedOperationException since Java 20).' },
-    { kind: 'concept', q: 'A service on a 4-vCPU container calls a database: each request spends about 10 ms on CPU and 90 ms waiting on I/O. Roughly what pool size keeps the CPUs busy?', options: ['4', '5', '40', '400'], answer: 2, explain: 'Goetz’s rule of thumb: threads ≈ cores × (1 + wait / compute) = 4 × (1 + 90/10) = <b>40</b>. Then check the downstream limit: 40 threads need up to 40 DB connections. Little’s law gives the same picture: in-flight work = throughput × latency.' }
+    { kind: 'concept', q: '<code>new ThreadPoolExecutor(2, 10, 60, SECONDS, new LinkedBlockingQueue&lt;&gt;())</code> receives 1,000 slow tasks at once. What is the largest pool size?', options: ['10', '2', '1,000', 'It depends on CPU count'], answer: 1, explain: 'The queue has no limit and accepts every task. So the “grow to max” step never runs: <b>2</b> threads, 998 queued tasks. Max only matters when the queue can say no.' },
+    { kind: 'concept', q: 'You call <code>shutdownNow()</code>. A running task is in a tight CPU loop that never checks interruption. What happens?', options: ['The JVM kills the thread', 'The task keeps running; awaitTermination may time out', 'The task gets an InterruptedException at the next bytecode', 'shutdownNow blocks until the task completes'], answer: 1, explain: '<code>shutdownNow()</code> empties the queue, returns those tasks, and <b>interrupts</b> workers. An interrupt is only a request. It sets a flag and wakes threads in <code>sleep</code>/<code>wait</code>/<code>join</code>/interruptible I/O. A loop that never checks <code>Thread.interrupted()</code> keeps running. You can’t safely kill a thread (<code>Thread.stop</code> throws UnsupportedOperationException since Java 20).' },
+    { kind: 'concept', q: 'A service on a 4-vCPU container calls a database: each request spends about 10 ms on CPU and 90 ms waiting on I/O. Roughly what pool size keeps the CPUs busy?', options: ['4', '5', '40', '400'], answer: 2, explain: 'Rule of thumb: threads ≈ cores × (1 + wait / compute) = 4 × (1 + 90/10) = <b>40</b>. Then check what downstream can take: 40 threads need up to 40 DB connections. Little’s law agrees: work in flight = throughput × latency.' }
   ],
   interview: [
     { q: 'Walk me through what <code>ThreadPoolExecutor.execute()</code> does.', a: '<ol><li>If fewer than <code>corePoolSize</code> threads are running, start a new worker with this task as its first task.</li><li>Otherwise <code>workQueue.offer(task)</code>. If it succeeds, re-check that the pool is still running and has at least one worker.</li><li>If the queue refuses, try to start a non-core worker, up to <code>maximumPoolSize</code>.</li><li>If that fails too (or the pool is shut down), call the <code>RejectedExecutionHandler</code>.</li></ol><p>Workers loop: run the first task, then <code>take()</code> (or <code>poll(keepAlive)</code> when above core) from the queue.</p>', fu: 'Why does a new non-core thread run the incoming task rather than the oldest queued one? (It is created with the task as firstTask, so newer tasks can overtake queued ones: no FIFO guarantee under saturation.)', lvl: 'core' },

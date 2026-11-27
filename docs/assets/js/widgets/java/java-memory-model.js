@@ -113,16 +113,16 @@ IA.widget('java-memory-model', (root, ctx) => {
       if (!vol) {
         P(() => write(0, 0, 'data', 42), 'T1: <code>data = 42</code>. The store goes into T1’s <b>store buffer</b>. Other cores can’t see it yet.');
         P(() => write(0, 1, 'ready', 'true'), 'T1: <code>ready = true</code>. Also buffered. Nothing orders these two plain stores for other threads.');
-        P(() => drain(0, 'ready'), '<code>ready</code> reaches memory <b>first</b>. The JIT may reorder the two stores, and so may a weakly ordered CPU such as ARM. (x86 keeps stores in order, so there the JIT is the usual culprit.)');
+        P(() => drain(0, 'ready'), '<code>ready</code> reaches memory <b>first</b>. The JIT may swap the two stores, and so may a loosely ordered CPU like ARM. (x86 keeps stores in order, so there the JIT is the usual culprit.)');
         P(() => { read(1, 0, 'ready', 'ready'); }, 'T2 reads <code>ready</code> from memory: <b>true</b>.');
-        P(() => { read(1, 1, 'data', 'r'); S.bad = 'r'; S.outcome = 'ready=true, r=0'; S.banner = 'saw the flag, missed the data'; S.bannerC = 'var(--err)'; }, 'T2 reads <code>data</code>: still <b>0</b> in memory. T2 saw the flag but not the data it was meant to publish. This is a data race, and the JMM allows it.');
+        P(() => { read(1, 1, 'data', 'r'); S.bad = 'r'; S.outcome = 'ready=true, r=0'; S.banner = 'saw the flag, missed the data'; S.bannerC = 'var(--err)'; }, 'T2 reads <code>data</code>: still <b>0</b> in memory. T2 saw the flag but not the data it was meant to carry. This is a data race, and the JMM allows it.');
         P(() => { drainAll(0); }, 'T1’s buffer drains later, too late for T2. Fix: make <code>ready</code> <code>volatile</code> (try the toggle).');
       } else {
         P(() => write(0, 0, 'data', 42), 'T1: <code>data = 42</code> (a plain store) goes into the store buffer.');
-        P(() => { write(0, 1, 'ready', 'true'); S.fence = ['release', null]; }, 'T1: <code>ready = true</code> is a <b>volatile write: a release</b>. No earlier write may become visible after it.');
+        P(() => { write(0, 1, 'ready', 'true'); S.fence = ['release', null]; }, 'T1: <code>ready = true</code> is a <b>volatile write</b>. No earlier write may become visible after it.');
         P(() => { drainAll(0); S.fence = [null, null]; }, 'So the buffer drains <b>in order</b>: <code>data</code>, then <code>ready</code>.');
-        P(() => { read(1, 0, 'ready', 'ready'); S.hb = [[1, 0]]; }, 'T2’s <b>volatile read</b> (an acquire) sees <code>true</code>. A volatile write happens-before every later read that sees it: a <b>happens-before edge</b>.');
-        P(() => { read(1, 1, 'data', 'r'); S.outcome = 'ready=true, r=42'; S.banner = 'guaranteed: r = 42'; S.bannerC = 'var(--ok)'; }, '<code>data = 42</code> is before the release in T1’s program order, and <code>r = data</code> is after the acquire in T2’s. By transitivity, T2 <b>must</b> see 42. That chain is what “safe publication” means.');
+        P(() => { read(1, 0, 'ready', 'ready'); S.hb = [[1, 0]]; }, 'T2’s <b>volatile read</b> sees <code>true</code>. A volatile write is linked to every later read that sees it: a <b>happens-before</b> link.');
+        P(() => { read(1, 1, 'data', 'r'); S.outcome = 'ready=true, r=42'; S.banner = 'guaranteed: r = 42'; S.bannerC = 'var(--ok)'; }, '<code>data = 42</code> comes before the volatile write in T1. <code>r = data</code> comes after the volatile read in T2. Chain those together, and T2 <b>must</b> see 42. That chain is what “safe publication” means.');
       }
     } else if (mode === 'sb') {
       if (!vol) {
@@ -130,30 +130,30 @@ IA.widget('java-memory-model', (root, ctx) => {
         P(() => write(1, 0, 'y', 1), 'T2: <code>y = 1</code> waits in T2’s store buffer.');
         P(() => { read(0, 1, 'y', 'r1'); }, 'T1: <code>r1 = y</code>. Its own buffer has no <code>y</code>, so it reads memory: <b>0</b>. The load ran <i>before</i> T1’s own earlier store became visible.');
         P(() => { read(1, 1, 'x', 'r2'); S.outcome = 'r1=0, r2=0'; S.bad = 'r2'; }, 'T2: <code>r2 = x</code> reads memory: <b>0</b>.');
-        P(() => { drainAll(0); S.flows.push({ k: 'drain', t: 1, v: 'y' }); while (S.sb[1].length) { const [v, val] = S.sb[1].shift(); S.mem[v] = val; } S.banner = '(0, 0): impossible in any interleaving, yet allowed'; S.bannerC = 'var(--err)'; }, 'Both buffers drain. Result <b>r1 = 0, r2 = 0</b>. No interleaving of the four lines gives that, but store→load reordering does, <b>even on x86</b>. Dekker’s and Peterson’s mutual-exclusion algorithms break exactly here.');
+        P(() => { drainAll(0); S.flows.push({ k: 'drain', t: 1, v: 'y' }); while (S.sb[1].length) { const [v, val] = S.sb[1].shift(); S.mem[v] = val; } S.banner = '(0, 0): impossible in any interleaving, yet allowed'; S.bannerC = 'var(--err)'; }, 'Both buffers drain. Result: <b>r1 = 0, r2 = 0</b>. No ordering of the four lines gives that. But a load passing an earlier store does, <b>even on x86</b>. Classic lock-free mutual-exclusion algorithms break right here.');
       } else {
-        P(() => { write(0, 0, 'x', 1); S.fence = ['StoreLoad fence', null]; }, 'T1: volatile <code>x = 1</code>. On x86, HotSpot follows a volatile store with a full fence (typically <code>lock addl</code>).');
-        P(() => { drainAll(0); S.fence = [null, null]; }, 'The fence drains T1’s buffer before any later load can run: <code>x = 1</code> is now visible.');
+        P(() => { write(0, 0, 'x', 1); S.fence = ['StoreLoad fence', null]; }, 'T1: volatile <code>x = 1</code>. On x86, HotSpot puts a full fence after a volatile store (often <code>lock addl</code>).');
+        P(() => { drainAll(0); S.fence = [null, null]; }, 'The fence empties T1’s buffer before any later load runs. <code>x = 1</code> is now visible.');
         P(() => { write(1, 0, 'y', 1); S.fence = [null, 'StoreLoad fence']; }, 'T2: volatile <code>y = 1</code>, then its fence.');
         P(() => { drainAll(1); S.fence = [null, null]; }, 'T2’s buffer drains: <code>y = 1</code> visible.');
         P(() => { read(0, 1, 'y', 'r1'); S.hb = [[0, 1]]; }, 'T1 reads <code>y</code>: 1. (This run’s interleaving lets both see 1.)');
-        P(() => { read(1, 1, 'x', 'r2'); S.outcome = 'r1=1, r2=1'; S.banner = '(0, 0) can no longer happen'; S.bannerC = 'var(--ok)'; }, 'All volatile accesses fall into <b>one total order</b> consistent with each thread’s program order. Whichever store is first in that order, the other thread’s later load sees it, so at least one of r1, r2 is 1.');
+        P(() => { read(1, 1, 'x', 'r2'); S.outcome = 'r1=1, r2=1'; S.banner = '(0, 0) can no longer happen'; S.bannerC = 'var(--ok)'; }, 'All volatile accesses fall into <b>one total order</b> that respects each thread’s order. Whichever store comes first, the other thread’s later load sees it. So at least one of r1, r2 is 1.');
       }
     } else if (mode === 'hoist') {
       S.regs[0].i = 0;
       if (!vol) {
         P(() => { S.pc[0] = 0; read(0, 0, 'stop', 'stop'); S.regs[0].i = '…'; }, 'T1 enters the loop and reads <code>stop</code>: false.');
-        P(() => { S.pc[0] = 1; S.regs[0].i = '10⁷'; S.banner = 'C2: if (!stop) while (true) i++;'; S.bannerC = 'var(--warn)'; S.flows = []; S.hotMem = null; }, 'The loop gets hot and C2 compiles it. Nothing in the body synchronizes, and <code>stop</code> is plain, so C2 may <b>hoist the read</b>: check once, then spin forever. Legal, because no happens-before edge requires a re-read.');
+        P(() => { S.pc[0] = 1; S.regs[0].i = '10⁷'; S.banner = 'C2: if (!stop) while (true) i++;'; S.bannerC = 'var(--warn)'; S.flows = []; S.hotMem = null; }, 'The loop gets hot and C2 compiles it. Nothing in it synchronizes, and <code>stop</code> is plain. So C2 may <b>move the read out</b>: check once, then spin forever. That’s legal, because no rule forces a re-read.');
         P(() => { S.pc[1] = 0; mark(1, 0); }, 'T2 sleeps for a second.');
         P(() => { write(1, 1, 'stop', 'true'); }, 'T2: <code>stop = true</code>.');
-        P(() => { drainAll(1); }, 'The write reaches memory. Caches are coherent: any core that <i>reads</i> <code>stop</code> now gets true.');
-        P(() => { S.pc[0] = 1; S.regs[0].i = '10⁹…'; S.flows = []; S.hotMem = null; S.outcome = 'never stops'; S.banner = 'T1 never reads stop again: hangs'; S.bannerC = 'var(--err)'; }, 'But T1 <b>never reads it again</b>. The problem isn’t a stale cache, it is a read the compiler removed. Adding a <code>println</code> to the loop often “fixes” it by accident, which is why this bug survives code review.');
+        P(() => { drainAll(1); }, 'The write reaches memory. Caches stay in sync, so any core that <i>reads</i> <code>stop</code> now gets true.');
+        P(() => { S.pc[0] = 1; S.regs[0].i = '10⁹…'; S.flows = []; S.hotMem = null; S.outcome = 'never stops'; S.banner = 'T1 never reads stop again: hangs'; S.bannerC = 'var(--err)'; }, 'But T1 <b>never reads it again</b>. The problem isn’t a stale cache. The compiler removed the read. A <code>println</code> in the loop often “fixes” it by accident. That’s why this bug survives code review.');
       } else {
         P(() => { S.pc[0] = 0; read(0, 0, 'stop', 'stop'); S.regs[0].i = '…'; }, 'T1 reads volatile <code>stop</code>: false.');
-        P(() => { S.pc[0] = 1; S.regs[0].i = '10⁷'; S.flows = []; S.hotMem = null; S.banner = 'C2 must re-read stop each iteration'; S.bannerC = 'var(--ok)'; }, 'C2 compiles the loop but may not hoist a volatile read: each iteration reads <code>stop</code> again.');
+        P(() => { S.pc[0] = 1; S.regs[0].i = '10⁷'; S.flows = []; S.hotMem = null; S.banner = 'C2 must re-read stop each iteration'; S.bannerC = 'var(--ok)'; }, 'C2 compiles the loop but can’t move a volatile read out. Each loop run reads <code>stop</code> again.');
         P(() => { S.pc[1] = 1; mark(1, 0); write(1, 1, 'stop', 'true'); }, 'T2: volatile <code>stop = true</code>.');
         P(() => { drainAll(1); }, 'It becomes visible.');
-        P(() => { read(0, 0, 'stop', 'stop'); S.hbR = [[1, 0]]; }, 'T1’s next read sees <b>true</b>. The volatile write happens-before this read.');
+        P(() => { read(0, 0, 'stop', 'stop'); S.hbR = [[1, 0]]; }, 'T1’s next read sees <b>true</b>. The volatile write is linked to this read.');
         P(() => { S.pc[0] = 2; mark(0, 0); mark(0, 1); S.flows = []; S.outcome = 'stops'; S.banner = 'loop exits'; S.bannerC = 'var(--ok)'; }, 'The loop exits. <code>AtomicBoolean</code> or checking <code>Thread.currentThread().isInterrupted()</code> work too.');
       }
     } else {
@@ -161,21 +161,21 @@ IA.widget('java-memory-model', (root, ctx) => {
       if (!vol) {
         P(() => { read(0, 0, 'inst', null); }, 'T1: first check, <code>inst == null</code>: true.');
         P(() => { S.pc[0] = 1; mark(0, 1); S.flows = []; S.hotMem = null; }, 'T1 takes the lock and checks again: still null.');
-        P(() => { S.pc[0] = 2; S.mem['obj.size'] = 0; S.hotMem = 'obj.size'; S.flows = []; }, '<code>new Helper()</code> step 1: <b>allocate</b>. The new object’s fields hold default values: <code>size = 0</code>.');
-        P(() => { write(0, 2, 'obj.size', 64); write(0, 2, 'inst', '@obj'); }, 'Step 2, the constructor’s <code>size = 64</code>, and step 3, <code>inst = @obj</code>. Both are plain stores in the buffer, and nothing orders them for other threads.');
+        P(() => { S.pc[0] = 2; S.mem['obj.size'] = 0; S.hotMem = 'obj.size'; S.flows = []; }, '<code>new Helper()</code> step 1: <b>allocate</b>. The new object’s fields hold defaults: <code>size = 0</code>.');
+        P(() => { write(0, 2, 'obj.size', 64); write(0, 2, 'inst', '@obj'); }, 'Step 2 is the constructor’s <code>size = 64</code>. Step 3 is <code>inst = @obj</code>. Both are plain stores in the buffer, and nothing orders them for other threads.');
         P(() => { drain(0, 'inst'); }, 'The reference store becomes visible <b>first</b>.');
-        P(() => { read(1, 0, 'inst', 'h'); }, 'T2: <code>h = inst</code> sees <code>@obj</code>, non-null. T2 never takes the lock, so it has no happens-before edge with T1.');
-        P(() => { read(1, 2, 'obj.size', 'r'); S.pc[1] = 2; mark(1, 1); S.bad = 'r'; S.outcome = 'r = 0'; S.banner = 'a half-constructed Helper'; S.bannerC = 'var(--err)'; }, 'T2 reads <code>h.size</code>: <b>0</b>. It is using an object whose constructor “hasn’t run” from its point of view. Toggle <b>volatile</b> to fix it, or make <code>size</code> <code>final</code> (final-field freeze).');
+        P(() => { read(1, 0, 'inst', 'h'); }, 'T2: <code>h = inst</code> sees <code>@obj</code>, non-null. T2 never takes the lock, so nothing links it to T1.');
+        P(() => { read(1, 2, 'obj.size', 'r'); S.pc[1] = 2; mark(1, 1); S.bad = 'r'; S.outcome = 'r = 0'; S.banner = 'a half-constructed Helper'; S.bannerC = 'var(--err)'; }, 'T2 reads <code>h.size</code>: <b>0</b>. To T2, the constructor “hasn’t run”. Toggle <b>volatile</b> to fix it, or make <code>size</code> <code>final</code>.');
         P(() => { drainAll(0); S.pc[0] = 3; mark(0, 3); }, 'T1’s constructor write lands later, and T1 unlocks. Too late for T2.');
       } else {
         P(() => { read(0, 0, 'inst', null); }, 'T1: first check (a volatile read): null.');
         P(() => { S.pc[0] = 1; mark(0, 1); S.flows = []; S.hotMem = null; }, 'T1 locks and checks again: still null.');
         P(() => { S.pc[0] = 2; S.mem['obj.size'] = 0; S.hotMem = 'obj.size'; S.flows = []; }, 'Allocate: <code>size = 0</code> (default).');
         P(() => { write(0, 2, 'obj.size', 64); }, 'The constructor writes <code>size = 64</code> (buffered).');
-        P(() => { write(0, 2, 'inst', '@obj'); S.fence = ['release', null]; }, '<code>inst = @obj</code> is a <b>volatile write (release)</b>: the constructor’s write must become visible no later than it.');
+        P(() => { write(0, 2, 'inst', '@obj'); S.fence = ['release', null]; }, '<code>inst = @obj</code> is a <b>volatile write</b>. The constructor’s write must become visible no later than it.');
         P(() => { drainAll(0); S.fence = [null, null]; }, 'In order: <code>size</code>, then <code>inst</code>.');
-        P(() => { read(1, 0, 'inst', 'h'); S.hb = [[2, 0]]; }, 'T2’s volatile read sees <code>@obj</code>: a happens-before edge from T1’s write.');
-        P(() => { read(1, 2, 'obj.size', 'r'); S.pc[1] = 2; mark(1, 1); S.outcome = 'r = 64'; S.banner = 'fully constructed, guaranteed'; S.bannerC = 'var(--ok)'; }, 'So T2 sees <b>size = 64</b>. Even simpler: the holder idiom (<code>static final</code> in a nested class) gets the same guarantee from class initialisation, with no volatile read at all.');
+        P(() => { read(1, 0, 'inst', 'h'); S.hb = [[2, 0]]; }, 'T2’s volatile read sees <code>@obj</code>. That links it to T1’s write.');
+        P(() => { read(1, 2, 'obj.size', 'r'); S.pc[1] = 2; mark(1, 1); S.outcome = 'r = 64'; S.banner = 'fully constructed, guaranteed'; S.bannerC = 'var(--ok)'; }, 'So T2 sees <b>size = 64</b>. Even simpler: the holder idiom (<code>static final</code> in a nested class) gets the same promise from class setup, with no volatile read.');
       }
     }
     return st;
@@ -185,7 +185,7 @@ IA.widget('java-memory-model', (root, ctx) => {
     const tst = TESTS[mode]; const mem = {}; tst.vars.forEach((v) => { mem[v] = v === 'ready' || v === 'stop' ? 'false' : 0; });
     S = { pc: [null, null], done: [new Set(), new Set()], regs: [{}, {}], sb: [[], []], mem, flows: [], hb: [], fence: [null, null], hbR: [], hotMem: null, bad: null, outcome: null, banner: null };
     steps = plan(); render(); statLine(); bStep.disabled = false;
-    say({ mp: 'T1 publishes <code>data</code> and then raises a flag. T2 checks the flag and reads the data.', sb: 'Each thread writes its own variable, then reads the other’s. Can both read 0?', hoist: 'T1 loops until T2 sets <code>stop</code>. Does it ever stop?', dcl: 'Lazy initialisation with double-checked locking. T2 arrives while T1 is constructing.' }[mode] + ` Fields: <b>${vol ? 'volatile' : 'plain'}</b>. Press Play or Step.`);
+    say({ mp: 'T1 publishes <code>data</code> and then raises a flag. T2 checks the flag and reads the data.', sb: 'Each thread writes its own variable, then reads the other’s. Can both read 0?', hoist: 'T1 loops until T2 sets <code>stop</code>. Does it ever stop?', dcl: 'Lazy setup with double-checked locking. T2 arrives while T1 is constructing.' }[mode] + ` Fields: <b>${vol ? 'volatile' : 'plain'}</b>. Press Play or Step.`);
   }
   function step() {
     if (k >= steps.length) return false; const s = steps[k++]; s.run(); render(); statLine(); say(typeof s.t === 'function' ? s.t() : s.t);

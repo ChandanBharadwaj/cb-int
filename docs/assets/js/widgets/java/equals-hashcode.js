@@ -39,7 +39,7 @@ IA.widget('equals-hashcode', (root, ctx) => {
       'System.out.println(map.get(new Key("a")));'],
     steps: [
       { l: 8, e: [], s: 'An empty HashMap. The default capacity is 16 buckets. A key’s bucket is <code>(h ^ h &gt;&gt;&gt; 16) &amp; 15</code>, where <code>h = key.hashCode()</code>.' },
-      { l: 9, e: [[12, 'Key a', 'id#…5e2d', 1, 'hot']], probe: { t: 'put: hashCode() = identity hash (e.g. 0x5e2de821) → bucket 12', b: 12 }, s: 'Without an override, <code>hashCode()</code> comes from <code>Object</code>: an <b>identity hash</b>, different for every object. This key lands in bucket 12 on this run.' },
+      { l: 9, e: [[12, 'Key a', 'id#…5e2d', 1, 'hot']], probe: { t: 'put: hashCode() = identity hash (e.g. 0x5e2de821) → bucket 12', b: 12 }, s: 'Without an override, <code>hashCode()</code> comes from <code>Object</code>. It is different for every object (an <b>identity hash</b>). This key lands in bucket 12 on this run.' },
       { l: 10, e: [[12, 'Key a', 'id#…5e2d', 1]], probe: { t: 'get: new Key("a").hashCode() = 0x1d44bcf2 → bucket 6', b: 6, res: 'bad' }, s: 'The lookup key is a <i>new</i> object with its own identity hash, so HashMap looks in another bucket. It finds nothing and never calls <code>equals</code>.' },
       { l: 10, e: [[12, 'Key a', 'id#…5e2d', 1]], probe: { t: 'result: null, although the keys are equal', b: 6, res: 'bad' }, out: 'null', s: 'Prints <b>null</b>. Even if both hashes landed in the same bucket, HashMap compares the stored hash before calling <code>equals</code>. <b>Equal objects must have equal hash codes.</b>' }
     ] },
@@ -58,7 +58,7 @@ IA.widget('equals-hashcode', (root, ctx) => {
       'System.out.println(map.size());'],
     steps: [
       { l: 7, e: [[1, 'Key a', 'h 97', 1, 'hot']], probe: { t: 'put: "a".hashCode() = 97 → bucket 97 & 15 = 1', b: 1 }, s: 'Correct equals and hashCode. <code>"a".hashCode()</code> is 97, so the entry goes to bucket 1. The map’s node also <b>stores the hash</b> (97).' },
-      { l: 8, e: [[1, 'Key b', 'h 97', 1, 'chg']], s: 'The key object is mutated <i>while it is inside the map</i>. The entry doesn’t move: it is still in bucket 1 with stored hash 97, but its key now says “b”.' },
+      { l: 8, e: [[1, 'Key b', 'h 97', 1, 'chg']], s: 'The key changes <i>while it is inside the map</i>. The entry doesn’t move. It stays in bucket 1 with stored hash 97, but its key now says “b”.' },
       { l: 9, e: [[1, 'Key b', 'h 97', 1]], probe: { t: 'get(k): "b".hashCode() = 98 → bucket 2: empty', b: 2, res: 'bad' }, out: 'null', s: 'Looking up with the same object fails: its hash is now 98, so HashMap checks bucket 2. Prints <b>null</b>.' },
       { l: 10, e: [[1, 'Key b', 'h 97', 1]], probe: { t: 'get(Key a): hash 97 → bucket 1 → stored hash ✓ → equals("a" vs "b") ✗', b: 1, res: 'bad', at: 0 }, out: 'null', s: 'The original value leads to the right bucket and the hash matches, but <code>equals</code> compares “a” with the mutated “b”. Prints <b>null</b>.' },
       { l: 11, e: [[1, 'Key b', 'h 97', 1, 'bad']], out: '1', s: 'Prints <b>1</b>. The entry is still there but no lookup can reach it. Repeat this in a cache and you have a memory leak. Keys must be immutable, at least in the fields that equals and hashCode use.' }
@@ -73,7 +73,7 @@ IA.widget('equals-hashcode', (root, ctx) => {
       { l: 1, e: [[0, '"Aa"', 'h 2112', 1, 'hot']], probe: { t: 'put: 65·31 + 97 = 2112 → bucket 2112 & 15 = 0', b: 0 }, s: '<code>String.hashCode</code> is specified as <code>s[0]·31^(n-1) + … + s[n-1]</code>. For “Aa” that is 2112, bucket 0.' },
       { l: 2, e: [[0, '"Aa"', 'h 2112', 1], [0, '"BB"', 'h 2112', 2, 'hot']], probe: { t: 'put: 66·31 + 66 = 2112 → bucket 0: hash ✓, equals ✗ → chain', b: 0, at: 0, res: 'bad' }, s: 'Different string, <b>same hash</b>. HashMap finds a node with the same hash, calls <code>equals</code>, gets false, and appends a second node to the bucket.' },
       { l: 3, e: [[0, '"Aa"', 'h 2112', 1], [0, '"BB"', 'h 2112', 2]], out: '2112 2112', s: 'Unequal objects <i>may</i> share a hash code. The contract only works in one direction.' },
-      { l: 4, e: [[0, '"Aa"', 'h 2112', 1], [0, '"BB"', 'h 2112', 2, 'ok']], probe: { t: 'get("BB"): bucket 0 → node 1 equals ✗ → node 2 equals ✓', b: 0, at: 1, res: 'ok' }, out: '2', s: 'Lookup walks the chain and uses <code>equals</code> to pick the right node. Prints <b>2</b>. Since Java 8 a bucket with 8+ nodes becomes a red-black tree (once the table has 64+ buckets), so heavy collisions cost O(log n) instead of O(n).' }
+      { l: 4, e: [[0, '"Aa"', 'h 2112', 1], [0, '"BB"', 'h 2112', 2, 'ok']], probe: { t: 'get("BB"): bucket 0 → node 1 equals ✗ → node 2 equals ✓', b: 0, at: 1, res: 'ok' }, out: '2', s: 'Lookup walks the chain and uses <code>equals</code> to pick the right node. Prints <b>2</b>. Since Java 8 a bucket with 8+ nodes turns into a tree (once there are 64+ buckets), so heavy collisions cost O(log n) instead of O(n).' }
     ] },
     record: { label: 'Record key (correct)', code: [
       'record Key(String name) {}   // Java 16+',

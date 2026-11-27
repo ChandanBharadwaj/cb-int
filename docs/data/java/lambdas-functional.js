@@ -2,11 +2,11 @@ IA.register({
   track: 'java',
   slug: 'lambdas-functional',
   title: 'Lambdas & functional interfaces',
-  tagline: 'A lambda is an object implementing a one-method interface. javac moves its body into a private method, and an <b>invokedynamic</b> call site builds the object at runtime. What a lambda captures is a <b>copy of a value</b>, which explains effectively-final, <code>this</code>, method-reference timing and the listener you can never unregister.',
+  tagline: 'A lambda is an object that implements a one-method interface. The compiler moves its body into a private method. At runtime, an <b>invokedynamic</b> instruction builds the object. A lambda holds a <b>copy of each value</b> it uses. That copy explains most lambda surprises.',
   tldr: {
-    problem: 'Listeners that never unregister, counters that lose updates in parallel code, NPEs thrown where a method reference is <i>created</i>, overloads that pick <code>Callable</code> instead of <code>Runnable</code>, and Comparators that overflow.',
-    model: 'Lambda = <b>functional interface</b> instance. Body → private synthetic method; the expression → <code>invokedynamic</code>, linked once by <code>LambdaMetafactory</code>. Captured locals are <b>copied</b> into the instance, so they must be effectively final. <code>this</code> means the enclosing object. A bound method reference evaluates its receiver <b>immediately</b>.',
-    hook: '“Why must captured variables be effectively final?” Because the lambda stores a <i>copy</i> of the value. If the variable could change afterwards, the copy and the variable would silently disagree, and with threads it would be a data race.',
+    problem: 'A listener never unregisters. A counter loses updates in parallel code. An NPE fires where a method reference is <i>created</i>. A call picks <code>Callable</code> instead of <code>Runnable</code>. A Comparator overflows.',
+    model: 'A lambda is an instance of a <b>functional interface</b>. Its body becomes a private method. The expression becomes <code>invokedynamic</code>, set up once by <code>LambdaMetafactory</code>. Local variables it uses are <b>copied</b> in, so they must never change. <code>this</code> means the outer object. <code>obj::method</code> looks up <code>obj</code> <b>right away</b>.',
+    hook: '“Why must captured variables be effectively final?” The lambda stores a <i>copy</i> of the value. If the variable changed later, the copy and the variable would disagree. With threads, that is a data race.',
     facts: [
       { v: 'Java 8', l: 'introduced lambdas, method references and <code>java.util.function</code>. Lambdas use <code>invokedynamic</code>, which arrived in Java 7 (JSR 292)' },
       { v: 'Java 15', l: 'made lambda classes <b>hidden classes</b> (JEP 371): not discoverable by name, and unloadable independently of other classes' },
@@ -14,8 +14,8 @@ IA.register({
     ]
   },
   intro: {
-    what: 'A <b>lambda</b> is a short way to write a piece of behaviour that you can pass around like a value: <code>x -&gt; x * 2</code>. Java needs a type for it, so a lambda always implements a <b>functional interface</b>, an interface with exactly one abstract method, such as <code>Runnable</code>, <code>Comparator</code> or <code>Function</code>. A <b>method reference</b> like <code>String::length</code> is an even shorter lambda that just calls an existing method.',
-    analogy: { icon: '📝', title: 'Instructions on an index card', text: 'Instead of writing a whole new class (a full employee handbook) just to say “sort by date”, you hand someone an index card with one instruction. The card can mention values from your desk, but it holds a <i>photocopy</i> of them made when you wrote the card. That is why you aren’t allowed to keep changing those values afterwards.' },
+    what: 'A <b>lambda</b> is a short piece of behaviour you pass around like a value: <code>x -&gt; x * 2</code>. Java needs a type for it. So a lambda always implements an interface with one abstract method (a <b>functional interface</b>). <code>Runnable</code>, <code>Comparator</code> and <code>Function</code> are examples. <code>String::length</code> is shorter still: a lambda that calls one existing method (a <b>method reference</b>).',
+    analogy: { icon: '📝', title: 'Instructions on an index card', text: 'You don’t write a whole handbook (a new class) to say “sort by date”. You hand over an index card with one instruction. The card can mention values from your desk. But it holds a <i>photocopy</i> made when you wrote it. So you may not change those values afterwards.' },
     steps: [
       { t: 'Functional interface = one job', d: 'Any interface with one abstract method can be the target of a lambda.', code: '@FunctionalInterface\ninterface PriceRule {\n  BigDecimal apply(BigDecimal price);\n}\nPriceRule tenOff = p -> p.multiply(new BigDecimal("0.90"));' },
       { t: 'Use the built-ins first', d: '<code>Supplier&lt;T&gt;</code> (no input), <code>Consumer&lt;T&gt;</code> (no output), <code>Function&lt;T,R&gt;</code>, <code>Predicate&lt;T&gt;</code> (boolean), <code>UnaryOperator&lt;T&gt;</code>, <code>BinaryOperator&lt;T&gt;</code>, plus <code>Int…</code>/<code>Long…</code> versions that avoid boxing.' },
@@ -25,10 +25,10 @@ IA.register({
     terms: [
       ['functional interface', 'An interface with exactly one abstract method. <code>@FunctionalInterface</code> makes the compiler check it.'],
       ['lambda expression', '<code>(params) -&gt; body</code>: an instance of a functional interface.'],
-      ['capture', 'Using a variable from the enclosing scope inside the lambda. Its value is copied into the lambda object.'],
+      ['capture', 'Using an outside variable inside the lambda. Its value is copied into the lambda object.'],
       ['effectively final', 'A local variable that is never reassigned, even without the <code>final</code> keyword.'],
       ['method reference', '<code>Type::method</code> or <code>expr::method</code>: a lambda that calls one existing method.'],
-      ['invokedynamic', 'A bytecode instruction whose target is chosen at runtime by a bootstrap method. Lambdas, string concatenation and pattern switches use it.']
+      ['invokedynamic', 'A bytecode instruction that picks its target at runtime, on first use. Lambdas, string joining with <code>+</code> and pattern switches use it.']
     ]
   },
   visual: {
@@ -38,20 +38,20 @@ IA.register({
   gotchas: [
     { trap: 'You can’t unregister a method reference', code: `bus.register(this::onEvent);
 // later
-bus.unregister(this::onEvent);   // a NEW object: not equal, nothing removed`, why: 'Each evaluation of a capturing lambda or bound method reference creates a new instance, and lambda classes don’t override <code>equals</code>. The listener stays registered, keeps <code>this</code> reachable, and handles events twice after re-registration.', fix: 'Store the reference once in a field (<code>private final Consumer&lt;Event&gt; handler = this::onEvent;</code>) and use that same object for both calls, or have <code>register</code> return a subscription handle that you close.' },
+bus.unregister(this::onEvent);   // a NEW object: not equal, nothing removed`, why: 'Each time <code>this::onEvent</code> runs, you get a new object. Lambdas don’t override <code>equals</code>. So the listener stays registered and keeps <code>this</code> alive. After re-registering, events are handled twice.', fix: 'Store the reference once in a field (<code>private final Consumer&lt;Event&gt; handler = this::onEvent;</code>) and use that same object for both calls, or have <code>register</code> return a subscription handle that you close.' },
     { trap: 'Mutating captured state through an array or holder', code: `int[] total = {0};
-orders.parallelStream().forEach(o -> total[0] += o.qty());   // lost updates`, why: 'Only the array <i>reference</i> has to be effectively final. Its contents can change, and from several threads that is an unsynchronised read-modify-write.', fix: 'Express it as a reduction: <code>orders.stream().mapToInt(Order::qty).sum()</code>. If you really need shared accumulation, use a <code>LongAdder</code>.' },
+orders.parallelStream().forEach(o -> total[0] += o.qty());   // lost updates`, why: 'Only the array <i>reference</i> must stay fixed. Its contents can change. From several threads, the updates race and some are lost.', fix: 'Express it as a reduction: <code>orders.stream().mapToInt(Order::qty).sum()</code>. If you really need shared accumulation, use a <code>LongAdder</code>.' },
     { trap: 'A bound method reference evaluates its receiver early', code: `Supplier<String> s = config.current()::name;   // current() runs NOW, once
 // later config changes, but s still holds the old object`, why: 'For <code>expr::method</code>, <code>expr</code> is evaluated when the reference is created, and null throws an NPE immediately. A lambda <code>() -&gt; config.current().name()</code> evaluates on every call.', fix: 'Use a lambda when the receiver must be looked up at call time. Use the bound reference when you deliberately want to capture the current object.' },
     { trap: '<code>this</code> in a lambda is the enclosing object', code: `class Cache {
   void warm() {
     scheduler.scheduleAtFixedRate(() -> refresh(), 0, 1, MINUTES);   // captures this
   }
-}`, why: 'Unlike an anonymous class, a lambda has no <code>this</code> of its own. Calling an instance method captures the enclosing instance, so a long-lived scheduler, executor or static registry keeps the whole object alive.', fix: 'Cancel what you schedule (keep the <code>ScheduledFuture</code>), and make lambdas held by long-lived objects capture only the data they need.' },
+}`, why: 'A lambda has no <code>this</code> of its own, unlike an anonymous class. Calling an instance method captures the outer object. A long-lived scheduler then keeps that whole object alive.', fix: 'Cancel what you schedule (keep the <code>ScheduledFuture</code>), and make lambdas held by long-lived objects capture only the data they need.' },
     { trap: 'Boxing through generic functional interfaces', code: `Function<Integer, Integer> sq = x -> x * x;   // unbox, multiply, box: per call
-IntUnaryOperator sqFast = x -> x * x;          // primitive in, primitive out`, why: 'Generics can’t hold primitives, so <code>Function&lt;Integer, Integer&gt;</code> boxes every value. In hot paths and large streams that means allocation and GC pressure.', fix: 'Use the primitive specialisations (<code>IntFunction</code>, <code>ToLongFunction</code>, <code>IntPredicate</code>, <code>IntStream</code>…) for numeric work.' },
+IntUnaryOperator sqFast = x -> x * x;          // primitive in, primitive out`, why: 'Generics can’t hold primitives, so <code>Function&lt;Integer, Integer&gt;</code> wraps every value in an object. In hot code that means extra garbage.', fix: 'Use the primitive specialisations (<code>IntFunction</code>, <code>ToLongFunction</code>, <code>IntPredicate</code>, <code>IntStream</code>…) for numeric work.' },
     { trap: 'Lambdas pick an unexpected overload', code: `executor.submit(() -> { throw new IOException(); });   // picks Callable: compiles
-executor.submit(() -> doWork());                        // Callable if doWork() returns a value`, why: 'A lambda that can return a value (or always throws) is compatible with <code>Callable</code>, and overload resolution prefers the non-void function type. The exception then hides inside the returned Future.', fix: 'Be explicit when it matters: cast <code>(Runnable) () -&gt; …</code>, or give overloads different names (Spring’s <code>execute</code> vs <code>submit</code>).' },
+executor.submit(() -> doWork());                        // Callable if doWork() returns a value`, why: 'A lambda that returns a value (or always throws) fits <code>Callable</code>. The compiler prefers that over the void version. The exception then hides inside the returned Future.', fix: 'Be explicit when it matters: cast <code>(Runnable) () -&gt; …</code>, or give overloads different names (Spring’s <code>execute</code> vs <code>submit</code>).' },
     { trap: 'Subtraction Comparators overflow', code: `list.sort((a, b) -> a.priority() - b.priority());    // wrong for large or negative ints`, why: '<code>Integer.MIN_VALUE - 1</code> overflows to a large positive number. The order becomes inconsistent, and TimSort may throw “Comparison method violates its general contract!”.', fix: '<code>Comparator.comparingInt(Task::priority)</code> or <code>Integer.compare(a, b)</code>.' }
   ],
   scenarios: [
@@ -61,7 +61,7 @@ executor.submit(() -> doWork());                        // Callable if doWork() 
 void onDisconnect() { hub.removeListener(this::deliver); }   // removes nothing
 
 // heap dump: hub.listeners → 37 × Session$$Lambda → Session (each holding buffers)`,
-      cause: 'Each <code>this::deliver</code> evaluation created a new lambda object. <code>removeListener</code> compared with <code>equals</code> (identity) and found no match, so every connect added a listener that was never removed, and each one kept its old Session reachable.',
+      cause: 'Each <code>this::deliver</code> made a new lambda object. <code>removeListener</code> found no equal one. So every connect added a listener that was never removed. Each one kept its old Session alive.',
       fix: 'Create the listener once and reuse that same instance, or use an API that returns a handle.',
       fixCode: `private final Consumer<Message> listener = this::deliver;   // one instance
 

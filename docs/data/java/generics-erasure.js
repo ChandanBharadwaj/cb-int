@@ -2,20 +2,20 @@ IA.register({
   track: 'java',
   slug: 'generics-erasure',
   title: 'Generics & type erasure',
-  tagline: 'Java generics are a <b>compile-time</b> type system laid over a runtime that only sees <code>Object</code>. javac checks your types, erases them, inserts casts and writes bridge methods. Almost every generics surprise, from <code>ClassCastException</code> on an innocent line to “name clash”, follows from that.',
+  tagline: 'Java generics exist only at <b>compile time</b>. At runtime the JVM sees plain <code>Object</code>. The compiler checks your types, then deletes them, adds casts and writes helper methods. Almost every generics surprise follows from that, from a stray <code>ClassCastException</code> to “name clash”.',
   tldr: {
-    problem: 'A <code>ClassCastException</code> appears in code that does no casting. A JSON client returns a list of <code>LinkedHashMap</code> where you asked for orders. An API won’t accept a <code>List&lt;Integer&gt;</code> where a <code>List&lt;Number&gt;</code> is expected. All three come from erasure and invariance.',
-    model: 'javac proves type safety, then <b>erases</b> type parameters to their bound (usually Object), <b>inserts casts</b> where generic values are used, and adds <b>bridge methods</b> so overriding still works. If you bypass the checks (raw types, unchecked casts), the error surfaces later at one of those inserted casts.',
+    problem: 'A <code>ClassCastException</code> appears in code that does no casting. A JSON client returns a list of <code>LinkedHashMap</code> where you asked for orders. An API won’t accept a <code>List&lt;Integer&gt;</code> where a <code>List&lt;Number&gt;</code> is expected. All three come from erased types and strict type matching.',
+    model: 'The compiler checks the types. Then it replaces them with their bound, usually Object (<b>erasure</b>). It <b>adds casts</b> where generic values are used. It adds <b>bridge methods</b> so overriding still works. Skip the checks (raw types, unchecked casts) and the error shows up later, at one of those casts.',
     hook: '“What is PECS?” <b>Producer extends, consumer super.</b> Read from <code>? extends T</code>, write into <code>? super T</code>. That is why <code>Collections.copy</code> is declared as <code>(List&lt;? super T&gt; dest, List&lt;? extends T&gt; src)</code>.',
     facts: [
-      { v: 'Java 5', l: 'introduced generics (2004), with erasure chosen so that generic code could interoperate with existing non-generic class files and libraries' },
+      { v: 'Java 5', l: 'introduced generics (2004). Erasure let new generic code work with old non-generic libraries' },
       { v: '1 class', l: '<code>ArrayList&lt;String&gt;</code> and <code>ArrayList&lt;Integer&gt;</code> share one <code>Class</code> object. Generic <i>signatures</i> stay in the class file and are readable by reflection' },
-      { v: '@SafeVarargs', l: '(Java 7; allowed on private instance methods since Java 9) promises that a generic varargs method doesn’t misuse its array, which silences the heap-pollution warning' }
+      { v: '@SafeVarargs', l: '(Java 7; on private methods since Java 9) promises a generic varargs method doesn’t misuse its array. It silences the warning' }
     ]
   },
   intro: {
-    what: '<b>Generics</b> let you write one class or method that works with many types while the compiler still checks them: <code>List&lt;String&gt;</code> accepts only Strings, and <code>get</code> returns a String with no cast. Java implements this with <b>type erasure</b>: the type arguments are checked by the compiler and then removed, so at runtime every list is just a list of objects.',
-    analogy: { icon: '🏷️', title: 'Labels on moving boxes', text: 'The packer (the compiler) checks that only kitchen items go into the box labelled “Kitchen”. The truck (the JVM) can’t read labels and just carries boxes. If someone sneaks a shoe in through a side door (a raw type), nobody notices until the person unpacking, who trusts the label, reaches in for a plate and pulls out the shoe.' },
+    what: '<b>Generics</b> let one class or method work with many types, still checked by the compiler. <code>List&lt;String&gt;</code> accepts only Strings, and <code>get</code> returns a String with no cast. The compiler checks the type arguments, then removes them (<b>type erasure</b>). At runtime every list is a list of objects.',
+    analogy: { icon: '🏷️', title: 'Labels on moving boxes', text: 'The packer (the compiler) checks that only kitchen items go into the “Kitchen” box. The truck (the JVM) can’t read labels; it carries boxes. Someone sneaks a shoe in by a side door (a raw type). Nobody notices until the unpacker reaches for a plate and pulls out the shoe.' },
     steps: [
       { t: 'Type parameters', d: 'A generic class declares a placeholder that callers fill in.', code: 'class Box<T> {\n  private T value;\n  T get() { return value; }\n  void set(T v) { value = v; }\n}\nBox<String> b = new Box<>();   // T = String' },
       { t: 'The compiler checks, then erases', d: 'After checking, <code>T</code> becomes <code>Object</code> (or its bound) in the bytecode, and a cast is inserted at <code>String s = b.get()</code>.' },
@@ -25,11 +25,11 @@ IA.register({
     ],
     terms: [
       ['type parameter / argument', '<code>T</code> in <code>class Box&lt;T&gt;</code> / <code>String</code> in <code>Box&lt;String&gt;</code>.'],
-      ['erasure', 'Replacing type parameters with their bounds in the bytecode and inserting casts.'],
-      ['raw type', 'A generic type used without type arguments, e.g. <code>List</code>. Exists for pre-Java-5 compatibility.'],
+      ['erasure', 'Replacing type parameters with their bounds in the bytecode, and adding casts.'],
+      ['raw type', 'A generic type used without type arguments, like <code>List</code>. It exists for old pre-Java-5 code.'],
       ['wildcard', '<code>?</code>, <code>? extends T</code> (upper bound) or <code>? super T</code> (lower bound).'],
-      ['heap pollution', 'A variable of a parameterised type refers to an object that is not of that type.'],
-      ['bridge method', 'A synthetic method javac generates so that a generic override still overrides after erasure.']
+      ['heap pollution', 'A variable says <code>List&lt;String&gt;</code>, but the object holds something else.'],
+      ['bridge method', 'A hidden method the compiler adds so a generic override still overrides after erasure.']
     ]
   },
   visual: {
@@ -40,24 +40,24 @@ IA.register({
     { trap: 'Raw types silently disable checking', code: `List<String> names = loadNames();
 List raw = names;           // warning: raw type
 raw.add(42);                // warning: unchecked — but compiles and runs
-String first = names.get(0);   // ClassCastException, far from the bug`, why: 'A raw type turns off generic checks for every member of that type. Using a raw type even erases unrelated generic members: <code>rawList.stream()</code> returns a raw <code>Stream</code>.', fix: 'Never use raw types except in class literals (<code>List.class</code>) and <code>instanceof</code>. Use <code>List&lt;?&gt;</code> for “a list of unknown type”. Compile with <code>-Xlint:all -Werror</code>.' },
+String first = names.get(0);   // ClassCastException, far from the bug`, why: 'A raw type turns off generic checks for all its methods. Even unrelated ones lose their types: <code>rawList.stream()</code> returns a raw <code>Stream</code>.', fix: 'Never use raw types except in class literals (<code>List.class</code>) and <code>instanceof</code>. Use <code>List&lt;?&gt;</code> for “a list of unknown type”. Compile with <code>-Xlint:all -Werror</code>.' },
     { trap: 'Unchecked casts that never check', code: `@SuppressWarnings("unchecked")
 <T> T attr(String key) { return (T) attrs.get(key); }   // no runtime check here
 
-Long id = attr("id");      // CCE here if the value is an Integer`, why: 'A cast to a type variable is erased to a cast to its bound (Object), so it can’t fail inside the method. The real check happens at the caller’s inserted cast, wherever that is.', fix: 'Pass a <code>Class&lt;T&gt;</code> and use <code>type.cast(value)</code>, which checks at runtime. Or return <code>Object</code> and make callers check with <code>instanceof</code> patterns.' },
+Long id = attr("id");      // CCE here if the value is an Integer`, why: 'A cast to <code>T</code> becomes a cast to Object, so it can’t fail inside the method. The real check is the cast added at the caller, wherever that is.', fix: 'Pass a <code>Class&lt;T&gt;</code> and use <code>type.cast(value)</code>, which checks at runtime. Or return <code>Object</code> and make callers check with <code>instanceof</code> patterns.' },
     { trap: '<code>List&lt;Integer&gt;</code> is not a <code>List&lt;Number&gt;</code>', code: `double sum(List<Number> xs) { … }
 sum(List.of(1, 2, 3));        // compile error: List<Integer> is not List<Number>
 
 double sum(List<? extends Number> xs) { … }   // accepts List<Integer>, List<Double>…`, why: 'Generics are <b>invariant</b>. If <code>List&lt;Integer&gt;</code> were a <code>List&lt;Number&gt;</code>, the method could add a Double to it.', fix: 'Use wildcards in <b>parameters</b> by PECS. Don’t use wildcards in return types; they push the complexity onto every caller.' },
     { trap: 'Arrays are covariant and checked at runtime', code: `Object[] objs = new String[1];
 objs[0] = 42;                  // ArrayStoreException at runtime
-List<Object> l = new ArrayList<String>();   // compile error: generics catch it`, why: 'Arrays know their element type at runtime (they are reified) and check every store. Generics are erased, so the same mistake has to be caught at compile time, which is why generic arrays such as <code>new T[]</code> and <code>new List&lt;String&gt;[10]</code> are illegal.', fix: 'Prefer <code>List&lt;T&gt;</code> to <code>T[]</code> in generic code. If you must have an array, take a <code>Class&lt;T&gt;</code> or an <code>IntFunction&lt;T[]&gt;</code> (like <code>toArray(String[]::new)</code>).' },
+List<Object> l = new ArrayList<String>();   // compile error: generics catch it`, why: 'Arrays know their element type at runtime and check every store. Generics are erased, so the compiler must catch the mistake. That is why <code>new T[]</code> and <code>new List&lt;String&gt;[10]</code> are illegal.', fix: 'Prefer <code>List&lt;T&gt;</code> to <code>T[]</code> in generic code. If you must have an array, take a <code>Class&lt;T&gt;</code> or an <code>IntFunction&lt;T[]&gt;</code> (like <code>toArray(String[]::new)</code>).' },
     { trap: 'Overloads that differ only in type arguments', code: `void save(List<Order> orders) { }
 void save(List<Refund> refunds) { }    // error: name clash, both erase to save(List)`, why: 'After erasure both methods have the same signature, and a class file can’t hold two methods with the same name and descriptor.', fix: 'Give them different names (<code>saveOrders</code>, <code>saveRefunds</code>) or wrap the argument types.' },
     { trap: 'Generic varargs pollute the heap', code: `@SafeVarargs                                // a lie in this case
 static <T> T[] toArray(T... xs) { return xs; }    // returns an Object[] when T is generic
 static <T> T[] pair(T a, T b) { return toArray(a, b); }
-String[] s = pair("a", "b");                       // ClassCastException: Object[] → String[]`, why: 'Varargs creates an array of the erased type. Exposing or writing into that array breaks the type system. <code>@SafeVarargs</code> is a promise you must keep: only read from the array.', fix: 'Annotate only methods that just read the varargs array (like <code>List.of</code> and <code>Arrays.asList</code>). Never return or store it.' },
+String[] s = pair("a", "b");                       // ClassCastException: Object[] → String[]`, why: 'Varargs builds an array of the erased type. Returning or writing into it breaks type safety. <code>@SafeVarargs</code> is a promise: only read from the array.', fix: 'Annotate only methods that just read the varargs array (like <code>List.of</code> and <code>Arrays.asList</code>). Never return or store it.' },
     { trap: 'Losing the type when deserialising', code: `List<Order> orders = mapper.readValue(json, List.class);   // List<LinkedHashMap>
 orders.get(0).total();                                      // ClassCastException`, why: '<code>List.class</code> carries no element type, because there is no <code>List&lt;Order&gt;.class</code>. Jackson falls back to maps.', fix: 'Capture the full type with a super-type token: <code>new TypeReference&lt;List&lt;Order&gt;&gt;() {}</code> (Jackson) or <code>ParameterizedTypeReference</code> (Spring).' }
   ],
@@ -68,7 +68,7 @@ orders.get(0).total();                                      // ClassCastExceptio
 for (Order o : orders) {        // CCE: the inserted cast fails here
   sync(o);
 }`,
-      cause: 'Erasure means <code>List.class</code> can’t express the element type, so the JSON array was mapped to a list of maps. Assigning that raw list to <code>List&lt;Order&gt;</code> polluted the heap, and the inserted cast in the loop was the first place that noticed.',
+      cause: '<code>List.class</code> can’t say what the elements are. So the JSON array became a list of maps. That list went into a <code>List&lt;Order&gt;</code> variable. The cast added in the loop was the first place to notice.',
       fix: 'Pass the full generic type with a super-type token. The anonymous subclass records <code>List&lt;Order&gt;</code> in its class file, where reflection can read it.',
       fixCode: `// Spring Boot 3.2+ RestClient
 List<Order> orders = restClient.get().uri(url).retrieve()

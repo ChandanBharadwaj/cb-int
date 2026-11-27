@@ -187,8 +187,8 @@ IA.widget('threads-executors', (root, ctx) => {
         if (!fixed && policy === 'caller') st.push({ when: () => S.callerRun === id, run: () => { S.done.push(S.callerRun); S.callerRun = null; S.hot = null; }, t: `Main finished ${id} itself. Only now can it submit the next task. The workers kept going meanwhile; the slowdown moved to the producer, which is the point.` });
       });
       if (fixed) {
-        st.push({ run: () => { S.hot = null; }, t: '8 tasks, 2 threads, <b>6 queued</b>. <code>LinkedBlockingQueue</code> without a capacity holds up to <code>Integer.MAX_VALUE</code> tasks, so <code>offer()</code> never fails and <b>nothing is ever rejected</b>. Overload turns into memory and waiting time instead of an error.' });
-        st.push({ run: () => { S.max = 4; }, t: 'Even <code>new ThreadPoolExecutor(2, <b>4</b>, …, new LinkedBlockingQueue&lt;&gt;())</code> looks exactly like this: the “grow to max” branch only runs when the queue refuses, so slots 3 and 4 stay empty forever. Bound the queue, or set core = max.' });
+        st.push({ run: () => { S.hot = null; }, t: '8 tasks, 2 threads, <b>6 queued</b>. <code>LinkedBlockingQueue</code> with no capacity holds up to <code>Integer.MAX_VALUE</code> tasks. <code>offer()</code> never fails, so <b>nothing is ever rejected</b>. Overload becomes memory use and waiting, not an error.' });
+        st.push({ run: () => { S.max = 4; }, t: 'Even <code>new ThreadPoolExecutor(2, <b>4</b>, …, new LinkedBlockingQueue&lt;&gt;())</code> looks exactly like this. The “grow to max” step only runs when the queue refuses. So slots 3 and 4 stay empty forever. Give the queue a limit, or set core = max.' });
         return st;
       }
       // drain: finish busy workers round-robin
@@ -199,7 +199,7 @@ IA.widget('threads-executors', (root, ctx) => {
         let n = S.workers.filter((w) => !w.dead).length; S.hotW = null;
         for (let i = S.workers.length - 1; i >= 0 && n > S.core; i--) if (!S.workers[i].dead) { S.workers[i].dead = true; S.workers[i].note = 'timed out (keepAlive)'; n--; }
         S.workers.forEach((w) => { if (!w.dead) w.note = 'idle: take()'; });
-      }, t: '30 s pass with no work. The threads above core get <code>null</code> from <code>poll(keepAliveTime)</code> and <b>exit</b>. The pool shrinks back to 2 core threads, which wait in <code>take()</code> forever (unless <code>allowCoreThreadTimeOut(true)</code>). The pool doesn’t label threads: whichever ones time out first while above core leave.' });
+      }, t: '30 s pass with no work. The threads above core get <code>null</code> from <code>poll(keepAliveTime)</code> and <b>exit</b>. The pool shrinks back to 2 core threads. They wait in <code>take()</code> forever (unless <code>allowCoreThreadTimeOut(true)</code>). Threads have no “core” label: whichever time out first leave.' });
       st.push({ run: () => { S.hotW = null; }, t: () => `Summary with ${polName}: ${S.done.length} completed, ${S.rejected.length} ${policy === 'caller' ? 'dropped' : 'rejected or dropped'}. The order was always <b>core → queue → extra threads → policy</b>.` + (policy === 'caller' ? ' Nothing was lost, but the caller did some of the work.' : '') });
       return st;
     }
@@ -219,7 +219,7 @@ IA.widget('threads-executors', (root, ctx) => {
     } else {
       st.push({ run: () => { S.state = 'STOP'; S.queue.forEach((id) => S.rejected.push({ id, k: 'returned' })); S.queue = []; S.workers.forEach((w) => { w.flag = 'interrupt!'; }); S.hotW = null; }, t: '<code>shutdownNow()</code>: runState <b>STOP</b>. The queue is drained and the 3 never-started tasks are <b>returned</b> as a <code>List&lt;Runnable&gt;</code> (log or persist them!). Every worker gets <code>interrupt()</code>.' });
       st.push({ run: () => { const w = S.workers[0]; S.done.push(w.task); w.task = null; w.dead = true; w.note = 'exited'; w.flag = null; S.hotW = 0; }, t: 'T1 was in <code>Thread.sleep</code>, which throws <code>InterruptedException</code> when interrupted. The task cleans up and returns; the worker sees STOP and exits.' });
-      st.push({ run: () => { S.hotW = 1; S.workers[1].flag = 'ignores it'; }, t: 'T2 is a CPU loop that never checks <code>Thread.interrupted()</code>. Interruption is only a flag, so <b>T2 keeps running</b>. There is no safe way to kill a thread (<code>Thread.stop</code> throws since Java 20).' });
+      st.push({ run: () => { S.hotW = 1; S.workers[1].flag = 'ignores it'; }, t: 'T2 is a CPU loop that never checks <code>Thread.interrupted()</code>. An interrupt is only a flag, so <b>T2 keeps running</b>. You can’t safely kill a thread (<code>Thread.stop</code> throws since Java 20).' });
       st.push({ run: () => { S.hotW = null; }, t: '<code>awaitTermination(10, SECONDS)</code> returns <b>false</b>: the pool is stuck in STOP until T2 ends. On Kubernetes, SIGKILL arrives at the end of the grace period. Make long tasks check the interrupt flag.' });
     }
     return st;

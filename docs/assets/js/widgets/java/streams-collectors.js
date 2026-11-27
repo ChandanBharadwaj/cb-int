@@ -32,12 +32,12 @@ IA.widget('streams-collectors', (root, ctx) => {
       '    .findFirst();',
       'System.out.println(r);'],
     steps: [
-      { l: 0, set: [], s: 'Building the pipeline runs <b>nothing</b>. <code>filter</code> and <code>map</code> are <b>lazy</b> intermediate operations: they only describe stages. Work starts when a terminal operation pulls elements.' },
-      { l: 1, at: [0, 0], set: [[0, 0, '✗ dropped', 'bad']], out: 'filter a', s: '<code>findFirst</code> pulls the first element. It goes through the stages <b>one element at a time</b>, vertically, not stage by stage. "a" fails the filter.' },
+      { l: 0, set: [], s: 'Building the pipeline runs <b>nothing</b>. <code>filter</code> and <code>map</code> are <b>lazy</b>: they only describe stages. Work starts when the last step asks for elements.' },
+      { l: 1, at: [0, 0], set: [[0, 0, '✗ dropped', 'bad']], out: 'filter a', s: '<code>findFirst</code> pulls the first element. Each element goes through every stage <b>one at a time</b>, not stage by stage. "a" fails the filter.' },
       { l: 1, at: [1, 0], set: [[1, 0, '✓ pass', 'ok']], out: 'filter bb', s: 'Next element: "bb" passes the filter…' },
       { l: 2, at: [1, 1], set: [[1, 1, '"BB"', 'ok']], out: 'map bb', s: '…and goes straight on to <code>map</code>, before "ccc" has even been looked at.' },
       { l: 3, at: [1, 2], set: [[1, 2, '✓ found', 'hot'], [2, 0, 'never seen', 'gc'], [3, 0, 'never seen', 'gc']], res: 'Optional[BB]', s: '<code>findFirst</code> is <b>short-circuiting</b>: it has its answer, so the pipeline stops. "ccc" and "dd" are never filtered or mapped. That is why streams can work on infinite sources (<code>Stream.iterate</code>) when paired with <code>limit</code>, <code>findFirst</code> or <code>anyMatch</code>.' },
-      { l: 4, at: null, set: [], out: 'Optional[BB]', s: 'Total work: 2 filter calls and 1 map call, instead of 4 + 3. The log shows the interleaving. Never rely on side effects in stream lambdas for correctness; use <code>peek</code>/logging only for debugging.' }
+      { l: 4, at: null, set: [], out: 'Optional[BB]', s: 'Total work: 2 filter calls and 1 map call, not 4 + 3. The log shows the order. Never rely on side effects in stream lambdas for correctness; use <code>peek</code>/logging only for debugging.' }
     ] },
     barrier: { label: 'sorted() is a barrier', cols: ['peek', 'sorted', 'map', 'findFirst'], rows: ['3', '1', '2'], code: [
       'Stream.of(3, 1, 2)',
@@ -47,7 +47,7 @@ IA.widget('streams-collectors', (root, ctx) => {
       '    .findFirst();'],
     steps: [
       { l: 1, at: [0, 0], set: [[0, 0, 'seen', 'ok']], out: 'peek 3', s: '3 is pulled and peeked…' },
-      { l: 2, at: [0, 1], set: [[0, 1, 'buffered', 'chg']], s: '…then <code>sorted</code> <b>holds on to it</b>. It can’t emit anything until it has seen every element, because the smallest might come last. That makes it a <b>stateful</b> operation.' },
+      { l: 2, at: [0, 1], set: [[0, 1, 'buffered', 'chg']], s: '…then <code>sorted</code> <b>holds on to it</b>. It can’t pass anything on until it has seen every element. The smallest might come last. So it must remember elements (it is <b>stateful</b>).' },
       { l: 1, at: [1, 0], set: [[1, 0, 'seen', 'ok'], [1, 1, 'buffered', 'chg']], out: 'peek 1', s: '1 is peeked and buffered.' },
       { l: 1, at: [2, 0], set: [[2, 0, 'seen', 'ok'], [2, 1, 'buffered', 'chg']], out: 'peek 2', s: '2 is peeked and buffered. The source is exhausted, so sorted now sorts its buffer: [1, 2, 3].' },
       { l: 3, at: [1, 2], set: [[1, 1, 'emit #1', 'hot'], [1, 2, '10', 'ok']], out: 'map 1', s: 'Only now does anything flow downstream: the smallest element, 1, is mapped to 10.' },
@@ -76,7 +76,7 @@ IA.widget('streams-collectors', (root, ctx) => {
       's.forEach(x -> {});   // again?'],
     steps: [
       { l: 2, at: null, set: [], s: 'A pipeline with only intermediate operations. Nothing has run: no element has been read.' },
-      { l: 3, at: null, set: [], out: 'built', s: 'Prints <b>built</b>, and no peek output appears. A stream with no terminal operation does no work at all, which is a classic “why isn’t my logging/saving happening?” bug.' },
+      { l: 3, at: null, set: [], out: 'built', s: 'Prints <b>built</b>, and no peek output appears. A stream with no last step does no work. This is the classic “why isn’t my logging/saving happening?” bug.' },
       { l: 4, at: [2, 1], set: [[0, 0, 'seen', 'ok'], [0, 1, '2', 'ok'], [1, 0, 'seen', 'ok'], [1, 1, '4', 'ok'], [2, 0, 'seen', 'ok'], [2, 1, '6', 'ok']], out: 'peek 1\npeek 2\npeek 3', s: 'The terminal <code>forEach</code> pulls every element through.' },
       { l: 5, at: null, set: [], err: 'IllegalStateException: stream has already been operated upon or closed', s: 'A stream can be consumed <b>once</b>. Keep a <code>Supplier&lt;Stream&lt;T&gt;&gt;</code> or the source collection if you need to traverse it again.' }
     ] }

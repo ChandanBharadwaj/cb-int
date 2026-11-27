@@ -2,20 +2,20 @@ IA.register({
   track: 'java',
   slug: 'strings-interning',
   title: 'Strings, interning & text',
-  tagline: 'A String is an immutable object holding a <code>byte[]</code> and a coder flag. Literals are pooled, runtime results are not, and <code>length()</code> counts UTF-16 code units, not characters. Get those three facts right and most String bugs and interview tricks become obvious.',
+  tagline: 'A String is an object that never changes. Inside, it holds a <code>byte[]</code> and a flag for the encoding. Literals are shared; strings built at runtime are not. <code>length()</code> counts 16-bit units, not characters. Know these three facts and most String bugs make sense.',
   tldr: {
-    problem: '<code>==</code> on Strings passes tests and fails in production, a <code>+=</code> loop takes minutes, an enum lookup breaks on a Turkish server, and names with emoji turn into “?” after truncation.',
-    model: '<b>Identity:</b> literals and compile-time constants resolve to one pooled instance, and everything built at runtime is a new object. <b>Storage:</b> Latin-1 text uses 1 byte per char, anything else 2 (Java 9+). <b>Text:</b> a <code>char</code> is a UTF-16 code unit, so one visible character can be 1, 2 or many chars.',
+    problem: '<code>==</code> on Strings passes tests and fails in production. A <code>+=</code> loop takes minutes. An enum lookup breaks on a Turkish server. Names with emoji turn into “?” after cutting.',
+    model: '<b>Identity:</b> literals and compile-time constants share one pooled object. Anything built at runtime is a new object. <b>Storage:</b> Latin-1 text uses 1 byte per char, other text 2 (Java 9+). <b>Text:</b> a <code>char</code> is one 16-bit unit. One visible character can be 1, 2 or many chars.',
     hook: '“How many objects does <code>new String("hi")</code> create?” One new String on the heap, plus the pooled literal <code>"hi"</code> if no one has used that literal yet. Answer “one or two” and explain why.',
     facts: [
-      { v: 'Java 9', l: 'brought compact strings (JEP 254: Latin-1 text stored in 1 byte per char) and <code>invokedynamic</code> string concatenation (JEP 280)' },
-      { v: 'Java 15', l: 'made text blocks (<code>"""…"""</code>) standard (JEP 378), after previews in 13 and 14' },
-      { v: 'Java 18', l: 'made UTF-8 the default charset (JEP 400). Before that, <code>new String(bytes)</code> used the platform encoding' }
+      { v: 'Java 9', l: 'brought compact strings (Latin-1 text stored in 1 byte per char) and faster <code>invokedynamic</code> string joining' },
+      { v: 'Java 15', l: 'made text blocks (<code>"""…"""</code>) standard, after previews in 13 and 14' },
+      { v: 'Java 18', l: 'made UTF-8 the default charset. Before that, <code>new String(bytes)</code> used the OS encoding' }
     ]
   },
   intro: {
-    what: 'A <code>String</code> is a sequence of characters that can never change once created. Methods like <code>toUpperCase()</code> or <code>replace()</code> return a <b>new</b> String. Because Strings are immutable, Java can safely share them: identical string literals in your code all point to one shared copy in the <b>string pool</b>. Strings built while the program runs (from input, concatenation, files) are new objects with their own identity.',
-    analogy: { icon: '🖨️', title: 'Printed signs vs handwritten notes', text: 'The company prints one official “EXIT” sign design and every office uses a copy of the same print (the pool). If you write “EXIT” on a sticky note yourself, the words match but it is a different piece of paper. Asking “is this the same sheet?” (<code>==</code>) gives different answers depending on where the sign came from. Asking “do the words match?” (<code>equals</code>) always works.' },
+    what: 'A <code>String</code> is text that never changes once created. <code>toUpperCase()</code> or <code>replace()</code> return a <b>new</b> String. Since Strings can’t change, Java can share them. Identical literals in your code all point to one copy in a shared table (the <b>string pool</b>). Strings built at runtime, from input, joining or files, are new objects.',
+    analogy: { icon: '🖨️', title: 'Printed signs vs handwritten notes', text: 'The company prints one official “EXIT” sign, and every office uses it (the pool). Write “EXIT” on a sticky note and the words match, but it is a different paper. “Is this the same sheet?” (<code>==</code>) depends on where the sign came from. “Do the words match?” (<code>equals</code>) always works.' },
     steps: [
       { t: 'Compare with equals', d: '<code>==</code> asks whether two references point to the same object. For text, you almost always want <code>a.equals(b)</code> or <code>Objects.equals(a, b)</code>.' },
       { t: 'Literals are pooled', d: '<code>"hi" == "hi"</code> is true because both literals resolve to one pooled object. <code>new String("hi") == "hi"</code> is false.' },
@@ -24,11 +24,11 @@ IA.register({
       { t: 'Text is Unicode', d: 'An emoji such as 👍 is two <code>char</code>s. Specify charsets and locales explicitly: <code>StandardCharsets.UTF_8</code>, <code>Locale.ROOT</code>.' }
     ],
     terms: [
-      ['string pool', 'A JVM-wide table of canonical String instances. Literals go in automatically; <code>intern()</code> adds others.'],
-      ['interning', 'Replacing a String with the pooled instance that has the same contents.'],
+      ['string pool', 'One table of shared Strings for the whole JVM. Literals go in automatically; <code>intern()</code> adds others.'],
+      ['interning', 'Swapping a String for the pooled one with the same text.'],
       ['compact strings', 'Java 9+ storage: a <code>byte[]</code> plus a coder, LATIN1 (1 byte per char) or UTF16 (2 bytes per char).'],
-      ['code unit / code point', 'A <code>char</code> (16 bits) vs a Unicode character number (up to U+10FFFF). Code points above U+FFFF take two code units.'],
-      ['surrogate pair', 'The two chars that encode one code point outside the Basic Multilingual Plane.'],
+      ['code unit / code point', 'A <code>char</code> (16 bits) vs a Unicode character number (up to U+10FFFF). Numbers above U+FFFF need two chars.'],
+      ['surrogate pair', 'The two chars that together make one character above U+FFFF, such as most emoji.'],
       ['text block', 'A <code>"""</code>-delimited multi-line literal (Java 15+).']
     ]
   },
@@ -37,20 +37,20 @@ IA.register({
     caption: 'Pick a scenario and press <b>Play</b>. Arrows into the dashed region point at <b>pooled</b> Strings. <b>Constant folding</b> shows how one <code>final</code> keyword changes <code>==</code>. <b>Compact strings</b> opens the byte array. <b>+= in a loop</b> shows the garbage it leaves behind.'
   },
   gotchas: [
-    { trap: 'Comparing Strings with ==', code: `if (status == "ACTIVE") { … }            // true for literals, false for request.getParameter("status")`, why: 'Pooled literals share identity, so the check works in unit tests that use literals. Strings from HTTP, JSON, JDBC or concatenation are new objects.', fix: 'Use <code>"ACTIVE".equals(status)</code> (null-safe, literal first) or <code>Objects.equals</code>. Better still, parse to an enum once at the boundary.' },
+    { trap: 'Comparing Strings with ==', code: `if (status == "ACTIVE") { … }            // true for literals, false for request.getParameter("status")`, why: 'Literals are the same pooled object, so tests with literals pass. Strings from HTTP, JSON, JDBC or joining are new objects.', fix: 'Use <code>"ACTIVE".equals(status)</code> (null-safe, literal first) or <code>Objects.equals</code>. Better still, parse to an enum once at the boundary.' },
     { trap: 'Case conversion without a locale', code: `"title".toUpperCase();            // "TİTLE" with default locale tr_TR
 Status.valueOf(input.toUpperCase());   // IllegalArgumentException on Turkish servers`, why: '<code>toUpperCase()</code> and <code>toLowerCase()</code> use the JVM’s default locale. In Turkish and Azeri, i/I map to dotted İ and dotless ı.', fix: 'For identifiers, keys and protocols use <code>toUpperCase(Locale.ROOT)</code>. Use the user’s locale only for text shown to humans. <code>equalsIgnoreCase</code> doesn’t depend on locale.' },
     { trap: '<code>+=</code> in a loop', code: `String csv = "";
-for (Row r : rows) csv += r.toCsv() + "\\n";   // O(n²) copying`, why: 'Each iteration allocates a new String and copies everything built so far. Java 9’s indy concatenation speeds up a single expression but doesn’t remove the copying across iterations.', fix: 'Use <code>StringBuilder</code>, <code>String.join</code>, <code>Collectors.joining</code>, or write straight to a <code>Writer</code>.' },
+for (Row r : rows) csv += r.toCsv() + "\\n";   // O(n²) copying`, why: 'Each pass makes a new String and copies everything so far. Java 9 made one <code>+</code> expression faster, but the copying between passes stays.', fix: 'Use <code>StringBuilder</code>, <code>String.join</code>, <code>Collectors.joining</code>, or write straight to a <code>Writer</code>.' },
     { trap: 'Cutting through a surrogate pair', code: `String shortName = name.substring(0, 20);   // may split an emoji in half
-shortName.getBytes(UTF_8);                  // lone surrogate encoded as '?'`, why: '<code>substring</code> works in code units. Index 20 can land between the two halves of a surrogate pair, leaving a malformed string that encoders replace with “?”.', fix: 'Truncate on code-point boundaries: <code>name.substring(0, name.offsetByCodePoints(0, n))</code> (check that the string has at least n code points first), or use <code>BreakIterator</code> for user-visible characters.' },
+shortName.getBytes(UTF_8);                  // lone surrogate encoded as '?'`, why: '<code>substring</code> counts chars. Index 20 can land between the two halves of an emoji. The broken half becomes “?” when encoded.', fix: 'Truncate on code-point boundaries: <code>name.substring(0, name.offsetByCodePoints(0, n))</code> (check that the string has at least n code points first), or use <code>BreakIterator</code> for user-visible characters.' },
     { trap: 'Equal-looking text that isn’t equal', code: `"é".equals("e\\u0301");     // false: precomposed vs e + combining accent
 "ﬁ".equals("fi");           // false: ligature`, why: 'Unicode has several encodings for the same visible text. Input from macOS file names, copy-paste or different keyboards can differ.', fix: 'Normalise at the boundary: <code>Normalizer.normalize(s, Normalizer.Form.NFC)</code> before storing or comparing. Use NFKC for identifiers where look-alikes must match.' },
     { trap: '<code>split</code> takes a regex and drops trailing empties', code: `"a.b.c".split(".");          // [] (every char matches ".")
 "a,b,,".split(",");          // [a, b]: trailing empty strings removed
 "a,b,,".split(",", -1);      // [a, b, , ]`, why: 'The argument is a regular expression, and the one-argument form removes trailing empty strings.', fix: 'Escape metacharacters (<code>"\\\\."</code> or <code>Pattern.quote(".")</code>). Use a limit of <code>-1</code> to keep empty fields when parsing CSV-like data, or better, use a real CSV parser.' },
     { trap: 'Converting bytes without a charset', code: `new String(bytes);            // Java ≤ 17: platform charset (e.g. windows-1252, or ASCII in a bare container)
-Files.readString(path);       // always UTF-8, on any version`, why: 'Before Java 18 the default charset came from the OS locale, so the same code decoded differently on a laptop and in a container. JEP 400 (Java 18) made UTF-8 the default for most APIs.', fix: 'Always pass <code>StandardCharsets.UTF_8</code> (or the real encoding) explicitly. On Java 18+, <code>-Dfile.encoding=COMPAT</code> restores the old behaviour if a migration needs it.' }
+Files.readString(path);       // always UTF-8, on any version`, why: 'Before Java 18 the default charset came from the OS. The same code decoded differently on a laptop and in a container. Java 18 made UTF-8 the default for most APIs.', fix: 'Always pass <code>StandardCharsets.UTF_8</code> (or the real encoding) explicitly. On Java 18+, <code>-Dfile.encoding=COMPAT</code> restores the old behaviour if a migration needs it.' }
   ],
   scenarios: [
     { title: 'Account deactivation failed only on the Istanbul cluster',
@@ -68,7 +68,7 @@ Status s = Arrays.stream(Status.values())
     { title: 'Customer names showed “?” in the mobile app',
       symptom: 'Display names ending in an emoji sometimes appeared as <code>Anna ?</code>. The database stored the replacement character; the original input was fine.',
       diagnose: `String display = name.length() > 20 ? name.substring(0, 20) : name;   // code units, not characters`,
-      cause: 'When the 20th code unit was the first half of a surrogate pair, <code>substring</code> produced a lone surrogate. Encoding that to UTF-8 replaced it with “?”.',
+      cause: 'Sometimes char 20 was the first half of an emoji. <code>substring</code> kept only that half. UTF-8 encoding turned it into “?”.',
       fix: 'Truncate by code points (or by grapheme clusters for user-visible text), and add test data with emoji and combining marks.',
       fixCode: `static String truncate(String s, int maxCodePoints) {
   if (s.codePointCount(0, s.length()) <= maxCodePoints) return s;

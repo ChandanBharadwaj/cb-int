@@ -103,13 +103,13 @@ IA.widget('hashmap-internals', (root, ctx) => {
     if (mode === 'put') {
       code('Map<Integer, String> m = new HashMap<>();   // capacity 16, load factor 0.75\nfor (int k : new int[]{5, 21, 37, 12, 28, 3, 19, 8, 44, 1, 17, 14, 30})\n    m.put(k, "v");                           // Integer.hashCode() == the value');
       [5, 21, 37, 12, 28, 3, 19, 8, 44, 1, 17, 14, 30].forEach((x) => st.push(putStep(x, x, String(x))));
-      st.push({ run: () => { const before = order().join(', '); grow(); S.pendingResize = false; S.hotB = null; S.msg = `<b>resize()</b>: 16 → 32 buckets, new threshold 24. No hash is recomputed: each node checks one bit, <code>hash &amp; 16</code>. If it is 0 the node stays at index <i>i</i> (“lo” list); if 1 it moves to <i>i + 16</i> (“hi” list, orange). Order inside each list is preserved. Iteration order was <code>${before}</code>.`; },
+      st.push({ run: () => { const before = order().join(', '); grow(); S.pendingResize = false; S.hotB = null; S.msg = `<b>resize()</b>: 16 → 32 buckets, new threshold 24. No hash is recomputed. Each entry checks one bit, <code>hash &amp; 16</code>. If it is 0, the entry stays at index <i>i</i> (“lo” list). If 1, it moves to <i>i + 16</i> (“hi” list, orange). Order inside each list is kept. Iteration order was <code>${before}</code>.`; },
         t: () => S.msg });
       st.push({ run: () => { clearMarks(); }, t: () => `Iteration walks bucket 0 → 31 and each chain head → tail, so the order is now <code>${order().join(', ')}</code>. Nothing about the keys changed, yet the order did. <b>HashMap never promises an order</b>; use <code>LinkedHashMap</code> or <code>TreeMap</code> when it matters.` });
     } else if (mode === 'tree') {
       code('record K(int id) implements Comparable<K> {\n    @Override public int hashCode() { return 7; }     // every key collides\n    public int compareTo(K o) { return Integer.compare(id, o.id); }\n}\nfor (int i = 1; i <= 11; i++) m.put(new K(i), i);');
       for (let i = 1; i <= 11; i++) st.push(putStep(i, 7, 'k' + i));
-      st.push({ run: () => { clearMarks(); S.hotB = null; }, t: () => 'Summary: a bin is treeified when it reaches <b>8+ nodes</b> (TREEIFY_THRESHOLD) and the table has <b>≥ 64 buckets</b>. Below 64, HashMap resizes instead. On removal or resize, a tree with <b>≤ 6</b> nodes turns back into a list (UNTREEIFY_THRESHOLD). With a sane <code>hashCode()</code> a bin almost never reaches 8.' });
+      st.push({ run: () => { clearMarks(); S.hotB = null; }, t: () => 'Summary: a bucket becomes a tree when it holds <b>8+ entries</b> (TREEIFY_THRESHOLD) and the table has <b>≥ 64 buckets</b>. Below 64, HashMap resizes instead. After a remove or resize, a tree with <b>≤ 6</b> entries turns back into a list (UNTREEIFY_THRESHOLD). With a sane <code>hashCode()</code> a bin almost never reaches 8.' });
     } else {
       const safe = mode === 'safe';
       code(safe
@@ -125,7 +125,7 @@ IA.widget('hashmap-internals', (root, ctx) => {
         st.push({ run: () => { S.b[1][0].gone = true; S.mod++; S.size--; S.exp = S.mod; }, t: () => `<code>it.remove()</code> removes the node through the iterator, then sets <b>expectedModCount = modCount = ${S.mod}</b>. The two counters agree again.` });
         st.push({ run: () => { S.cur = 2; S.nxt = 3; S.hotB = 2; }, t: 'next() passes the check and returns key 2.' });
         st.push({ run: () => { S.cur = 3; S.nxt = null; S.hotB = 3; }, t: 'Key 3, then <code>next</code> becomes null.' });
-        st.push({ run: () => { S.cur = null; S.hotB = null; S.banner = 'done: size 3'; S.bannerC = 'var(--ok)'; }, t: 'hasNext() is false and the loop ends: {0, 2, 3}. <code>removeIf</code> does the same thing in one line. For a map shared between threads, use <a href="concurrent-collections.html">ConcurrentHashMap</a>, whose iterators are weakly consistent and never throw CME.' });
+        st.push({ run: () => { S.cur = null; S.hotB = null; S.banner = 'done: size 3'; S.bannerC = 'var(--ok)'; }, t: 'hasNext() is false and the loop ends: {0, 2, 3}. <code>removeIf</code> does the same thing in one line. For a map shared between threads, use <a href="concurrent-collections.html">ConcurrentHashMap</a>. Its iterators never throw CME.' });
       }
     }
     return st;
