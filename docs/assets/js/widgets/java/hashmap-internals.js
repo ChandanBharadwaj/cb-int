@@ -83,8 +83,8 @@ IA.widget('hashmap-internals', (root, ctx) => {
       const coll = chain.length > 1;
       let extra = '';
       if (mode === 'tree' && chain.length >= 9 && S.tree !== i) {
-        if (S.n < 64) { extra = ` The bin now holds <b>${chain.length}</b> nodes (≥ 8), so <code>treeifyBin</code> runs, but the table has only ${n0} buckets (&lt; MIN_TREEIFY_CAPACITY 64). It <b>resizes to ${n0 * 2}</b> instead of building a tree. Every key still lands in bucket 7, so the chain doesn’t shrink.`; grow(); }
-        else { S.tree = i; extra = ` Bin length ≥ 8 and the table has ${S.n} buckets, so the bin is <b>treeified</b>: a red-black tree. Lookups in this bin become O(log n), because these keys are <code>Comparable</code>.`; }
+        if (S.n < 64) { extra = ` The bucket now holds <b>${chain.length}</b> entries (≥ 8), so <code>treeifyBin</code> runs. But the table has only ${n0} buckets (&lt; MIN_TREEIFY_CAPACITY 64). So it <b>resizes to ${n0 * 2}</b> instead of building a tree. Every key still lands in bucket 7, so the list doesn’t shrink.`; grow(); }
+        else { S.tree = i; extra = ` The bucket holds ≥ 8 entries and the table has ${S.n} buckets. So the bucket becomes a <b>red-black tree</b>. Lookups in it become O(log n), because these keys are <code>Comparable</code>.`; }
       }
       S.msg = note + (mode === 'tree'
         ? `<code>put(${label})</code>: <code>hashCode()</code> always returns 7, so index = 7 &amp; ${n0 - 1} = <b>${i}</b>. ${coll ? `Collision: the node is appended at the <b>tail</b> (chain length ${chain.length}).` : ''}`
@@ -115,14 +115,14 @@ IA.widget('hashmap-internals', (root, ctx) => {
       code(safe
         ? 'for (Iterator<Integer> it = m.keySet().iterator(); it.hasNext(); ) {\n    Integer k = it.next();\n    if (k == 1) it.remove();          // removes AND re-syncs expectedModCount\n}\n// or simply: m.keySet().removeIf(k -> k == 1);'
         : 'for (Integer k : m.keySet()) {        // hidden Iterator\n    if (k == 1) m.remove(k);          // structural change behind the iterator’s back\n}');
-      st.push({ run: () => { S.exp = S.mod; S.cur = null; S.nxt = 0; }, t: () => `The loop creates an iterator. It copies <b>expectedModCount = modCount = ${S.mod}</b> (four puts, four structural changes) and points <code>next</code> at the first node: key 0 in bucket 0.` });
-      st.push({ run: () => { S.cur = 0; S.nxt = 1; S.hotB = 0; }, t: 'hasNext() is just <code>next != null</code>. next() first checks <code>modCount == expectedModCount</code> (OK), returns key 0 and moves <code>next</code> to key 1.' });
+      st.push({ run: () => { S.exp = S.mod; S.cur = null; S.nxt = 0; }, t: () => `The loop creates an iterator. It copies <b>expectedModCount = modCount = ${S.mod}</b> (four puts, four changes). It points <code>next</code> at the first entry: key 0 in bucket 0.` });
+      st.push({ run: () => { S.cur = 0; S.nxt = 1; S.hotB = 0; }, t: 'hasNext() only checks <code>next != null</code>. next() first checks <code>modCount == expectedModCount</code> (OK). Then it returns key 0 and moves <code>next</code> to key 1.' });
       st.push({ run: () => { S.cur = 1; S.nxt = 2; S.hotB = 1; }, t: 'next() returns key 1. Note: the iterator has <b>already</b> moved <code>next</code> to key 2.' });
       if (!safe) {
-        st.push({ run: () => { S.b[1][0].gone = true; S.mod++; S.size--; }, t: () => `<code>m.remove(1)</code> unlinks the node and bumps <b>modCount to ${S.mod}</b>. The iterator doesn’t know: its expectedModCount is still ${S.exp}.` });
-        st.push({ run: () => { S.banner = 'ConcurrentModificationException'; S.bannerC = 'var(--err)'; S.hotB = 2; }, t: () => `hasNext() sees <code>next</code> = key 2, so it returns true. next() checks ${S.mod} ≠ ${S.exp} and throws <b>ConcurrentModificationException</b>. Single thread, no concurrency at all: “concurrent” here means “while iterating”. Had we removed key 3 (the <i>last</i> one), <code>next</code> would already be null, hasNext() would return false, and <b>no exception</b> would be thrown. Fail-fast is best-effort.` });
+        st.push({ run: () => { S.b[1][0].gone = true; S.mod++; S.size--; }, t: () => `<code>m.remove(1)</code> unlinks the entry and bumps <b>modCount to ${S.mod}</b>. The iterator doesn’t know. Its expectedModCount is still ${S.exp}.` });
+        st.push({ run: () => { S.banner = 'ConcurrentModificationException'; S.bannerC = 'var(--err)'; S.hotB = 2; }, t: () => `hasNext() sees <code>next</code> = key 2, so it returns true. next() checks ${S.mod} ≠ ${S.exp} and throws <b>ConcurrentModificationException</b>. One thread, no concurrency at all. “Concurrent” here means “while looping”. Had we removed key 3 (the <i>last</i> one), <code>next</code> would already be null. hasNext() would return false, and <b>no exception</b> would be thrown. The check is best-effort.` });
       } else {
-        st.push({ run: () => { S.b[1][0].gone = true; S.mod++; S.size--; S.exp = S.mod; }, t: () => `<code>it.remove()</code> removes the node through the iterator, then sets <b>expectedModCount = modCount = ${S.mod}</b>. The two counters agree again.` });
+        st.push({ run: () => { S.b[1][0].gone = true; S.mod++; S.size--; S.exp = S.mod; }, t: () => `<code>it.remove()</code> removes the entry through the iterator, then sets <b>expectedModCount = modCount = ${S.mod}</b>. The two counters agree again.` });
         st.push({ run: () => { S.cur = 2; S.nxt = 3; S.hotB = 2; }, t: 'next() passes the check and returns key 2.' });
         st.push({ run: () => { S.cur = 3; S.nxt = null; S.hotB = 3; }, t: 'Key 3, then <code>next</code> becomes null.' });
         st.push({ run: () => { S.cur = null; S.hotB = null; S.banner = 'done: size 3'; S.bannerC = 'var(--ok)'; }, t: 'hasNext() is false and the loop ends: {0, 2, 3}. <code>removeIf</code> does the same thing in one line. For a map shared between threads, use <a href="concurrent-collections.html">ConcurrentHashMap</a>. Its iterators never throw CME.' });
@@ -136,8 +136,8 @@ IA.widget('hashmap-internals', (root, ctx) => {
       S = { n: 16, thr: 12, b: Array.from({ length: 16 }, (_, i) => (i < 4 ? [{ k: i, h: i }] : [])), size: 4, mod: 4, exp: null, resizes: 0, cur: null, nxt: null };
     } else S = { n: 0, thr: 0, b: [], size: 0, resizes: 0 };
     steps = plan(); render(); statLine(); bStep.disabled = false;
-    say(mode === 'put' ? 'Thirteen Integer keys go into a default HashMap. Watch where each lands, which buckets collide, and what the 13th put does. Press Play or Step.'
-      : mode === 'tree' ? 'A key type whose <code>hashCode()</code> is a constant: every key lands in the same bucket. When does HashMap build a tree?'
+    say(mode === 'put' ? 'Thirteen Integer keys go into a default HashMap. Watch where each lands, which buckets share, and what the 13th put does. Press Play or Step.'
+      : mode === 'tree' ? 'A key type whose <code>hashCode()</code> never changes: every key lands in the same bucket. When does HashMap build a tree?'
       : 'Map {0, 1, 2, 3}. We remove key 1 while looping. Watch the two counters.');
   }
   function step() {

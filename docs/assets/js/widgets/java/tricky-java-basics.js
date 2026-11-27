@@ -22,7 +22,7 @@ IA.widget('tricky-java-basics', (root, ctx) => {
         long l = Integer.MAX_VALUE + 1;
         System.out.println(l);
     }
-}`, o: ['2147483648\n2147483648', '-2147483648\n2147483648', '-2147483648\n-2147483648', 'ArithmeticException'], a: 2, x: '<code>int</code> overflow wraps silently. On the second line the sum is computed in <code>int</code> (and wraps) <b>before</b> it is widened to <code>long</code>. Write <code>Integer.MAX_VALUE + 1L</code>, or use <code>Math.addExact</code> to get an exception.' },
+}`, o: ['2147483648\n2147483648', '-2147483648\n2147483648', '-2147483648\n-2147483648', 'ArithmeticException'], a: 2, x: 'An <code>int</code> that overflows wraps around without warning. On the second line, the sum is done in <code>int</code> (and wraps) <b>before</b> it becomes a <code>long</code>. Write <code>Integer.MAX_VALUE + 1L</code>, or use <code>Math.addExact</code> to get an exception.' },
     { t: 'Types & variables', s: 'java-types-variables', q: 'What does this print?', run: true, expect: 'true false true', code: `public class Main {
     public static void main(String[] args) {
         Integer a = 127, b = 127, c = 128, d = 128;
@@ -34,14 +34,14 @@ IA.widget('tricky-java-basics', (root, ctx) => {
         double d = 7 / 2;
         System.out.println(d + " " + 7 / 2.0 + " " + (int) 3.99);
     }
-}`, o: ['3.5 3.5 4', '3.0 3.5 3', '3.5 3.5 3', '3 3.5 3'], a: 1, x: '<code>7 / 2</code> is integer division (3), and only then widened to <code>3.0</code>. Make one operand a double to get 3.5. A cast to <code>int</code> truncates.' },
-    { t: 'Types & variables', s: 'java-types-variables', q: 'What happens?', code: 'Integer n = null;\nint m = n;', o: ['m is 0', 'Compile error', 'NullPointerException at runtime when n is unboxed', 'm is null'], a: 2, x: 'Unboxing calls <code>n.intValue()</code>, which throws a <code>NullPointerException</code>. It compiles fine. Common with <code>map.get(key)</code> assigned to an <code>int</code>.' },
+}`, o: ['3.5 3.5 4', '3.0 3.5 3', '3.5 3.5 3', '3 3.5 3'], a: 1, x: '<code>7 / 2</code> is whole-number division (3). Only then does it become <code>3.0</code>. Make one side a double to get 3.5. A cast to <code>int</code> cuts off the decimals.' },
+    { t: 'Types & variables', s: 'java-types-variables', q: 'What happens?', code: 'Integer n = null;\nint m = n;', o: ['m is 0', 'Compile error', 'NullPointerException at runtime when n is unboxed', 'm is null'], a: 2, x: 'Turning an <code>Integer</code> into an <code>int</code> calls <code>n.intValue()</code>, which throws a <code>NullPointerException</code>. It compiles fine. Common with <code>map.get(key)</code> stored in an <code>int</code>.' },
     // ---------- B3 Operators & control flow ----------
     { t: 'Operators & control flow', s: 'java-operators-control-flow', q: 'What does this print?', run: true, expect: '1 -3 -1', code: `public class Main {
     public static void main(String[] args) {
         System.out.println(7 % 3 + " " + (-7 / 2) + " " + (-7 % 3));
     }
-}`, o: ['1 -4 2', '1 -3 -1', '1 -3 2', '1 -4 -1'], a: 1, x: 'Java integer division truncates toward zero (−3.5 → −3), and <code>%</code> takes the sign of the left operand. Python’s <code>//</code> and <code>%</code> differ (−4 and 2).' },
+}`, o: ['1 -4 2', '1 -3 -1', '1 -3 2', '1 -4 -1'], a: 1, x: 'Java integer division rounds toward zero (−3.5 → −3). <code>%</code> takes the sign of the left side. Python’s <code>//</code> and <code>%</code> differ (−4 and 2).' },
     { t: 'Operators & control flow', s: 'java-operators-control-flow', q: 'What does this print?', run: true, expect: 'one two', code: `public class Main {
     public static void main(String[] args) {
         int k = 1;
@@ -63,7 +63,7 @@ IA.widget('tricky-java-basics', (root, ctx) => {
         };
         System.out.println(type);
     }
-}`, o: ['weekend', 'weekday', 'weekend\nweekday', 'Compile error: switch cannot return a value'], a: 0, x: 'A switch <b>expression</b> (standard since Java 14) yields a value, allows several labels per case and has no fall-through with <code>-&gt;</code>.' },
+}`, o: ['weekend', 'weekday', 'weekend\nweekday', 'Compile error: switch cannot return a value'], a: 0, x: 'A switch <b>expression</b> (standard since Java 14) gives back a value. It allows several labels per case. With <code>-&gt;</code> it never falls through.' },
     { t: 'Operators & control flow', s: 'java-operators-control-flow', q: 'What does this print?', run: true, expect: '12 6', code: `public class Main {
     public static void main(String[] args) {
         int x = 10;
@@ -74,7 +74,7 @@ IA.widget('tricky-java-basics', (root, ctx) => {
         } while (i < 3);
         System.out.println(x + " " + i);
     }
-}`, o: ['12 5', '12 6', '12.7 6', 'Compile error: lossy conversion'], a: 1, x: '<code>+=</code> has a hidden cast: <code>x = (int) (x + 2.7)</code>, so 12. (<code>x = x + 2.7</code> would not compile.) A <code>do/while</code> body always runs at least once.' },
+}`, o: ['12 5', '12 6', '12.7 6', 'Compile error: lossy conversion'], a: 1, x: '<code>+=</code> hides a cast: <code>x = (int) (x + 2.7)</code>, so 12. (<code>x = x + 2.7</code> would not compile.) A <code>do/while</code> body always runs at least once.' },
     // ---------- B4 Arrays & strings ----------
     { t: 'Arrays & strings', s: 'java-arrays-strings-basics', q: 'What does this print?', run: true, expect: 'hi 3345', code: `public class Main {
     public static void main(String[] args) {
@@ -82,7 +82,7 @@ IA.widget('tricky-java-basics', (root, ctx) => {
         s.toUpperCase();
         System.out.println(s + " " + (1 + 2 + "3" + 4 + 5));
     }
-}`, o: ['HI 3345', 'hi 15', 'hi 3345', 'hi 12345'], a: 2, x: 'Strings are immutable: <code>toUpperCase()</code> returns a new string that is ignored. <code>+</code> runs left to right: 1 + 2 is 3, then string concatenation takes over: "33", "334", "3345".' },
+}`, o: ['HI 3345', 'hi 15', 'hi 3345', 'hi 12345'], a: 2, x: 'Strings never change. <code>toUpperCase()</code> returns a new string, which is ignored here. <code>+</code> runs left to right: 1 + 2 is 3, then joining strings takes over: "33", "334", "3345".' },
     { t: 'Arrays & strings', s: 'java-arrays-strings-basics', q: 'What does this print?', run: true, expect: 'false true', code: `public class Main {
     public static void main(String[] args) {
         String a = "java";
@@ -97,7 +97,7 @@ public class Main {
         int[] arr = new int[3];
         System.out.println(arr.length + " " + arr[0] + " " + Arrays.toString(arr));
     }
-}`, o: ['3 null [0, 0, 0]', '3 0 [0, 0, 0]', '2 0 [0, 0, 0]', 'Compile error: arr[0] not initialised'], a: 1, x: 'New arrays are filled with default values (0, false, null). <code>length</code> is a field, not a method. Printing an array directly gives something like <code>[I@1b6d3586</code>; use <code>Arrays.toString</code>.' },
+}`, o: ['3 null [0, 0, 0]', '3 0 [0, 0, 0]', '2 0 [0, 0, 0]', 'Compile error: arr[0] not initialised'], a: 1, x: 'New arrays start filled with defaults (0, false, null). <code>length</code> is a field, not a method. Printing an array gives something like <code>[I@1b6d3586</code>. Use <code>Arrays.toString</code>.' },
     { t: 'Arrays & strings', s: 'java-arrays-strings-basics', q: 'What does this print?', run: true, expect: '2 3', code: `public class Main {
     public static void main(String[] args) {
         System.out.println("a,b,,".split(",").length + " " + "a,,b".split(",").length);
@@ -115,7 +115,7 @@ public class Main {
         add(sb);
         System.out.println(x + " " + sb);
     }
-}`, o: ['2 hi!', '1 hi', '1 hi!', '2 hi'], a: 2, x: 'Java is always pass-by-value. The method gets a copy of <code>x</code>, so the caller’s int does not change. For an object the copied value is a <b>reference</b>, so changes to the object itself are visible.' },
+}`, o: ['2 hi!', '1 hi', '1 hi!', '2 hi'], a: 2, x: 'Java always passes a copy. The method gets a copy of <code>x</code>, so the caller’s int doesn’t change. For an object, the copy is an address pointing to it (a <b>reference</b>). So changes to the object itself are visible.' },
     { t: 'Methods', s: 'java-methods', q: 'Which overloads are chosen?', run: true, expect: 'int long Object', code: `public class Main {
     static String f(int x) { return "int"; }
     static String f(long x) { return "long"; }
@@ -124,7 +124,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println(f(5) + " " + f(5L) + " " + f(Integer.valueOf(5)));
     }
-}`, o: ['int long int', 'int long Object', 'int int Object', 'Compile error: ambiguous'], a: 1, x: 'The compiler picks the overload at compile time from the <b>declared</b> argument types. An <code>Integer</code> matches <code>Object</code> directly, so unboxing to <code>int</code> is never tried.' },
+}`, o: ['int long int', 'int long Object', 'int int Object', 'Compile error: ambiguous'], a: 1, x: 'The compiler picks the method version at compile time, from the <b>declared</b> argument types. An <code>Integer</code> matches <code>Object</code> directly. So turning it into an <code>int</code> is never tried.' },
     { t: 'Methods', s: 'java-methods', q: 'What does this print?', run: true, expect: '0 6 9', code: `public class Main {
     static int sum(int... nums) {
         int s = 0;
@@ -135,7 +135,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println(sum() + " " + sum(1, 2, 3) + " " + sum(new int[] {4, 5}));
     }
-}`, o: ['Compile error: sum() needs an argument', '0 6 9', '0 6 45', 'NullPointerException'], a: 1, x: 'Varargs is an array parameter: zero arguments give an empty array (not null), and you can pass an array directly.' },
+}`, o: ['Compile error: sum() needs an argument', '0 6 9', '0 6 45', 'NullPointerException'], a: 1, x: 'Varargs (<code>...</code>) is an array parameter. Zero arguments give an empty array, not null. You can also pass an array directly.' },
     { t: 'Methods', s: 'java-methods', q: 'In <code>Main</code>, <code>void greet() { … }</code> is called from <code>public static void main</code> as <code>greet();</code>. Result?', o: ['It works', 'Compile error: non-static method greet() cannot be referenced from a static context', 'NullPointerException', 'It runs on a default Main instance'], a: 1, x: '<code>main</code> is static, so there is no <code>this</code>. Make <code>greet</code> static, or create an object: <code>new Main().greet()</code>.' },
     // ---------- B6 Classes & objects ----------
     { t: 'Classes & objects', s: 'java-classes-objects', q: 'What does this print?', run: true, expect: 'null', code: `public class Main {
@@ -149,7 +149,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println(new Person("Ada").name);
     }
-}`, o: ['Ada', 'null', 'Compile error', 'an empty line'], a: 1, x: 'Inside the constructor, <code>name</code> means the parameter, so the line assigns the parameter to itself. The field keeps its default, <code>null</code>. Write <code>this.name = name</code>.' },
+}`, o: ['Ada', 'null', 'Compile error', 'an empty line'], a: 1, x: 'Inside the constructor, <code>name</code> means the parameter. So the line sets the parameter to itself. The field keeps its default, <code>null</code>. Write <code>this.name = name</code>.' },
     { t: 'Classes & objects', s: 'java-classes-objects', q: 'What does this print?', run: true, expect: '1 2 2', code: `public class Main {
     static class Counter {
         static int count;
@@ -182,7 +182,7 @@ public class Main {
         Animal a = new Dog();
         System.out.println(a.sound());
     }
-}`, o: ['...', 'woof', 'Compile error: Animal has no Dog methods', 'ClassCastException'], a: 1, x: 'Overridden methods are chosen at runtime from the <b>object’s</b> class, not the variable’s type. That is polymorphism.' },
+}`, o: ['...', 'woof', 'Compile error: Animal has no Dog methods', 'ClassCastException'], a: 1, x: 'Overridden methods are picked at runtime from the <b>object’s</b> class, not the variable’s type. That is <i>polymorphism</i>.' },
     { t: 'Inheritance & interfaces', s: 'java-inheritance-interfaces', q: 'What does this print?', run: true, expect: 'A B', code: `public class Main {
     static class A {
         String name = "A";
@@ -211,7 +211,7 @@ public class Main {
         new B();
         System.out.println();
     }
-}`, o: ['B', 'BA', 'AB', 'A'], a: 2, x: 'Every constructor first calls a parent constructor; if you write none, the compiler inserts <code>super()</code>. So the parent part is built first.' },
+}`, o: ['B', 'BA', 'AB', 'A'], a: 2, x: 'Every constructor first calls a parent constructor. If you write none, the compiler adds <code>super()</code>. So the parent part is built first.' },
     { t: 'Inheritance & interfaces', s: 'java-inheritance-interfaces', q: 'Class <code>C</code> implements interfaces <code>X</code> and <code>Y</code>, and both declare <code>default String hi()</code>. <code>C</code> does not override <code>hi</code>. Result?', o: ['X’s version wins (listed first)', 'Y’s version wins (listed last)', 'Compile error: C must override hi() to resolve the conflict', 'Runtime error when hi() is called'], a: 2, x: 'With two conflicting defaults, the class must override the method. It can delegate with <code>X.super.hi()</code>.' },
     // ---------- B8 Collections ----------
     { t: 'Collections', s: 'java-collections-basics', q: 'What does this print?', run: true, expect: 'UOE', code: `import java.util.List;
@@ -226,7 +226,7 @@ public class Main {
             System.out.println("UOE");
         }
     }
-}`, o: ['[1, 2, 3]', '[1, 2]', 'UOE', 'Compile error'], a: 2, x: '<code>List.of</code> (Java 9+) returns an <b>unmodifiable</b> list: <code>add</code> compiles but throws at runtime. Wrap it, <code>new ArrayList&lt;&gt;(List.of(…))</code>, if you need to change it.' },
+}`, o: ['[1, 2, 3]', '[1, 2]', 'UOE', 'Compile error'], a: 2, x: '<code>List.of</code> (Java 9+) returns a list you <b>can’t change</b>. <code>add</code> compiles but throws at runtime. Need to change it? Wrap it: <code>new ArrayList&lt;&gt;(List.of(…))</code>.' },
     { t: 'Collections', s: 'java-collections-basics', q: 'What does this print?', run: true, expect: '[30]', code: `import java.util.ArrayList;
 import java.util.List;
 
@@ -248,7 +248,7 @@ public class Main {
         m.put("a", 2);
         System.out.println(m.size() + " " + m.get("a") + " " + m.get("z") + " " + m.getOrDefault("z", 0));
     }
-}`, o: ['2 1 null 0', '1 2 null 0', '1 2 0 0', '1 1 null 0'], a: 1, x: 'Keys are unique: a second <code>put</code> replaces the value. <code>get</code> on a missing key returns <code>null</code> (careful when unboxing to <code>int</code>); <code>getOrDefault</code> avoids that.' }
+}`, o: ['2 1 null 0', '1 2 null 0', '1 2 0 0', '1 1 null 0'], a: 1, x: 'Keys are unique: a second <code>put</code> replaces the value. <code>get</code> on a missing key returns <code>null</code> (careful when storing it in an <code>int</code>). <code>getOrDefault</code> avoids that.' }
   ];
   /*Q-END*/
   /*Q-END*/

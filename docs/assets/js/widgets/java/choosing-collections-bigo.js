@@ -3,10 +3,10 @@ IA.widget('choosing-collections-bigo', (root, ctx) => {
   const { el } = ctx;
   const OPS = [
     ['idx', 'get(i)', 'Positional read.'],
-    ['end', 'add/remove at end', 'Append, or pop from the tail. * = amortised: an occasional grow copies the array.'],
+    ['end', 'add/remove at end', 'Add or remove at the end. * = on average: now and then a grow copies the array.'],
     ['front', 'add/remove at front', 'Queue/stack at the head.'],
     ['find', 'contains / get(key)', 'Find by value or key.'],
-    ['mid', 'insert mid (iterator)', 'Insert or remove at a position the iterator already reached. Getting there is O(n) for every list.'],
+    ['mid', 'insert mid (iterator)', 'Insert or remove where the iterator already is. Getting there is O(n) for every list.'],
     ['minmax', 'min / max / ordered', 'Smallest or largest element, or walking in sorted order.'],
     ['mem', 'memory / element', 'Approximate overhead per element on 64-bit HotSpot with compressed oops, excluding the element object itself.']
   ];
