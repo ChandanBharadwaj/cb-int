@@ -19,7 +19,7 @@
   systems: [
     { slug: 'rate-limiter', domain: 1, title: 'Distributed Rate Limiter', one: 'Stops one caller from flooding your servers by capping how many requests each one can make.', examples: 'Stripe, Cloudflare, Envoy', tags: ['token bucket', 'redis', 'lua'] },
     { slug: 'message-queue', domain: 1, title: 'Distributed Message Queue', one: 'Passes events between services reliably, so a slow or crashed service never loses or blocks them.', examples: 'Kafka, Pulsar', tags: ['log', 'partitions', 'ISR'] },
-    { slug: 'distributed-cache', domain: 1, title: 'Distributed Cache', one: 'Serves popular data from fast memory so the database is not asked the same thing over and over.', examples: 'Memcache @ Facebook, Redis', tags: ['consistent hashing', 'leases'] },
+    { slug: 'distributed-cache', domain: 1, title: 'Caching Patterns', one: 'The 17 caching concepts: serve popular data from fast memory, keep it fresh, and survive stampedes, avalanches and hot keys.', examples: 'Redis, Memcached, Caffeine', tags: ['cache-aside', 'stampede', 'consistent hashing'] },
     { slug: 'lock-manager', domain: 1, title: 'Distributed Lock Manager', one: 'Makes sure only one machine does a job at a time, even when machines crash or freeze.', examples: 'Chubby, ZooKeeper, etcd', tags: ['raft', 'fencing', 'lease'] },
     { slug: 'multi-region', domain: 1, title: 'Multi-Region Active-Active', one: 'Runs the same app live in several regions at once, so users get nearby servers and a whole region can fail without an outage.', examples: 'Netflix, Uber, DynamoDB Global Tables', tags: ['geo-routing', 'conflicts'], added: true },
 

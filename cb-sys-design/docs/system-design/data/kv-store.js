@@ -116,7 +116,7 @@ SD.register({
       'An acknowledged write survives a crash (commit log)',
       'Adding a node moves only ~1/n of the data'
     ],
-    outOfScope: ['Multi-key ACID transactions (see Distributed SQL)', 'Secondary indexes and ad-hoc queries', 'A cache tier in front (see Distributed Cache)']
+    outOfScope: ['Multi-key ACID transactions (see Distributed SQL)', 'Secondary indexes and ad-hoc queries', 'A cache tier in front (see Caching Patterns)']
   },
 
   calculator: {
