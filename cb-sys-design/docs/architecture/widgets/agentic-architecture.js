@@ -62,14 +62,14 @@ SD.widget('agentic-architecture', function (root, ctx) {
     st.status = 'RUNNING';
     if (st.ptr >= script.length) {
       st.phase = 'model'; st.tool = ''; st.decision = '';
-      return finish(st.leaked ? 'DONE (data leaked)' : 'DONE', st.leaked ? '❌ The model answers the user as if nothing happened. Nothing in the run looks like an error.' : '✅ The model has what it needs and answers the user.');
+      return finish(st.leaked ? 'DONE (data leaked)' : 'DONE', st.leaked ? '❌ The model answers the user as if nothing happened. Nothing in the run looks like an error.' : st.partial ? '⚠ The model tells the user the tool is unavailable and what it could not check. A clear partial answer, at a bounded cost.' : '✅ The model has what it needs and answers the user.');
     }
     const a = script[st.ptr];
     st.tool = a.tool; st.phase = 'gateway';
     say('🧠 step ' + st.steps + ': model proposes <code>' + a.tool + '(' + a.args + ')</code>' + (a.hijacked ? ' <b style="color:var(--err)">(following the page, not the user)</b>' : ''));
     const d = decide(a.tool); st.decision = d[0];
     if (d[0] === 'stop') { st.blocked++; return finish('STOPPED', '🛑 runtime: <b>' + d[1] + '</b>. Run stopped with a partial answer.'); }
-    if (d[0] === 'unavailable') { st.blocked++; st.ptr = script.length; st.repeats = 0; say('🛡 runtime: <b>' + d[1] + '</b>. Tells the model the tool is unavailable.'); return; }
+    if (d[0] === 'unavailable') { st.blocked++; st.ptr = script.length; st.repeats = 0; st.partial = true; say('🛡 runtime: <b>' + d[1] + '</b>. Tells the model the tool is unavailable.'); return; }
     if (d[0] === 'deny') { st.blocked++; st.ptr++; say('🛡 gateway: <b style="color:var(--ok)">DENY</b> (' + d[1] + '). The model gets a refusal as the tool result.'); return; }
     if (d[0] === 'ask') { st.pending = a; st.status = 'WAITING_APPROVAL'; say('✋ gateway: <b style="color:var(--warn)">ASK</b> (' + d[1] + '). Run checkpointed. <b>You are the approver.</b>'); return; }
     st.phase = 'tool'; say('🛡 gateway: allow (' + d[1] + ')'); execute(a);

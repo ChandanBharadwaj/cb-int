@@ -7,7 +7,7 @@ Interview prep you can watch, tweak and break. The site has two tracks that shar
 | Track | What it covers | Where |
 |---|---|---|
 | **System Design** | 53 system designs: the 25 from [`Modern System Design Catalog.md`](system-design/Modern%20System%20Design%20Catalog.md) plus 28 more, including India-scale case studies (IRCTC, TTD darshan booking, Where Is My Train) and senior-level topics (ads serving, data lake, multi-region active-active, privacy-aware data platform). | [`/system-design/`](https://chandanbharadwaj.github.io/cb-sys-design/system-design/) |
-| **Architecture** | 49 architect topics in 9 pillars: laws and theorems (CAP, PACELC, Amdahl, Little, Conway…), architectural styles, business strategy and FinOps, DDD and data architecture, integration, DevOps and delivery, security, SRE, and technical leadership. The full list with subtopics is in [`Architecture Catalog.md`](architecture/Architecture%20Catalog.md). Topics marked *planned* are being written in batches. | [`/architecture/`](https://chandanbharadwaj.github.io/cb-sys-design/architecture/) |
+| **Architecture** | 64 architect topics in 10 pillars, including a technology-neutral microservices pillar: laws and theorems (CAP, PACELC, Amdahl, Little, Conway…), architectural styles, business strategy and FinOps, DDD and data architecture, integration, DevOps and delivery, security, SRE, and technical leadership. The full list with subtopics is in [`Architecture Catalog.md`](architecture/Architecture%20Catalog.md). Topics marked *planned* are being written in batches. | [`/architecture/`](https://chandanbharadwaj.github.io/cb-sys-design/architecture/) |
 
 Each page has the same sections. Architecture pages rename a few of them, shown in brackets:
 

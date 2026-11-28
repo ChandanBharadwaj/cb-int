@@ -1,6 +1,6 @@
 # Architecture Catalog & Reference Guide
 
-The Architecture track of the Design Atlas: 49 topics in 9 pillars for software-architect interview prep and real architecture decisions. Each topic gets an animated page on the site (topics marked _planned_ are being written in batches).
+The Architecture track of the Design Atlas: 64 topics in 10 pillars for software-architect interview prep and real architecture decisions. Each topic gets an animated page on the site (topics marked _planned_ are being written in batches).
 
 Live site: https://chandanbharadwaj.github.io/cb-sys-design/architecture/
 
