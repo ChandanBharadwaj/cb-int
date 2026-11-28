@@ -16,7 +16,7 @@ const TEXT_CAP = 16000;   // characters of body text indexed per page
 
 // [source in repo, destination under OUT, track key]
 const TRACKS = [
-  ['docs', 'atlas'],          // Interview Atlas: SQL, Java, Spring, Kubernetes, Python, Node.js, Azure
+  ['docs', 'atlas'],          // Interview Atlas: every track under docs/data (SQL, Java, Spring, Python, Kubernetes, Azure, Node.js, Spark, …)
   ['cb-ml', 'cb-ml'],
   ['cb-ml-transformers', 'cb-ml-transformers'],
   ['cb-sys-design/docs', 'cb-sys-design'],

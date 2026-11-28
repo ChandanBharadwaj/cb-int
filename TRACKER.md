@@ -5,7 +5,7 @@
 ## Current state
 - **Platform:** ✅ hub (`docs/index.html`), SQL track page, engine, CSS, PGlite playground, puzzles, shell generator
 - **All 46 SQL topics:** ✅ built, verified against real Postgres (PGlite = PG18) and smoke-tested at desktop and 390px. Merged to main.
-- **Next action:** take review feedback on individual pages, then start the next track (Java / Spring / AI agents) once the user picks one.
+- **Next action:** take review feedback on individual pages. The Java, Spring and other tracks are live (see `TRACKS-TRACKER.md`); the AI agents track is the next one to write.
 
 ## Repo layout (consolidated)
 - This repo now also holds `cb-ml/`, `cb-ml-transformers/`, `cb-sys-design/` and `dsa-interview/`, copied verbatim from their old repos. The landing page lives in `home/`.

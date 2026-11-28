@@ -52,7 +52,7 @@ Each entry lists what changed and what was deliberately left as it was.
 
 ---
 
-## Distributed Cache (`distributed-cache`)
+## Caching Patterns, formerly Distributed Cache (`distributed-cache`)
 
 - Widget: the phone layout (ring above the bar chart, 360 viewBox) existed, but its text was 12–15 units and it was laid out only once at load. Layout now lives in `geom(narrow)` + `placeRing()`. Phones get 14–17-unit text for the centre readout, vnode labels, chart title, bar labels and counts, plus taller bar rows. The layout rebuilds on `ctx.onResize`. Ring hashing (FNV-1a + avalanche), vnode placement and owner computation are unchanged, and the desktop renders as before. Font check went from min 11.3 / p25 11.3px (45% ≥12px) to min 13.2 / p25 13.2px. On phone I set vnodes = 4 and added node E: 30% of keys moved against an ideal of 20%, moved keys are outlined, and labels are readable.
 - Flagged weak item, now cited. Karger et al., "Consistent Hashing and Random Trees" (STOC '97): added a 1997 timeline item and a source. The URL is the Brown University PDF that appeared in search, with the ACM DOI given in the pub line. Vattani, Chierichetti, Lowenstein, "Optimal Probabilistic Cache Stampede Prevention" (PVLDB 8(8), 2015): added a 2015 timeline item and a source (VLDB page from search). The XFetch snippet and knob note now have a citable origin.

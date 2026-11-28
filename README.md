@@ -7,7 +7,7 @@ One repo and one GitHub Pages site for every track. Each track keeps its origina
 | Track | Folder in this repo | URL | Formerly |
 |---|---|---|---|
 | Landing page | `home/` | `/cb-int/` | (new) |
-| Interview Atlas: SQL & Postgres, Java & JVM, Spring & Spring Boot, Kubernetes, Python, Node.js, Azure | `docs/` (one folder per track) | `/cb-int/atlas/<track>/` (old `/cb-int/sql-atlas/…` links redirect) | cb-int |
+| Interview Atlas: SQL & Postgres, Java & JVM, Spring & Spring Boot, Kubernetes, Python, Node.js, Azure, Spark & PySpark, TypeScript, Vue.js, Modern frontend, Databricks | `docs/` (one folder per track) | `/cb-int/atlas/<track>/` (old `/cb-int/sql-atlas/…` links redirect) | cb-int |
 | Modern AI/ML & GenAI | `cb-ml/` | `/cb-int/cb-ml/` | cb-ml |
 | The Missing Middle (Transformers) | `cb-ml-transformers/` | `/cb-int/cb-ml-transformers/` | cb-ml-transformers |
 | Design Atlas: System Design (53 systems) and Software Architecture (49 topics) | `cb-sys-design/` (site in `cb-sys-design/docs/`) | `/cb-int/cb-sys-design/system-design/` and `/cb-int/cb-sys-design/architecture/` | cb-sys-design (`main` plus the unmerged Architecture and HLD-pages branches, merged here) |
@@ -42,4 +42,4 @@ cd _site && python3 -m http.server 8000
 The widget and search live in `home/site/nav.js`, and the landing page is `home/index.html`.
 You can also serve a single track straight from its own folder. For the SQL Atlas, `cd docs && python3 -m http.server 8000` works as before.
 
-Interview Atlas: `TRACKER.md` (SQL) and `TRACKS-TRACKER.md` (Java, Spring, Kubernetes, Python, Node.js, Azure) track progress. `tools/AUTHORING.md` is the page schema, `tools/AGENT_BRIEF.md` the brief for content agents, and `python3 tools/gen_shells.py` regenerates the HTML shells and track pages.
+Interview Atlas: `TRACKER.md` (SQL) and `TRACKS-TRACKER.md` (the other tracks, starting with Java, Spring, Kubernetes, Python, Node.js and Azure) track progress. `tools/AUTHORING.md` is the page schema, `tools/AGENT_BRIEF.md` the brief for content agents, and `python3 tools/gen_shells.py` regenerates the HTML shells and track pages.

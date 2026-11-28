@@ -9,6 +9,7 @@
   var TRACKS = {
     'atlas-sql': 'SQL & Postgres', 'atlas-java': 'Java', 'atlas-spring': 'Spring', 'atlas-python': 'Python',
     'atlas-nodejs': 'Node.js', 'atlas-kubernetes': 'Kubernetes', 'atlas-azure': 'Azure',
+    'atlas-spark': 'Spark', 'atlas-typescript': 'TypeScript', 'atlas-vue': 'Vue.js', 'atlas-frontend': 'Frontend', 'atlas-databricks': 'Databricks',
     'cb-ml': 'AI/ML & GenAI', 'cb-ml-transformers': 'Transformers', 'cb-sys-design': 'System Design', 'cb-sys-design-arch': 'Architecture', 'dsa-interview': 'DSA'
   };
   var LABEL = Object.assign({ atlas: 'Interview Atlas' }, TRACKS);
@@ -157,7 +158,7 @@ mark{background:var(--mark);color:var(--markink);border-radius:3px;padding:0 1px
     if (!data) return;
     var q = input.value, r = search(q);
     sel = 0;
-    if (!q.trim()) { items = []; res.innerHTML = '<div class="msg">Search ' + data.length + ' pages across all five tracks.</div>'; return; }
+    if (!q.trim()) { items = []; res.innerHTML = '<div class="msg">Search ' + data.length + ' pages across all tracks.</div>'; return; }
     if (!r.list.length) { items = []; res.innerHTML = '<div class="msg">No matches for “' + esc(q.trim()) + '”.</div>'; return; }
     res.innerHTML = r.list.map(function (m, i) {
       var p = m.p, h = m.h >= 0 ? p.h[m.h] : null;
