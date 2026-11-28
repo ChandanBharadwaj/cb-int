@@ -7,7 +7,7 @@
   var ROOT = new URL('../', SCRIPT.src).href;            // site root (…/cb-int/)
   var INDEX_URL = new URL('search-index.json', SCRIPT.src).href;
   var TRACKS = {
-    'atlas-sql': 'SQL & Postgres', 'atlas-java': 'Java', 'atlas-spring': 'Spring', 'atlas-python': 'Python',
+    'atlas-sql': 'SQL & Postgres', 'atlas-java': 'Java', 'atlas-spring': 'Spring', 'atlas-python': 'Python', 'atlas-ai-agents': 'AI agents',
     'atlas-nodejs': 'Node.js', 'atlas-kubernetes': 'Kubernetes', 'atlas-azure': 'Azure',
     'atlas-spark': 'Spark', 'atlas-typescript': 'TypeScript', 'atlas-vue': 'Vue.js', 'atlas-frontend': 'Frontend', 'atlas-databricks': 'Databricks',
     'cb-ml': 'AI/ML & GenAI', 'cb-ml-transformers': 'Transformers', 'cb-sys-design': 'System Design', 'cb-sys-design-arch': 'Architecture', 'dsa-interview': 'DSA'

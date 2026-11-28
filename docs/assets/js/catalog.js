@@ -508,6 +508,31 @@ window.IA_CATALOG = {
           { n: '★', slug: 'tricky-databricks', title: 'Tricky Databricks (timed)', sub: '40 mixed puzzles', depth: 'X', status: 'done' }]}
       ]
     },
-    { id: 'ai-agents', name: 'AI agents (Python)', icon: '✦', status: 'soon', blurb: 'Coming later.', modules: [] }
+    {
+      id: 'ai-agents', name: 'AI agents (Python)', icon: '✦', status: 'live', lang: 'python',
+      blurb: 'From the tool loop and structured outputs to memory, MCP, orchestration, evals, guardrails and cost. Python first, with Spring AI notes for Java.',
+      index: { hero: 'AI agents, <span class=\'grad\'>from tool loop to production.</span>', search: 'Search: tool calling, MCP, evals…', desc: 'From the tool loop and structured outputs to memory, MCP, orchestration, evals, guardrails and cost. Python first, with Spring AI notes for Java.' },
+      text: { gotchaSub: 'The traps that cost tokens, trust or a production incident.', codeTitle: 'In your stack', codeLabel: 'Python', codeSub: 'Python 3.12+ with asyncio and Pydantic, plus Spring AI for Java where it matters.', footer: 'Interview Atlas · APIs and model names as of late 2026; check current docs.', metaDesc: 'Animated visuals, gotchas, real-world incidents, puzzles and interview questions.' },
+      modules: [
+        { id: 'B', name: 'Basics (start here)', topics: [
+          { n: 'B1', slug: 'agents-what-is-an-agent', title: 'What an agent is', sub: 'model + loop + tools; workflow vs agent; when not to build one', depth: 'F', status: 'done' },
+          { n: 'B2', slug: 'agents-llm-api-basics', title: 'Calling a model', sub: 'messages & roles; tokens & context window; streaming; sampling', depth: 'F', status: 'done' },
+          { n: 'B3', slug: 'agents-tool-calling', title: 'Tool calling', sub: 'tool schemas; the tool loop; parallel calls; tool errors', depth: 'F', status: 'done' },
+          { n: 'B4', slug: 'agents-structured-output', title: 'Structured outputs', sub: 'JSON schema; Pydantic validation; repair & retry', depth: 'F', status: 'done' }]},
+        { id: 'M1', name: 'Building agents', topics: [
+          { n: '5', slug: 'agents-context-engineering', title: 'Prompts & context engineering', sub: 'system prompts; examples; context budget; compaction', depth: 'D', status: 'done' },
+          { n: '6', slug: 'agents-memory', title: 'Memory & state', sub: 'short vs long-term; summaries; vector memory; checkpoints', depth: 'D', status: 'done' },
+          { n: '7', slug: 'agents-rag', title: 'Retrieval for agents (RAG)', sub: 'chunking; hybrid search; rerank; agentic retrieval; pgvector', depth: 'D', status: 'done' },
+          { n: '8', slug: 'agents-mcp', title: 'Model Context Protocol (MCP)', sub: 'servers & clients; tools, resources, prompts; transports; auth', depth: 'D', status: 'done' },
+          { n: '9', slug: 'agents-orchestration', title: 'Workflows & multi-agent', sub: 'chaining; routing; parallel; orchestrator-workers; graphs; durable runs', depth: 'D', status: 'done' },
+          { n: '10', slug: 'agents-frameworks', title: 'Frameworks & SDKs', sub: 'LangGraph; vendor agent SDKs; Pydantic AI; Spring AI & LangChain4j; when to use none', depth: 'D', status: 'done' }]},
+        { id: 'M2', name: 'Production', topics: [
+          { n: '11', slug: 'agents-evals', title: 'Evals & testing', sub: 'golden sets; graders; LLM-as-judge; regression gates; trajectory evals', depth: 'D', status: 'done' },
+          { n: '12', slug: 'agents-observability', title: 'Tracing & debugging', sub: 'spans per step; OpenTelemetry GenAI; replay; cost per run', depth: 'D', status: 'done' },
+          { n: '13', slug: 'agents-guardrails-security', title: 'Guardrails & security', sub: 'prompt injection; least privilege tools; sandboxing; human approval', depth: 'X', status: 'done' },
+          { n: '14', slug: 'agents-cost-latency', title: 'Cost & latency', sub: 'prompt caching; model routing; batching; streaming; token budgets', depth: 'D', status: 'done' },
+          { n: '15', slug: 'agents-serving-fastapi', title: 'Serving an agent', sub: 'FastAPI & asyncio; SSE streaming; background runs; idempotency; rate limits', depth: 'D', status: 'done' }]}
+      ]
+    }
   ]
 };

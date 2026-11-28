@@ -12,6 +12,7 @@ const DOCS = path.resolve(__dirname, '..', 'docs');
 const RUNNERS = {
   java: { file: 'Main.java', cmd: (f) => ['java', [f]] },
   python: { file: 'main.py', cmd: (f) => ['python3', ['-I', f]] },
+  'ai-agents': { file: 'main.py', cmd: (f) => ['python3', ['-I', f]] },   // standard library only: no API keys or network
   nodejs: { file: 'main.js', cmd: (f) => ['node', [f]] },
   typescript: { file: 'main.ts', cmd: (f) => ['node', ['--experimental-strip-types', '--no-warnings', f]] },
 };
