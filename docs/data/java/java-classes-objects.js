@@ -143,7 +143,7 @@ public class CartService {
         new C();
         System.out.println();
     }
-}`, options: ['AB1', 'B1A', 'A', 'B1'], answer: 1, explain: '<code>this(1)</code> must be the first statement, and it runs the other constructor to completion before the rest of <code>C()</code> continues.', run: true, expect: 'B1A' },
+}`, options: ['AB1', 'B1A', 'A', 'B1'], answer: 1, explain: '<code>this(1)</code> must be the first statement (Java 25 allows some statements before it, JEP 513), and it runs the other constructor to completion before the rest of <code>C()</code> continues.', run: true, expect: 'B1A' },
     { kind: 'predict', q: 'Field initialiser, initialiser block, constructor. What does this print?', code: `public class Main {
     static class D {
         int x = 1;
@@ -160,7 +160,7 @@ public class CartService {
   ],
   interview: [
     { q: 'What is the difference between a class and an object?', a: '<p>A class defines a type: fields, constructors and methods. An object is one instance of it, made with <code>new</code>, with its own field values. Many objects, one class.</p>', lvl: 'core' },
-    { q: 'What does <code>this</code> mean, and where can you use it?', a: '<ul><li><code>this.field</code>: the current object’s field, needed when a parameter has the same name.</li><li><code>this(...)</code>: call another constructor of the same class (first statement only).</li><li>Passing <code>this</code>: hand the current object to another method.</li></ul><p>There is no <code>this</code> in a static method.</p>', lvl: 'core' },
+    { q: 'What does <code>this</code> mean, and where can you use it?', a: '<ul><li><code>this.field</code>: the current object’s field, needed when a parameter has the same name.</li><li><code>this(...)</code>: call another constructor of the same class (first statement only up to Java 24; Java 25’s flexible constructor bodies, JEP 513, allow statements before it that don’t use <code>this</code>).</li><li>Passing <code>this</code>: hand the current object to another method.</li></ul><p>There is no <code>this</code> in a static method.</p>', lvl: 'core' },
     { q: 'When does Java give you a default constructor?', a: '<p>Only if the class declares no constructor at all. Java then adds a no-arg one that calls <code>super()</code>. Once you write any constructor, you must write the no-arg one yourself.</p>', lvl: 'core' },
     { q: 'Explain the four access levels.', a: '<ul><li><code>private</code>: only inside the same top-level class.</li><li>package-private (no keyword): any class in the same package.</li><li><code>protected</code>: same package, plus subclasses in other packages.</li><li><code>public</code>: everywhere (subject to modules, if used).</li></ul><p>A top-level class can only be <code>public</code> or package-private. A file has at most one public top-level class, named like the file.</p>', lvl: 'core' },
     { q: 'What is the difference between static and instance fields?', a: '<p>An instance field has one copy per object. A static field has one copy per class, shared by all objects. You reach it as <code>ClassName.field</code>, with no object. Changeable static fields are global state: shared across threads and hard to test. Typical static fields are constants: <code>static final int MAX = 10;</code>.</p>', fu: 'When is a static field set up? When the class is first used, e.g. on the first <code>new</code> or static method call.', lvl: 'core' },

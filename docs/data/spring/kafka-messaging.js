@@ -10,7 +10,7 @@ IA.register({
     facts: [
       { v: '10 attempts', l: '<code>DefaultErrorHandler</code>’s default: <code>FixedBackOff(0, 9)</code>, i.e. one delivery plus 9 retries with no delay, then the record is logged and skipped' },
       { v: '5 min', l: 'default <code>max.poll.interval.ms</code>: take longer between polls and the consumer is removed from the group and its partitions are reassigned' },
-      { v: 'Spring Kafka 3.0', l: '<code>KafkaTemplate.send()</code> returns <code>CompletableFuture</code> instead of <code>ListenableFuture</code>; Boot 3.x ships Spring Kafka 3.x' }
+      { v: 'Spring Kafka 3.0', l: '<code>KafkaTemplate.send()</code> returns <code>CompletableFuture</code> instead of <code>ListenableFuture</code>; Boot 3.x ships Spring Kafka 3.x, Boot 4.0 ships Spring Kafka 4.0' }
     ]
   },
   intro: {

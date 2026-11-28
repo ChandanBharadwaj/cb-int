@@ -10,7 +10,7 @@ IA.register({
     facts: [
       { v: 'once', l: 'a module’s top-level code runs once per process; later imports reuse the object in <code>sys.modules</code>' },
       { v: 'str', l: 'is what <code>csv</code> gives you for every field, and JSON object keys are always strings: <code>{1: "a"}</code> round-trips to <code>{"1": "a"}</code>' },
-      { v: 'locale', l: 'decides <code>open()</code>’s default text encoding (often not UTF-8 on Windows) until UTF-8 mode becomes the default (PEP 686 targets Python 3.15; check your version). Pass <code>encoding=</code> explicitly' }
+      { v: 'UTF-8', l: 'is <code>open()</code>’s default text encoding from Python 3.15 (PEP 686). On 3.14 and older the locale decides, which is often not UTF-8 on Windows. Pass <code>encoding=</code> explicitly so both behave the same' }
     ]
   },
   intro: {
@@ -163,7 +163,7 @@ main.py        # import json  -> imports YOUR json.py
 f.write("data")
 # crash or early return here → data may never reach disk`, why: 'Writes are buffered. Data is flushed on <code>close()</code>; without it you rely on garbage collection and can lose output or leak handles (“Too many open files”).', fix: 'Always <code>with open(...) as f:</code>, or the one-shot helpers <code>Path.read_text</code>/<code>write_text</code>.' },
     { trap: 'Relying on the default encoding', code: `open("names.txt").read()      # works on Linux/macOS
-# Windows: UnicodeDecodeError: 'charmap' codec can't decode byte 0x81`, why: 'Without <code>encoding=</code>, text mode uses the locale’s preferred encoding, which is often a legacy code page on Windows.', fix: 'Pass <code>encoding="utf-8"</code> on every text <code>open</code>, <code>read_text</code> and <code>write_text</code>. Or run with UTF-8 mode (<code>python -X utf8</code> / <code>PYTHONUTF8=1</code>).' },
+# Windows: UnicodeDecodeError: 'charmap' codec can't decode byte 0x81`, why: 'On Python 3.14 and older, text mode without <code>encoding=</code> uses the locale’s preferred encoding, which is often a legacy code page on Windows. Python 3.15 made UTF-8 the default (PEP 686). The reverse trap now exists: a legacy-encoded file that 3.14 read fine fails or garbles on 3.15.', fix: 'Pass <code>encoding="utf-8"</code> on every text <code>open</code>, <code>read_text</code> and <code>write_text</code>, so every version behaves the same. On older versions you can also run in UTF-8 mode (<code>python -X utf8</code> / <code>PYTHONUTF8=1</code>). On 3.15, <code>encoding="locale"</code> asks for the locale encoding, and <code>PYTHONUTF8=0</code> / <code>-X utf8=0</code> opts out.' },
     { trap: '"w" truncates immediately', code: `with open("config.json", "w") as f:     # file is now EMPTY
     json.dump(build_config(), f)          # if this raises, the old config is gone`, why: 'Opening in <code>"w"</code> mode wipes the file before you write anything.', fix: 'Use <code>"a"</code> to append, <code>"x"</code> to fail if it exists, or write to a temp file and <code>os.replace(tmp, path)</code> for an atomic swap.' },
     { trap: 'pip installs into a different Python than you run', code: `pip install requests

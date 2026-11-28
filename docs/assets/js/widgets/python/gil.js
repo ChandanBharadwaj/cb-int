@@ -23,7 +23,7 @@ IA.widget('gil', (root, ctx) => {
       intro: 'Three threads each do a little CPU, wait 25 ms on the network, then a little more CPU.' },
     mixed: { label: 'CPU + I/O (convoy)', ft: false, plan: { T1: [['cpu', 45]], T2: [['cpu', 1], ['io', 4], ['cpu', 1], ['io', 4], ['cpu', 1], ['io', 4], ['cpu', 1]] },
       intro: 'T1 is CPU-bound. T2 makes quick 4 ms network calls, each followed by 1 ms of Python.' },
-    ft: { label: 'Free-threaded 3.13t', ft: true, plan: { T1: [['cpu', 20]], T2: [['cpu', 20]], T3: [['cpu', 20]] },
+    ft: { label: 'Free-threaded (3.13t+)', ft: true, plan: { T1: [['cpu', 20]], T2: [['cpu', 20]], T3: [['cpu', 20]] },
       intro: 'The same three CPU-bound threads on the free-threaded build, with 3 free cores. No GIL to wait for.' }
   };
   const INTERVAL = 5;

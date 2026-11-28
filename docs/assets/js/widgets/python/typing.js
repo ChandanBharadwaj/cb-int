@@ -33,7 +33,7 @@ IA.widget('typing', (root, ctx) => {
         { line: 0, chk: ['info', 'add: (a: int, b: int) -> int'], rt: ['info', 'function created; annotations stored in add.__annotations__'], cap: 'Both readers see the <code>def</code>. The checker records a signature. CPython builds a function object and stores the annotations as data. It does nothing else with them.' },
         { line: 3, chk: ['ok', 'OK'], rt: ['ok', '→ 5'], cap: 'A correct call. Both are happy.' },
         { line: 4, chk: ['err', 'error: Argument 1 to "add" has incompatible type "str"; expected "int"'], rt: ['ok', '→ "xy"  (no error!)'], cap: 'The checker rejects it <b>before the program runs</b>. CPython runs it anyway: <code>str + str</code> works, so you get <code>"xy"</code>. Hints are <b>not</b> runtime checks.' },
-        { line: 5, chk: ['ok', 'OK'], rt: ['info', "{'a': <class 'int'>, 'b': <class 'int'>, 'return': <class 'int'>}"], cap: 'At run time annotations are just a dict that libraries (Pydantic, FastAPI, dataclasses) can read and act on. 3.14 makes them lazily evaluated (PEP 649/749).' }
+        { line: 5, chk: ['ok', 'OK'], rt: ['info', "{'a': <class 'int'>, 'b': <class 'int'>, 'return': <class 'int'>}"], cap: 'At run time annotations are just a dict that libraries (Pydantic, FastAPI, dataclasses) can read and act on. Since 3.14 they are lazily evaluated (PEP 649/749).' }
       ] },
     { label: 'Protocol', code: ['class SupportsClose(Protocol):', '    def close(self) -> None: ...', '', 'class Upload:                 # no base class', '    def close(self) -> None: ...', '', 'def shutdown(r: SupportsClose) -> None:', '    r.close()', '', 'shutdown(Upload())', 'shutdown(42)', 'isinstance(Upload(), SupportsClose)'],
       steps: [

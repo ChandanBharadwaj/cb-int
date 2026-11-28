@@ -53,7 +53,7 @@ IA.register({
       fix: 'Remove it. Customise with a <code>WebMvcConfigurer</code> bean, which adds to Boot’s setup instead of replacing it.' },
     { trap: 'Declaring your own ObjectMapper @Bean',
       why: 'Boot’s Jackson auto-configuration backs off, so <code>spring.jackson.*</code> properties stop applying, and the MVC converter uses your bare mapper (for example, dates as numbers).',
-      fix: 'Customise Boot’s mapper with a <code>Jackson2ObjectMapperBuilderCustomizer</code> bean, or with <code>spring.jackson.*</code> properties.' },
+      fix: 'Customise Boot’s mapper with a <code>Jackson2ObjectMapperBuilderCustomizer</code> bean, or with <code>spring.jackson.*</code> properties. Boot 4 (Jackson 3): the customizer is <code>JsonMapperBuilderCustomizer</code> and the bean type is <code>JsonMapper</code>.' },
     { trap: 'Reading the request body in a filter',
       why: 'The servlet input stream can be read once. A logging filter that reads it leaves nothing for Jackson, and the controller gets a 400 “Required request body is missing”.',
       fix: 'Wrap with <code>ContentCachingRequestWrapper</code> and read the cached bytes <i>after</i> <code>chain.doFilter</code>, when the converter has consumed them.' },
@@ -80,7 +80,7 @@ IA.register({
       diagnose: `# logging.level.org.springframework.web: DEBUG\n# GET "/api/orders/", parameters={}\n# Mapped to ResourceHttpRequestHandler [classpath [static/], …]\n# Resolved [NoResourceFoundException: No static resource api/orders.]`,
       diagnoseLang: 'yaml',
       cause: 'Spring Framework 6.0 disabled trailing-slash matching by default. The request matched no controller and fell through to the static-resource handler, which throws <code>NoResourceFoundException</code> (6.1+), returned as 404.',
-      fix: 'Fix clients, or map both paths explicitly during a migration window. Framework 6.2 adds <code>UrlHandlerFilter</code> to redirect or rewrite trailing slashes in one place.',
+      fix: 'Fix clients, or map both paths explicitly during a migration window. Framework 6.2 adds <code>UrlHandlerFilter</code> to redirect or rewrite trailing slashes in one place. Boot 4: Framework 7 removed the old trailing-slash and suffix-pattern matching options completely, so the opt-in escape hatch is gone.',
       fixCode: `@GetMapping({"/api/orders", "/api/orders/"})   // temporary, explicit\nList<OrderDto> list() { … }` }
   ],
   puzzles: [

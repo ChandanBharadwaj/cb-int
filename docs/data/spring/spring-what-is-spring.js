@@ -8,9 +8,9 @@ IA.register({
     model: 'Spring = <b>a bean container + libraries</b> (MVC, Data, Security…). Boot = <b>opinions on top</b>: add a starter, Boot sees the jars on your classpath and configures sensible defaults, backing off when you define your own.',
     hook: '“What is the difference between Spring and Spring Boot?” Boot is not a different framework. It is Spring, plus starters, auto-configuration, an embedded server and an executable jar.',
     facts: [
-      { v: '17+', l: 'minimum Java version for Spring Boot 3.x (built on Spring Framework 6)' },
+      { v: '17+', l: 'minimum Java version for Spring Boot 3.x (built on Spring Framework 6). Boot 4 (Framework 7) kept the same minimum' },
       { v: 'jakarta.*', l: 'Boot 3 moved from <code>javax.*</code> to Jakarta EE 9+ package names' },
-      { v: '1 starter', l: '<code>spring-boot-starter-web</code> brings Spring MVC, Jackson and embedded Tomcat' }
+      { v: '1 starter', l: '<code>spring-boot-starter-web</code> brings Spring MVC, Jackson and embedded Tomcat. Boot 4: it is named <code>spring-boot-starter-webmvc</code>; the old name is deprecated' }
     ]
   },
   intro: {
@@ -52,7 +52,7 @@ IA.register({
     { kind: 'concept', q: 'What does <code>spring-boot-starter-web</code> mainly do?', options: ['Generates a website template', 'Pulls in a tested set of dependencies: Spring MVC, Jackson, embedded Tomcat', 'Starts a browser when the app starts', 'Enables Spring Security'], answer: 1, explain: 'A starter is a dependency descriptor. It brings libraries onto the classpath; auto-configuration then reacts to them.' },
     { kind: 'concept', q: 'You define your own <code>ObjectMapper</code> bean. What does Boot’s Jackson auto-configuration do?', options: ['Creates a second ObjectMapper and fails startup', 'Overwrites yours with its default', 'Backs off and uses yours (@ConditionalOnMissingBean)', 'Merges both mappers'], answer: 2, explain: 'Most auto-configured beans are guarded by <code>@ConditionalOnMissingBean</code>. If you defined one, the default is skipped.' },
     { kind: 'concept', q: 'Dependency injection is a feature of…', options: ['Spring Boot only', 'Spring Framework (Boot uses it)', 'The JVM', 'Jakarta Servlet'], answer: 1, explain: 'The IoC container is in Spring Framework (<code>spring-context</code>). Plain Spring apps without Boot have DI too.' },
-    { kind: 'concept', q: 'Minimum Java version for Spring Boot 3.x?', options: ['8', '11', '17', '21'], answer: 2, explain: 'Boot 3 is built on Spring Framework 6, which requires Java 17. Java 21 is supported and common, but not required.' },
+    { kind: 'concept', q: 'Minimum Java version for Spring Boot 3.x?', options: ['8', '11', '17', '21'], answer: 2, explain: 'Boot 3 is built on Spring Framework 6, which requires Java 17. Java 21 is supported and common, but not required. Boot 4: still 17, with Java 25 recommended.' },
     { kind: 'concept', q: 'Which project would you add to protect endpoints with login and roles?', options: ['Spring Data', 'Spring Batch', 'Spring Security', 'Spring Cloud Config'], answer: 2, explain: 'Spring Security handles authentication and authorization. Add <code>spring-boot-starter-security</code>.' }
   ],
   interview: [
@@ -64,7 +64,7 @@ IA.register({
     { q: 'Why does Boot use an embedded server?', a: '<p>The app becomes a self-contained jar started with <code>java -jar</code>. There is no separate server to install or keep in version sync, which fits containers and cloud platforms. War deployment to an external server is still possible.</p>', lvl: 'core' },
     { q: 'How do you override a default that Boot configured?', a: '<ol><li>Set a property (e.g. <code>server.port=9090</code>).</li><li>If that is not enough, define your own bean of that type; the auto-configuration backs off.</li><li>As a last resort, exclude the auto-configuration class.</li></ol>', lvl: 'core' },
     { q: 'Name some projects in the Spring ecosystem.', a: '<p>Spring Data (JPA, JDBC, MongoDB…), Spring Security, Spring Cloud, Spring Batch, Spring Integration, Spring for Apache Kafka, Spring AI. Most have a Boot starter.</p>', lvl: 'core' },
-    { q: 'What changed going from Boot 2 to Boot 3?', a: '<p>Java 17 baseline, Spring Framework 6, Jakarta EE 9+ (<code>jakarta.*</code> packages), observability via Micrometer, and support for GraalVM native images (AOT).</p>', lvl: 'deep' }
+    { q: 'What changed going from Boot 2 to Boot 3?', a: '<p>Java 17 baseline, Spring Framework 6, Jakarta EE 9+ (<code>jakarta.*</code> packages), observability via Micrometer, and support for GraalVM native images (AOT).</p>', fu: 'And Boot 3 to Boot 4? (Still Java 17. Framework 7, Jakarta EE 11, modular starters, Jackson 3, no Undertow. See <a href="boot-4-migration.html">Boot 3 → 4</a>.)', lvl: 'deep' }
   ],
   code: [
     { title: 'Smallest Boot app', lang: 'java', code: `package com.example.demo;
@@ -96,6 +96,6 @@ class JsonConfig {
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .build();
   }
-}`, note: 'Prefer <code>spring.jackson.*</code> properties or a <code>Jackson2ObjectMapperBuilderCustomizer</code> first: replacing the whole bean also drops Boot’s other defaults.' }
+}`, note: 'Prefer <code>spring.jackson.*</code> properties or a <code>Jackson2ObjectMapperBuilderCustomizer</code> first: replacing the whole bean also drops Boot’s other defaults. Boot 4: JSON is Jackson 3, so the bean is a <code>JsonMapper</code> and the customizer is <code>JsonMapperBuilderCustomizer</code>.' }
   ]
 });

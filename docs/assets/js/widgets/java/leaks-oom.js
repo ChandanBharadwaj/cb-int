@@ -80,7 +80,7 @@ IA.widget('leaks-oom', (root, ctx) => {
           N('thr', 20, 40, 180, 50, 'pool thread', 'http-nio-exec-7'); N('tlm', 240, 40, 170, 50, 'ThreadLocalMap', 'per thread'); N('e', 450, 40, 130, 50, 'Entry', 'key: weak'); N('v', 610, 30, 130, 70, 'value', 'strong → 40 MB', { state: 'err' });
           S.edges = [{ from: 'thr', to: 'tlm', state: 'warn' }, { from: 'tlm', to: 'e', state: 'warn' }, { from: 'e', to: 'v', state: 'err', label: 'strong' }];
           S.notes = [{ x: 20, y: 130, t: 'The thread never dies (it is pooled), so its ThreadLocalMap lives as long as the JVM.', size: 12 }, { x: 20, y: 150, t: 'The key is weak, the value is not: a value referencing its own ThreadLocal or class loader is never freed.', size: 12 }];
-          N('fix', 20, 190, 720, 60, 'Fix: try { TL.set(x); … } finally { TL.remove(); }, or use ScopedValue (preview in 21) / request-scoped beans', '', { state: 'ok', fs: 12 });
+          N('fix', 20, 190, 720, 60, 'Fix: try { TL.set(x); … } finally { TL.remove(); }, or use ScopedValue (final in 25) / request-scoped beans', '', { state: 'ok', fs: 12 });
         } else {
           N('bus', 20, 50, 180, 50, 'EventBus', 'singleton (root)'); N('list', 250, 50, 170, 50, 'listeners', 'CopyOnWriteArrayList'); N('l1', 480, 20, 120, 36, 'Screen#1', '', { state: 'err' }); N('l2', 480, 64, 120, 36, 'Screen#2', '', { state: 'err' }); N('l3', 480, 108, 120, 36, 'Screen#…', '', { state: 'err' }); N('data', 640, 60, 100, 44, 'their data', '');
           S.edges = [{ from: 'bus', to: 'list', state: 'warn' }, { from: 'list', to: 'l1', state: 'err' }, { from: 'list', to: 'l2', state: 'err' }, { from: 'list', to: 'l3', state: 'err' }, { from: 'l2', to: 'data' }];

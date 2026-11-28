@@ -10,7 +10,7 @@ IA.register({
     facts: [
       { v: '50', l: 'questions covering all 26 content topics of the track, from IoC to native images' },
       { v: '60 s', l: 'per question by default; Slow (90 s) and Fast (30 s) modes too' },
-      { v: 'Boot 3.x', l: 'every answer assumes Spring Boot 3.x / Framework 6.x defaults unless the question says otherwise' }
+      { v: 'Boot 3.x', l: 'every answer assumes Spring Boot 3.x / Framework 6.x defaults unless the question says otherwise. For Boot 4 differences see <a href="boot-4-migration.html">Boot 3 → 4</a>' }
     ]
   },
   intro: {

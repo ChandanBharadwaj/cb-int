@@ -234,6 +234,6 @@ try (Arena arena = Arena.ofConfined();
      FileChannel ch = FileChannel.open(index, StandardOpenOption.READ)) {
     MemorySegment seg = ch.map(FileChannel.MapMode.READ_ONLY, 0, ch.size(), arena);
     int entries = seg.get(ValueLayout.JAVA_INT_UNALIGNED.withOrder(ByteOrder.LITTLE_ENDIAN), 0);
-}   // arena.close() unmaps here`, note: 'On Java 21 the FFM API is still a preview. The <code>MemorySegment</code> version needs <code>--enable-preview</code> there.' }
+}   // arena.close() unmaps here`, note: 'The FFM API is final since Java 22 (JEP 454), so Java 25 LTS runs this as is. On Java 21 it is still a preview and needs <code>--enable-preview</code>.' }
   ]
 });

@@ -70,9 +70,9 @@ window.IA_CATALOG = {
     },
     {
       id: 'java', name: 'Java & JVM', icon: '☕', status: 'live', lang: 'java',
-      blurb: 'From references and equals/hashCode to the JMM, GC, JIT and virtual threads. Java 21 LTS throughout.',
-      index: { hero: 'Java &amp; the JVM, <span class=\'grad\'>language to internals.</span>', search: 'Search: hashCode, G1, virtual threads…', desc: 'From references and equals/hashCode to the JMM, GC, JIT and virtual threads. Java 21 LTS throughout.' },
-      text: { gotchaSub: 'The traps that separate “writes Java” from “debugs Java in production”.', codeTitle: 'In production', codeLabel: 'Production code', codeSub: 'Code you can lift into a real service.', footer: 'Interview Atlas · Java 21 LTS semantics unless noted.' },
+      blurb: 'From references and equals/hashCode to the JMM, GC, JIT and virtual threads. Java 21 LTS throughout, with Java 25 LTS changes noted.',
+      index: { hero: 'Java &amp; the JVM, <span class=\'grad\'>language to internals.</span>', search: 'Search: hashCode, G1, virtual threads…', desc: 'From references and equals/hashCode to the JMM, GC, JIT and virtual threads. Java 21 LTS throughout, with Java 25 LTS changes noted.' },
+      text: { gotchaSub: 'The traps that separate “writes Java” from “debugs Java in production”.', codeTitle: 'In production', codeLabel: 'Production code', codeSub: 'Code you can lift into a real service.', footer: 'Interview Atlas · Java 21 LTS semantics unless noted. Java 25 LTS differences are called out.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
           { n: 'B1', slug: 'java-setup-first-program', title: 'Running Java', sub: 'JDK vs JRE; javac & java; public static void main; JShell; single-file java Main.java', depth: 'F', status: 'done' },
@@ -113,7 +113,7 @@ window.IA_CATALOG = {
           { n: '23', slug: 'virtual-threads', title: 'Virtual threads (Java 21)', sub: 'carrier threads & mounting; pinning (synchronized, native); structured concurrency; when not to use them', depth: 'X', status: 'done' },
           { n: '24', slug: 'concurrency-bugs', title: 'Concurrency bugs', sub: 'race conditions; deadlock & livelock; thread dumps; lost updates; atomics & LongAdder', depth: 'X', status: 'done' }]},
         { id: 'M4', name: 'Modern Java & production', topics: [
-          { n: '25', slug: 'java-versions', title: 'Java 8 → 21 tour', sub: 'LTS timeline; key features per version; migration traps (modules, removed APIs)', depth: 'F', status: 'done' },
+          { n: '25', slug: 'java-versions', title: 'Java 8 → 25 tour', sub: 'LTS timeline; key features per version; migration traps (modules, removed APIs)', depth: 'F', status: 'done' },
           { n: '26', slug: 'profiling-jfr', title: 'Profiling & JFR', sub: 'JFR & JMC; async-profiler flame graphs; CPU vs alloc profiling; safepoint bias', depth: 'X', status: 'done' },
           { n: '27', slug: 'io-nio', title: 'I/O & NIO', sub: 'blocking vs non-blocking; buffers & channels; memory-mapped files; selectors', depth: 'D', status: 'done' }]},
         { id: 'M5', name: 'Drill', topics: [
@@ -122,9 +122,9 @@ window.IA_CATALOG = {
     },
     {
       id: 'spring', name: 'Spring & Spring Boot', icon: '❀', status: 'live', lang: 'java',
-      blurb: 'IoC, proxies and auto-configuration through @Transactional, JPA, security, Kafka and production Boot. Boot 3.x.',
-      index: { hero: 'Spring &amp; Spring Boot, <span class=\'grad\'>magic made visible.</span>', search: 'Search: proxies, @Transactional, N+1…', desc: 'IoC, proxies and auto-configuration through @Transactional, JPA, security, Kafka and production Boot. Boot 3.x.' },
-      text: { gotchaSub: 'The traps that separate “uses Spring” from “knows what Spring is doing for you”.', codeTitle: 'In your stack', codeLabel: 'Spring Boot', codeSub: 'Configuration and code for a Spring Boot 3.x service.', footer: 'Interview Atlas · Spring Boot 3.x / Spring Framework 6.x unless noted.' },
+      blurb: 'IoC, proxies and auto-configuration through @Transactional, JPA, security, Kafka and production Boot. Boot 3.x, with Boot 4 changes noted.',
+      index: { hero: 'Spring &amp; Spring Boot, <span class=\'grad\'>magic made visible.</span>', search: 'Search: proxies, @Transactional, N+1…', desc: 'IoC, proxies and auto-configuration through @Transactional, JPA, security, Kafka and production Boot. Boot 3.x, with Boot 4 changes noted.' },
+      text: { gotchaSub: 'The traps that separate “uses Spring” from “knows what Spring is doing for you”.', codeTitle: 'In your stack', codeLabel: 'Spring Boot', codeSub: 'Configuration and code for a Spring Boot 3.x service. “Boot 4:” notes mark what differs on Boot 4.', footer: 'Interview Atlas · Spring Boot 3.x / Spring Framework 6.x unless noted. Boot 4 / Framework 7 differences are marked “Boot 4:”.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
           { n: 'B1', slug: 'spring-what-is-spring', title: 'What Spring & Boot are', sub: 'Spring vs Spring Boot; starters; auto-configuration in one sentence; the ecosystem', depth: 'F', status: 'done' },
@@ -166,7 +166,8 @@ window.IA_CATALOG = {
           { n: '24', slug: 'async-scheduling', title: '@Async & scheduling', sub: 'executors; @Scheduled & ShedLock; virtual threads in Boot 3.2+; context propagation', depth: 'D', status: 'done' }]},
         { id: 'M6', name: 'Production', topics: [
           { n: '25', slug: 'aot-native', title: 'AOT & native image', sub: 'GraalVM native; reachability metadata; startup vs throughput; CRaC', depth: 'X', status: 'done' },
-          { n: '26', slug: 'startup-performance', title: 'Startup & runtime performance', sub: 'lazy init; class-data sharing; graceful shutdown; memory sizing in containers', depth: 'D', status: 'done' }]},
+          { n: '26', slug: 'startup-performance', title: 'Startup & runtime performance', sub: 'lazy init; class-data sharing; graceful shutdown; memory sizing in containers', depth: 'D', status: 'done' },
+          { n: '27', slug: 'boot-4-migration', title: 'Boot 3 → 4: what changed', sub: 'Framework 7 & Boot 4.0 baselines; modular starters; Jackson 3; JSpecify null-safety; API versioning; built-in retry; Undertow removed; Boot 4.1 (gRPC, SSRF filter, lazy connections); upgrade plan', depth: 'D', status: 'done' }]},
         { id: 'M7', name: 'Drill', topics: [
           { n: '★', slug: 'tricky-spring', title: 'Tricky Spring (timed)', sub: '50 mixed puzzles across the track', depth: 'X', status: 'done' }]}
       ]
@@ -223,7 +224,7 @@ window.IA_CATALOG = {
       id: 'python', name: 'Python', icon: '🐍', status: 'live', lang: 'python',
       blurb: 'From your first script and basic types to the data model, closures, generators and decorators through the GIL, asyncio, packaging and FastAPI. Runs real Python in your browser.',
       index: { hero: 'Python, <span class=\'grad\'>from zero to internals.</span>', search: 'Search: GIL, asyncio, decorators…', desc: 'The data model, closures, generators and decorators through the GIL, asyncio, packaging and FastAPI. Runs real Python in your browser.' },
-      text: { gotchaSub: 'The traps that separate “writes Python” from “knows why Python did that”.', codeTitle: 'In your stack', codeLabel: 'Python', codeSub: 'Production-style Python, plus the Java equivalent where it helps.', footer: 'Interview Atlas · CPython 3.12+ unless noted.', metaDesc: 'Animated visual, a real Python playground in your browser, gotchas, real-world incidents, puzzles and interview questions.' },
+      text: { gotchaSub: 'The traps that separate “writes Python” from “knows why Python did that”.', codeTitle: 'In your stack', codeLabel: 'Python', codeSub: 'Production-style Python, plus the Java equivalent where it helps.', footer: 'Interview Atlas · CPython 3.12+ unless noted. 3.14 and 3.15 changes are called out.', metaDesc: 'Animated visual, a real Python playground in your browser, gotchas, real-world incidents, puzzles and interview questions.' },
       modules: [
         { id: 'B', name: 'Basics (start here)', topics: [
           { n: 'B1', slug: 'py-setup-first-program', title: 'Running Python', sub: 'installing; REPL vs script; print; comments; indentation as syntax', depth: 'F', status: 'done' },
@@ -250,7 +251,7 @@ window.IA_CATALOG = {
           { n: '8', slug: 'dataclasses-pydantic', title: 'Dataclasses & Pydantic', sub: 'field defaults; frozen & slots; Pydantic v2 validation; when to use which', depth: 'D', status: 'done' }]},
         { id: 'M1', name: 'Internals', topics: [
           { n: '9', slug: 'memory-gc', title: 'Memory & garbage collection', sub: 'reference counting; cyclic GC & generations; weakref; memory leaks', depth: 'X', status: 'done' },
-          { n: '10', slug: 'gil', title: 'The GIL & free-threading', sub: 'what the GIL protects; CPU- vs I/O-bound; PEP 703 free-threaded 3.13', depth: 'X', status: 'done' },
+          { n: '10', slug: 'gil', title: 'The GIL & free-threading', sub: 'what the GIL protects; CPU- vs I/O-bound; PEP 703 free-threaded build (3.13 experimental, 3.14+ supported)', depth: 'X', status: 'done' },
           { n: '11', slug: 'dict-internals', title: 'Dict & set internals', sub: 'hash tables; insertion order; key requirements; performance traps', depth: 'X', status: 'done' },
           { n: '12', slug: 'imports', title: 'Import system', sub: 'modules & packages; sys.path; circular imports; __main__', depth: 'D', status: 'done' }]},
         { id: 'M2', name: 'Concurrency', topics: [

@@ -8,8 +8,8 @@ IA.register({
     model: 'The GC follows references from <b>roots</b> (stack frames, statics, threads) and marks what it finds. Everything unmarked is freed. The young space is collected often and cheaply. The old space is collected rarely. <b>G1</b> uses regions and marks while your app runs, then cleans the most-garbage regions first. <b>ZGC</b> even moves objects while your app runs.',
     hook: '“How do you tune G1?” Set the heap size, maybe the pause goal, and stop. Then read the log. If usage <b>after GC</b> keeps rising, you have a leak. If pauses are long, check huge allocations and allocation rate before touching flags.',
     facts: [
-      { v: 'JDK 9', l: 'G1 became the default collector on server-class machines. With fewer than 2 CPUs or under ~1.8 GB of memory, the JVM still picks Serial' },
-      { v: '< 1 ms', l: 'ZGC’s typical pause target, whatever the heap size. Generational ZGC arrived in JDK 21 (<code>-XX:+ZGenerational</code>) and is the default ZGC mode from JDK 23' },
+      { v: 'JDK 9', l: 'G1 became the default collector on server-class machines. With fewer than 2 CPUs or under ~1.8 GB of memory, the JVM still picks Serial (through JDK 26; JDK 27 makes G1 the default everywhere, JEP 523)' },
+      { v: '< 1 ms', l: 'ZGC’s typical pause target, whatever the heap size. Generational ZGC arrived in JDK 21 (<code>-XX:+ZGenerational</code>) and is the default ZGC mode from JDK 23. JDK 24 removed the non-generational mode, so on 25 plain <code>-XX:+UseZGC</code> is enough' },
       { v: '200 ms', l: 'G1’s default <code>MaxGCPauseMillis</code>. It is a goal G1 tries to meet by resizing the young generation, not a guarantee' }
     ]
   },
@@ -19,7 +19,7 @@ IA.register({
     steps: [
       { t: 'Reachable = alive', d: 'An object stays alive while a chain of references leads to it from a <b>root</b>. A root is a local variable in a running method, a static field, or a running thread.' },
       { t: 'Most objects die young', d: 'So the heap splits into two parts. The young part is collected often and cheaply. The old part holds long-lived data.' },
-      { t: 'Collectors trade pauses vs CPU', d: 'Parallel: longest pauses, best throughput. G1: short pauses, the default. ZGC: almost no pauses, but more CPU.', code: 'java -XX:+UseZGC -XX:+ZGenerational -Xmx8g -jar app.jar   # JDK 21' },
+      { t: 'Collectors trade pauses vs CPU', d: 'Parallel: longest pauses, best throughput. G1: short pauses, the default. ZGC: almost no pauses, but more CPU.', code: 'java -XX:+UseZGC -XX:+ZGenerational -Xmx8g -jar app.jar   # JDK 21; on 25 drop -XX:+ZGenerational' },
       { t: 'Read the log first', d: 'Turn on GC logging everywhere. It is cheap and answers most questions.', code: 'java -Xlog:gc*:file=gc.log:time,uptime,level,tags -jar app.jar' }
     ],
     terms: [
@@ -42,7 +42,7 @@ IA.register({
     { trap: 'Big short-lived arrays in G1 (humongous objects)', why: 'An object of half a region or more goes straight into old regions (a <i>humongous</i> object). A stream of them, like big JSON or report <code>byte[]</code>s, fragments the heap. That causes extra cycles and can end in Full GCs.', fix: 'Stream data instead of buffering whole payloads. Look for <code>G1 Humongous Allocation</code> in logs. Try <code>-XX:G1HeapRegionSize=16m</code> or <code>32m</code> so those objects aren’t humongous.' },
     { trap: 'Relying on finalize()', why: 'Finalization is deprecated for removal (Java 18). Such objects need at least two GC cycles to be freed. One thread runs finalizers, in no set order. They can even bring objects back to life.', fix: 'Use try-with-resources for predictable cleanup. Use <code>java.lang.ref.Cleaner</code> only as a safety net.' },
     { trap: 'SoftReference caches', why: 'The JVM clears soft references based on free heap and last access time. Under memory pressure it often clears them all at once. Your cache hit rate collapses right when load peaks.', fix: 'Use a size-limited cache (Caffeine, <code>maximumSize</code>/<code>maximumWeight</code>) instead of soft values.' },
-    { trap: 'Tiny containers silently use SerialGC', why: 'With fewer than 2 CPUs or under ~1.8 GB of memory, the JVM picks Serial. Serial collects on one thread and stops everything.', fix: 'Pick the collector yourself (<code>-XX:+UseG1GC</code>). Give latency-sensitive services at least 2 CPUs. Check with <code>java -Xlog:gc -version</code> in the image.' }
+    { trap: 'Tiny containers silently use SerialGC', why: 'With fewer than 2 CPUs or under ~1.8 GB of memory, the JVM picks Serial. Serial collects on one thread and stops everything. This holds on 21 and 25. JDK 27 (JEP 523) makes G1 the default in all environments.', fix: 'Pick the collector yourself (<code>-XX:+UseG1GC</code>). Give latency-sensitive services at least 2 CPUs. Check with <code>java -Xlog:gc -version</code> in the image.' }
   ],
   scenarios: [
     { title: 'p99 latency spikes to 3 s a few times an hour',

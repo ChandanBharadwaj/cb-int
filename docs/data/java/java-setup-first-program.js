@@ -47,7 +47,7 @@ $ java Main          # correct: class name, from the folder with Main.class`, la
     public void main(String[] args) { }        // not static
     static void main(String args) { }          // not String[]
 }
-// java 17: "Main method not found in class Main"`, why: 'The JVM only calls <code>public static void main(String[] args)</code>. Any other <code>main</code> is an ordinary method. Java 21 has a <i>preview</i> of simpler <code>main</code> methods, but it is off unless you pass <code>--enable-preview</code>.', fix: 'Use the standard signature exactly. <code>String... args</code> also works, since varargs is an array.' },
+// java 17: "Main method not found in class Main"`, why: 'The JVM only calls <code>public static void main(String[] args)</code>. Any other <code>main</code> is an ordinary method. That is true up to Java 24. Java 25 (JEP 512) also accepts an instance <code>void main()</code>. On Java 21 that is a <i>preview</i>, off unless you pass <code>--enable-preview</code>.', fix: 'Use the standard signature exactly. <code>String... args</code> also works, since varargs is an array.' },
     { trap: 'Mixing JDK versions', code: `$ javac -version
 javac 21.0.2
 $ java -version
@@ -111,7 +111,7 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]`, lang: 'docker' }
     { q: 'How do you return an exit code from a Java program?', a: '<p><code>main</code> is <code>void</code>, so call <code>System.exit(code)</code>. Returning normally from <code>main</code> gives exit code 0 (if no other non-daemon threads keep the JVM alive). An uncaught exception in <code>main</code> prints a stack trace and exits with 1.</p>', lvl: 'core' },
     { q: 'What does <code>UnsupportedClassVersionError</code> mean?', a: '<p>The class was compiled for a newer Java version than the JVM running it. Each release has a class-file major version (Java 17 = 61, Java 21 = 65). Fix it by running a newer JVM or compiling with <code>--release N</code> for the older target.</p>', lvl: 'core' },
     { q: 'Is Java compiled or interpreted?', a: '<p>Both. Source is compiled ahead of time to bytecode. The JVM interprets that bytecode. Busy methods get compiled to machine code <b>at run time</b> (the JIT). Tools like GraalVM Native Image can also compile a whole app ahead of time to a native executable.</p>', lvl: 'deep' },
-    { q: 'What changed about <code>main</code> in recent Java versions?', a: '<p>Java 21 previewed a simpler start: a beginner can write <code>void main() { … }</code>. It needs <code>--enable-preview</code> in Java 21 and kept changing later. On Java 21, use the classic signature.</p>', lvl: 'deep' }
+    { q: 'What changed about <code>main</code> in recent Java versions?', a: '<p>Java 21 previewed a simpler start: a beginner can write <code>void main() { … }</code>, even without a class around it. It needed <code>--enable-preview</code> and changed between releases. <b>Java 25 made it final</b> (JEP 512, “compact source files and instance main methods”) and added <code>IO.println</code> in <code>java.lang</code>. On Java 21, use the classic signature.</p>', lvl: 'deep' }
   ],
   code: [
     { title: 'Arguments and exit codes', lang: 'java', code: `public class Main {

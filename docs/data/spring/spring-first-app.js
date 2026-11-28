@@ -17,7 +17,7 @@ IA.register({
     what: 'You will build a tiny web app that answers <code>GET /hello</code>. The site <b>start.spring.io</b> (Spring Initializr) generates a ready project: a build file, a main class and folders. You add one class, press Run, and open <code>localhost:8080/hello</code> in a browser.',
     analogy: { icon: '🍱', title: 'A meal kit', text: 'start.spring.io is the meal-kit order form: pick the dish (Java, Maven, Boot 3.x) and the ingredients (Spring Web). The box arrives with everything measured. Your only job is the last step of cooking: writing your own class.' },
     steps: [
-      { t: 'Generate', d: 'On start.spring.io choose Maven (or Gradle), Java 17 or 21, the latest Boot 3.x, and add the <b>Spring Web</b> dependency. Download and unzip.' },
+      { t: 'Generate', d: 'On start.spring.io choose Maven (or Gradle), Java 17, 21 or 25, a current Boot release, and add the <b>Spring Web</b> dependency. (This track’s code is written for Boot 3.x. Boot 4: the same app works; the starter is named <code>spring-boot-starter-webmvc</code>.) Download and unzip.' },
       { t: 'Look around', d: '<code>pom.xml</code> (build file), <code>mvnw</code> (Maven wrapper, no install needed), <code>src/main/java/…/DemoApplication.java</code>, <code>src/main/resources/application.properties</code>, <code>src/test/java</code>.' },
       { t: 'Add a controller', d: 'Put it in the same package as the main class, or below it.', code: '@RestController\nclass HelloController {\n  @GetMapping("/hello")\n  String hello() { return "Hello, Spring"; }\n}' },
       { t: 'Run', d: 'Run <code>main</code> in the IDE, or from a terminal:', code: './mvnw spring-boot:run      # Gradle: ./gradlew bootRun', lang: 'bash' },
@@ -62,7 +62,7 @@ IA.register({
     { q: 'What is inside a Boot executable jar?', a: '<p><code>BOOT-INF/classes</code> (your code and resources), <code>BOOT-INF/lib</code> (dependency jars), and Boot’s launcher classes. The manifest’s <code>Main-Class</code> is the launcher, which then calls your main class (<code>Start-Class</code>).</p>', lvl: 'deep' },
     { q: 'How do you run a Boot app during development?', a: '<p>Run <code>main</code> from the IDE, or <code>./mvnw spring-boot:run</code> / <code>./gradlew bootRun</code>. <code>spring-boot-devtools</code> adds automatic restart on classpath changes.</p>', lvl: 'core' },
     { q: 'Jar or war?', a: '<p>Jar with embedded server is the default and the usual choice for containers. A war is still possible (extend <code>SpringBootServletInitializer</code>) when you must deploy into an existing servlet container.</p>', lvl: 'core' },
-    { q: 'Which web server does starter-web use, and can you change it?', a: '<p>Tomcat by default. Exclude <code>spring-boot-starter-tomcat</code> and add <code>spring-boot-starter-jetty</code> (or Undertow, where supported by your Boot version) to switch.</p>', lvl: 'deep' }
+    { q: 'Which web server does starter-web use, and can you change it?', a: '<p>Tomcat by default. Exclude <code>spring-boot-starter-tomcat</code> and add <code>spring-boot-starter-jetty</code> to switch. Boot 3 also offered Undertow. <b>Boot 4:</b> Undertow is removed (it has no Servlet 6.1 support), so the choice is Tomcat or Jetty.</p>', lvl: 'deep' }
   ],
   code: [
     { title: 'Project layout', lang: 'text', code: `demo/

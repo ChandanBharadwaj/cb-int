@@ -58,7 +58,7 @@ final class Car implements Vehicle {}
 class Truck implements Vehicle {}     // error: must be final, sealed or non-sealed`, why: 'Every listed subclass must say whether others may extend it. Without modules, they must also share a package. With modules, they must share a module.', fix: 'Use records (always final), <code>final</code>, <code>sealed … permits</code> or <code>non-sealed</code>. If all subtypes are in the same file, leave out <code>permits</code>. The compiler works it out.' },
     { trap: 'Selector types Java 21 can’t switch on', code: `long id = …;
 switch (id) { case 1L -> … }    // error in Java 21: long selector not allowed
-switch (flag) { … }              // boolean selector: also not allowed`, why: 'Java 21 allows <code>char</code>, <code>byte</code>, <code>short</code>, <code>int</code>, their wrappers, <code>String</code>, enums and reference types (with patterns). Primitive type patterns are a later preview feature, not part of 21.', fix: 'Use <code>if</code>/<code>else</code>, or convert to an enum or an int range first.' }
+switch (flag) { … }              // boolean selector: also not allowed`, why: 'Java 21 allows <code>char</code>, <code>byte</code>, <code>short</code>, <code>int</code>, their wrappers, <code>String</code>, enums and reference types (with patterns). Primitive type patterns are a later preview feature, not part of 21 and still a preview in 25 and 26.', fix: 'Use <code>if</code>/<code>else</code>, or convert to an enum or an int range first.' }
   ],
   scenarios: [
     { title: 'Voucher refunds failed with “unsupported payment”',

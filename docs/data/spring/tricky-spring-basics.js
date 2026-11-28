@@ -10,7 +10,7 @@ IA.register({
     facts: [
       { v: '30', l: "questions across all 6 Basics topics, from what Boot is to Data JPA" },
       { v: '60 s', l: 'per question by default. Slow (90 s) and Fast (30 s) modes too' },
-      { v: "Boot 3.x", l: "(Spring Framework 6, Java 17+) is the baseline; version-specific behaviour is called out" }
+      { v: "Boot 3.x", l: "(Spring Framework 6, Java 17+) is the baseline; version-specific behaviour is called out. Boot 4 keeps Java 17+" }
     ]
   },
   intro: {

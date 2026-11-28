@@ -167,7 +167,7 @@ spring:
   task:
     execution.shutdown: { await-termination: true, await-termination-period: 20s }
 management:
-  endpoint.health.probes.enabled: true     # automatic on Kubernetes
+  endpoint.health.probes.enabled: true     # automatic on Kubernetes; Boot 4: on by default everywhere
   endpoint.health.group.readiness.include: readinessState, db
 ---
 # Kubernetes container spec

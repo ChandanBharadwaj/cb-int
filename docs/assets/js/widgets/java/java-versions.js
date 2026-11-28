@@ -1,16 +1,16 @@
-/* Java 8 → 21 tour: a clickable release timeline (LTS highlighted, what became final where) and an LTS-to-LTS migration walk with the traps at each hop. */
+/* Java 8 → 25 tour: a clickable release timeline (LTS highlighted, what became final where) and an LTS-to-LTS migration walk with the traps at each hop. */
 IA.widget('java-versions', (root, ctx) => {
   const { el, svg, sleep, reduced } = ctx;
   let mode = 'timeline'; let gen = 0; let running = false; let speed = 3000; let k = 0; let steps = [];
   const seg = (opts, get, set, label) => { const s = el('div', { class: 'seg', role: 'radiogroup', 'aria-label': label });
     opts.forEach(([v, l]) => { const b = el('button', { text: l, class: v === get() ? 'on' : '' }); b.addEventListener('click', () => { set(v); [...s.children].forEach((x) => x.classList.toggle('on', x === b)); }); s.append(b); }); return s; };
-  const segM = seg([['timeline', 'timeline'], ['migrate', 'migration 8 → 21']], () => mode, (v) => { mode = v; reset(); }, 'View');
+  const segM = seg([['timeline', 'timeline'], ['migrate', 'migration 8 → 25']], () => mode, (v) => { mode = v; reset(); }, 'View');
   const bPlay = el('button', { class: 'btn primary', text: '▶ Play' });
   const bStep = el('button', { class: 'btn', text: 'Step ›' });
   const bReset = el('button', { class: 'btn', text: '↺ Reset' });
   const segS = seg([[4200, 'Slow'], [3000, 'Normal'], [1600, 'Fast']], () => speed, (v) => { speed = v; }, 'Speed');
-  const W = 760, H = 340, X0 = 34, X1 = 730, Y0 = 2014, Y1 = 2026, AY = 62;
-  const stage = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Timeline of Java releases from 8 to 25 with LTS releases highlighted, and a panel describing the selected release' });
+  const W = 760, H = 340, X0 = 34, X1 = 730, Y0 = 2014, Y1 = 2027, AY = 62;
+  const stage = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Timeline of Java releases from 8 to 27 with LTS releases highlighted, and a panel describing the selected release' });
   const narr = el('div', { class: 'caption', 'aria-live': 'polite' });
   const stats = el('div', { class: 'w-stats' });
   root.append(el('div', { class: 'w-controls' }, segM), el('div', { class: 'w-stage' }, stage),
@@ -30,12 +30,15 @@ IA.widget('java-versions', (root, ctx) => {
     { v: 17, d: 2021.7, lts: true, h: 'Java 17 (LTS) · September 2021', f: ['Sealed classes and interfaces', '--illegal-access removed: internals closed', 'RandomGenerator API; macOS/AArch64 port', 'Security Manager deprecated for removal', 'Baseline for Spring Boot 3 (jakarta.*)'] },
     { v: 18, d: 2022.2, h: 'Java 18–20 · 2022–2023', f: ['UTF-8 by default (18)', 'jwebserver; @snippet in javadoc (18)', 'Finalization deprecated for removal (18)', 'Previews: virtual threads, record patterns, switch patterns', 'Thread.stop always throws (20)'] },
     { v: 21, d: 2023.7, lts: true, h: 'Java 21 (LTS) · September 2023', f: ['Virtual threads', 'Pattern matching for switch + record patterns', 'Sequenced collections (getFirst, reversed…)', 'Generational ZGC (opt-in)', 'Previews: structured concurrency, scoped values'] },
-    { v: 25, d: 2025.7, lts: true, next: true, h: 'Java 25 (LTS) · September 2025', f: ['Next LTS after 21', '22–24 brought: FFM API, unnamed variables, stream gatherers', 'JDK 24: synchronized no longer pins virtual threads', '25: scoped values final, compact source files', '25: compact object headers as a product option'] }
+    { v: 24, d: 2025.2, h: 'Java 22–24 · 2024–2025', f: ['FFM API final (22): native calls without JNI', 'Unnamed variables and patterns: _ (22)', 'Generational ZGC is the default ZGC mode (23)', 'Stream gatherers; Class-File API (24)', 'synchronized no longer pins virtual threads (24)'] },
+    { v: 25, d: 2025.7, lts: true, h: 'Java 25 (LTS) · September 2025', f: ['The current LTS', 'Scoped values final; structured concurrency still preview', 'Flexible constructor bodies; module import declarations', 'Compact source files and instance main: void main()', 'Compact object headers (opt-in); generational Shenandoah'] },
+    { v: 27, d: 2026.7, h: 'Java 26–27 · March and September 2026', f: ['Feature releases, not LTS', '26: HTTP/3 in HttpClient; Applet API removed', '26: warnings when reflection mutates final fields', '27: G1 is the default GC in all environments', 'Still preview: structured concurrency (26), lazy constants (27)'] }
   ];
   const HOPS = [
     { from: 8, to: 11, breaks: ['javax.xml.bind / JAX-WS / CORBA removed', 'Version string "1.8.0_x" → "11.0.x"', 'Default GC Parallel → G1', 'Illegal-reflective-access warnings'], fixes: ['Add jakarta.xml.bind + jaxb-runtime jars', 'Use Runtime.version().feature()', 'Compare GC logs; pick GC explicitly', 'Upgrade libraries now, while it is a warning'] },
     { from: 11, to: 17, breaks: ['InaccessibleObjectException (JEP 396/403)', 'Old Lombok/Mockito/ByteBuddy/ASM fail', 'Nashorn gone (since 15)', 'Spring Boot 3 also needs jakarta.*'], fixes: ['Upgrade; --add-opens only as a stopgap', 'Bump build plugins with the JDK', 'GraalJS or drop server-side JS', 'OpenRewrite recipes for javax → jakarta'] },
-    { from: 17, to: 21, breaks: ['Default charset is UTF-8 (since 18)', 'Dynamic agent warnings (JEP 451)', 'Class-file version 65 for tools', 'synchronized + blocking pins virtual threads'], fixes: ['Pass charsets explicitly', 'Load Mockito/agents with -javaagent', 'Upgrade Gradle, Jacoco, Spring', 'ReentrantLock around blocking I/O'] }
+    { from: 17, to: 21, breaks: ['Default charset is UTF-8 (since 18)', 'Dynamic agent warnings (JEP 451)', 'Class-file version 65 for tools', 'synchronized + blocking pins virtual threads'], fixes: ['Pass charsets explicitly', 'Load Mockito/agents with -javaagent', 'Upgrade Gradle, Jacoco, Spring', 'ReentrantLock around blocking I/O'] },
+    { from: 21, to: 25, breaks: ['Security Manager disabled for good (24)', 'Non-generational ZGC removed (24)', 'sun.misc.Unsafe memory access warns (24)', 'Class-file version 69; 32-bit x86 port gone'], fixes: ['Remove -Djava.security.manager and policies', 'Plain -XX:+UseZGC; drop ZGenerational flags', 'Upgrade libraries; FFM API or VarHandle', 'Upgrade Gradle, ByteBuddy, Jacoco'] }
   ];
   const xOf = (d) => X0 + (d - Y0) / (Y1 - Y0) * (X1 - X0);
 
@@ -77,25 +80,25 @@ IA.widget('java-versions', (root, ctx) => {
     }
     if (mode === 'migrate' && S.done) {
       stage.append(R(16, 124, W - 32, 200, { fill: 'var(--surface-2)', stroke: 'var(--ok)', sw: 2 }));
-      ['Order that works: build tools → libraries → JDK in CI → JDK in prod → new features.', 'Scan first: jdeps --jdk-internals and jdeprscan on every jar, not just yours.', 'Set JVM flags explicitly (GC, heap %, charsets), so new defaults can’t change behavior.', 'Spring Boot 2 → 3 is its own hop: Java 17+, javax → jakarta, Hibernate 6.', 'Then adopt: records, sealed + switch patterns, virtual threads, sequenced collections.'].forEach((t, i) => stage.append(T(32, 156 + i * 34, (i + 1) + '. ' + t, { fs: 12.5 })));
+      ['Order that works: build tools → libraries → JDK in CI → JDK in prod → new features.', 'Scan first: jdeps --jdk-internals and jdeprscan on every jar, not just yours.', 'Set JVM flags explicitly (GC, heap %, charsets), so new defaults can’t change behavior.', 'Spring Boot 2 → 3 is its own hop: Java 17+, javax → jakarta, Hibernate 6.', 'Then adopt: records, switch patterns, virtual threads, scoped values, gatherers.'].forEach((t, i) => stage.append(T(32, 156 + i * 34, (i + 1) + '. ' + t, { fs: 12.5 })));
     }
     statLine();
   }
   function statLine() {
     stats.innerHTML = ''; const add = (h) => stats.append(el('span', { class: 'w-stat', html: h }));
     if (mode === 'timeline') { add(`selected <b>${S.sel == null ? '—' : 'Java ' + REL[S.sel].v}</b>`); add(`LTS <b>8 · 11 · 17 · 21 · 25</b>`); }
-    else { add(`hop <b>${S.hop == null ? '—' : (S.hop + 1) + ' / 3'}</b>`); }
+    else { add(`hop <b>${S.hop == null ? '—' : (S.hop + 1) + ' / ' + HOPS.length}</b>`); }
   }
   function plan() {
     const st = [];
     if (mode === 'timeline') {
-      REL.forEach((r, i) => st.push({ run: () => { S.sel = i; S.seen.add(i); }, t: () => (r.lts ? `<b>${r.h}</b>. LTS releases get years of updates from vendors; most teams move from one to the next.` : `<b>${r.h}</b>. A feature release: supported until the next one, six months later. Its finished features land in the next LTS.`) + (r.v === 21 ? ' This site assumes Java 21 throughout.' : '') }));
+      REL.forEach((r, i) => st.push({ run: () => { S.sel = i; S.seen.add(i); }, t: () => (r.lts ? `<b>${r.h}</b>. LTS releases get years of updates from vendors; most teams move from one to the next.` : `<b>${r.h}</b>. A feature release: supported until the next one, six months later. Its finished features land in the next LTS.`) + (r.v === 21 ? ' This site assumes Java 21 unless a page says otherwise.' : r.v === 25 ? ' This is the current LTS.' : '') }));
     } else {
       HOPS.forEach((h, i) => {
         st.push({ run: () => { S.hop = i; S.fixed = false; S.done = false; }, t: `Hop ${i + 1}: <b>Java ${h.from} → ${h.to}</b>. These are the things that typically break. Step again for the fixes.` });
         st.push({ run: () => { S.fixed = true; }, t: `Fixes for Java ${h.from} → ${h.to}. Most are library and build upgrades rather than code changes.` });
       });
-      st.push({ run: () => { S.hop = null; S.done = true; }, t: 'The playbook. You can jump straight from 8 to 21. But you pay for every hop’s traps at once, so scan for all of them first.' });
+      st.push({ run: () => { S.hop = null; S.done = true; }, t: 'The playbook. You can jump straight from 8 to 25. But you pay for every hop’s traps at once, so scan for all of them first.' });
     }
     return st;
   }
@@ -107,7 +110,7 @@ IA.widget('java-versions', (root, ctx) => {
     gen++; running = false; bPlay.textContent = '▶ Play'; k = 0;
     S = { sel: null, seen: new Set(), hop: null, fixed: false, done: false };
     steps = plan(); render(); bStep.disabled = false;
-    say(mode === 'timeline' ? 'Press Play or Step to walk the releases, or click any dot.' : 'Three LTS hops from Java 8 to 21. Press Play or Step.');
+    say(mode === 'timeline' ? 'Press Play or Step to walk the releases, or click any dot.' : 'Four LTS hops from Java 8 to 25. Press Play or Step.');
   }
   function step() {
     if (k >= steps.length) return false; const s = steps[k++]; s.run(); render(); say(typeof s.t === 'function' ? s.t() : s.t);

@@ -179,7 +179,7 @@ class TimingAspect {
     catch (Throwable t) { outcome = t.getClass().getSimpleName(); throw t; }
     finally { sample.stop(registry.timer(timed.value(), "outcome", outcome)); }
   }
-}`, note: 'Needs <code>spring-boot-starter-aop</code> on Boot 3.x (it brings AspectJ’s <code>aspectjweaver</code>).' },
+}`, note: 'Needs <code>spring-boot-starter-aop</code> on Boot 3.x (it brings AspectJ’s <code>aspectjweaver</code>). Boot 4: the starter is renamed <code>spring-boot-starter-aspectj</code>.' },
     { title: 'Escaping self-invocation without a new class', lang: 'java', code: `@Service
 class ImportService {
   private final TransactionTemplate requiresNew;
