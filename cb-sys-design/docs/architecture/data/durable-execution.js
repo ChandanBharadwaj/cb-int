@@ -187,7 +187,7 @@
         { from: 'hist', to: 'tq' },
         { from: 'timer', to: 'tq' },
         { from: 'tq', to: 'wf', bidi: true },
-        { from: 'wf', to: 'hist', dashed: true, label: 'commands' },
+        { from: 'wf', to: 'hist', dashed: true },
         { from: 'tq', to: 'act', bidi: true },
         { from: 'act', to: 'db' },
         { from: 'act', to: 'ext' }

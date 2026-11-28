@@ -364,7 +364,7 @@
         { title: 'Can I Deploy', url: 'https://docs.pact.io/pact_broker/can_i_deploy', pub: 'Pact documentation' },
         { title: 'Recording deployments and releases', url: 'https://docs.pact.io/record-release', pub: 'Pact documentation' },
         { title: 'Simplifying Developer Testing Through SLATE', url: 'https://www.uber.com/blog/simplifying-developer-testing-through-slate', pub: 'Uber Engineering' },
-        { title: 'Lyft adopts request isolation for testing in staging', url: 'https://www.infoq.com/news/2022/03/scaling-testing-acceptance-lyft/', pub: 'InfoQ, March 2022 (reporting Lyft Engineering)' },
+        { title: 'InfoQ report on Lyft\'s staging overrides and acceptance testing', url: 'https://www.infoq.com/news/2022/03/scaling-testing-acceptance-lyft/', pub: 'InfoQ, March 2022 (reporting Lyft Engineering)' },
         { title: 'Getting started with Testcontainers', url: 'https://testcontainers.com/getting-started/', pub: 'Testcontainers' },
         { title: 'Fixing a Test Hourglass', url: 'https://testing.googleblog.com/2020/11/fixing-test-hourglass.html', pub: 'Google Testing Blog, November 2020' },
         { title: 'Testing in Production, the safe way', url: 'https://copyconstruct.medium.com/testing-in-production-the-safe-way-18ca102d0ef1', pub: 'Cindy Sridharan, March 2018' },
